@@ -6,8 +6,6 @@
     @dolist lattr( %!/ufunc.* )=@function/preserve [rest( ##, . )]= %!/##; 
     @dolist lattr( %!/ufunc/privileged.* )=@function/preserve/privileged [rest( ##, . )]=%!/##
 
-
-
 &ufunc.wheader [v(d.gfo)] = [center(%b%0%b, width(%#), = )]
 &ufunc.wfooter [v(d.gfo)] = 
     [if(
@@ -23,18 +21,17 @@
 ===============================================================================
 ====== @nameformat ============================================================
 */
-@nameformat #14= 
+@nameformat #11= 
     [wheader(
         %ch[if(not(hasflag(%!, IC )), %(OOC Area%)%b)]
-        [name(%!)]
-        [if( not(strmatch(zone(%!), #-1)), %b-%b%cm[name(zone(%!))])]%cn
+        [first(name(%!),-)][if(orflags(%#, wWZ), %(%![flags(%!)]%)  )]
+        //[if( not(strmatch(zone(%!), #-1)), %b-%b%cm[after(name(zone(%!)),-)])]%cn
     )]
-
 /*
 ===============================================================================
 ====== @conformat  ============================================================
 */
-@conformat #14=    
+@conformat #11=    
     [if(
         or( not(hasflag(%!, dark)), orflags(%#,wWZ) ),
         [wdivider(%chCharacters%cn)]
@@ -60,39 +57,57 @@
     )]
     [if(
         not(words(lexits(%!))),
-        %r[wfooter()]
-
-    
+        %r[wfooter()]    
     )]
 
 /*
 ===============================================================================
 ====== @descformat ============================================================
 */
-@descformat #14= %r%0%r
+@descformat #11= %r%0%r
 
 /*
 ===============================================================================
 ====== @exitformat ============================================================
 */
-@exitformat #14= 
+@exitformat #11= 
     [if(words(
         setr(0,iter(
                 lexits(%!),
-                if(hasflag(##, dark),
-                    if(orflags(%#,wWZ), u(.fullname, ##) ),
-                    u(.fullname, ##)   
+                
+                if(
+                    not(hasattr(##, street)),
+                    if(hasflag(##, dark),
+                        if(orflags(%#,wWZ), u(.fullname, ##) ),
+                        u(.fullname, ##)   
+                    )   
                 ),,|
             )),|
     ), 
         [wdivider(%chExits%cn)]%r
-        [table(squish(%q0), sub(div(width(%#),2),1), sub(width(%#),1),|)]
+        [table(trim(squish(%q0),,|), sub(div(width(%#),2),1), sub(width(%#),1),|)]
     )]
-    
-    %r[wfooter()]
+    [if(
+        words(
+            setr(1,iter(
+                lexits(%!),
+                
+                if(
+                    hasattr(##, street),
+                    if(hasflag(##, dark),
+                        if(orflags(%#,wWZ), u(.fullname, ##) ),
+                        u(.fullname, ##)   
+                    )   
+                ),,|
+            )),|
+       ), 
+        %r[wdivider(%chDirections%cn)]%r
+        [table(trim(squish(%q1,|),,|), sub(div(width(%#),2),1), sub(width(%#),1),|)]
+    )]
+    [wfooter()]
 
 
-&.fullname #14=
+&.fullname #11=
     [if(not(hasflag(%0, dark)),
         [if(words( after( fullname(%0), ; ), ; ),
             <%ch[ucstr(first(after(fullname(%0),;), ;)) ]%cn>%b
@@ -107,3 +122,4 @@
 @Create Global Player Parent <GPO>
 @set gpo = safe
 
+@descformat #96= [default([loc(me)]/exterior,%0)]

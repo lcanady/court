@@ -357,3 +357,139 @@
     @assert orflags(%#, wW) = {
         @pemit %#= You do not have permission to tear down the dungeon.
     };
+
+/*
+
+Dungeon Master
+
+This is code that covers the dungeon master system.  Which is responsible
+for creating mission grids, assigning missions, handling parties, etc.
+
+It will also cover the active salving system that takes place while clearing
+a dungeon.
+
+
+This will be handled through a time based function that checks a mysql database
+for current build requests given by a player.  It will then build the dungeon
+and assign it to the player.
+
++run - 'Run' for supplies and salvage.  This will trigger the dungeon master
+to generate a new dungeon for the player to clear.  This will also trigger the
+dungeon master to generate a new mission grid for the player to clear.
+
++recruit <name> - Add players to your run.  This will mark them as being part of a run
+for the week.  This will also add them to the party list for the dungeon.
+
++party - List the players in your party.
+
+*/
+
+think creating SQL table %chdungeons%cn...
+think sql(
+        CREATE TABLE IF NOT EXISTS dungeons (
+            id INT NOT NULL AUTO_INCREMENT PRIMARY KEY%,
+            type VARCHAR(255) NOT NULL%,
+            owner VARCHAR(255) NOT NULL%,
+            start VARCHAR(255) NOT NULL%,
+            code VARCHAR(255) NOT NULL%,
+            fufilled INT NOT NULL
+
+        );
+    )
+
+
+&data.types.dungeon gco =   
+    grid|
+    street|
+    pharmacy|
+    school|
+    warehouse|
+    hospital    
+
+&fn.query.insert.dungeon gfo = 
+    sql(
+
+        INSERT INTO dungeons (
+            type%, 
+            owner%, 
+            start%, 
+            code%,
+            fufilled
+        ) VALUES (
+            '%0'%, 
+            '%1'%, 
+            '%2'%, 
+            '%3'%,
+            '%4'
+        );
+
+    )
+
+
+&fn.query.select.dungeon gfo =
+    sql(
+        select * from dungeons 
+        where code = '%0' and fufilled = 0;
+    )
+
+
+&cmd.+gemerate gco = $^[\+@]?generate(\s(.*))?:
+
+    @assert orflags(%#, wW) = {
+        @pemit %#= You do not have permission to generate a dungeon.
+    };
+
+    @assert sql(select 1) = {
+        @pemit %#= Error connecting to database.
+    };
+
+    @assert not(hasattr(%#, _generating)) = {
+        @pemit %#= You are already generating a dungeon. 
+            Type %ch+dungeon/status%cn to check the status.
+    };
+
+    [u(%va/fn.query.insert.dungeon, %1, %#, [loc(%#)], [setr(0,pack(secs()))] ,0)];
+    @assert words(u(%va/fn.query.select.dungeon, %q0))  = {
+        @pemit %#= Error creating dungeon.
+    };
+
+    &_generating %#= %q0;
+    @pemit %#= Dungeon queued. Code: %ch[ucstr(%q0)]%cn
+
+@set gco/cmd.+gemerate = reg
+
+
+&cmd.+dungeon/status gco = $^[\+@]?dungeon\/status:
+    @assert orflags(%#, wW) = {
+        @pemit %#= You do not have permission to check the status of a dungeon.
+    };
+
+    @assert sql(select 1) = {
+        @pemit %#= Error connecting to database.
+    };
+
+    @assert hasattr(%#, _generating) = {
+        @pemit %#= You are not currently generating a dungeon.
+    };
+
+    [setq(0, u(%va/fn.query.select.dungeon, get(%#/_generating)))]
+    [setq(1, extract(%q0, 1, 1))]
+    [setq(2, extract(%q0, 2, 1))]
+    [setq(3, extract(%q0, 3, 1))]
+    [setq(4, extract(%q0, 4, 1))]
+    [setq(5, extract(%q0, 5, 1))]
+    [setq(6, extract(%q0, 6, 1))];
+
+    @assert words(%q0) = {
+        @pemit %#= Error checking dungeon status.
+    };
+
+  @pemit %#= Status for dungeon %ch[ucstr(%q5)]%cn is %ch
+        [switch(1,
+            eq(%q6, 0), %(queued%),
+            eq(%q6, 1), %(building%),
+            eq(%q6, 2), %(complete%)
+        )]%cn.;
+
+@set gco/cmd.+dungeon/status = reg
+
