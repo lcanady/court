@@ -1,5 +1,5 @@
 #!/bin/bash
-# Run script for cor
+# Run script for court
 
 cd "$(dirname "$0")/.." || exit
 
@@ -20,26 +20,11 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 echo "Starting main server in watch mode..."
-deno run --allow-all --unstable-detect-cjs --unstable-kv --unstable-net --watch src/main.ts &
+deno run --allow-all --node-modules-dir=auto --unstable-detect-cjs --unstable-kv --unstable-net --watch src/main.ts &
 MAIN_PID=$!
 
-# Local game telnet entry or monorepo fallback
-if [ -f "./src/telnet.ts" ]; then
-  TELNET_ENTRY="./src/telnet.ts"
-else
-  TELNET_ENTRY="jsr:@ursamu/ursamu/telnet"
-  probe="$(pwd)"
-  while [ "$probe" != "/" ]; do
-    if [ -f "$probe/mod.ts" ] && [ -f "$probe/packages/mush/src/telnet.ts" ]; then
-      TELNET_ENTRY="$probe/packages/mush/src/telnet.ts"
-      break
-    fi
-    probe="$(dirname "$probe")"
-  done
-fi
-
 echo "Starting telnet server..."
-deno run --allow-all --unstable-detect-cjs --unstable-kv --unstable-net "$TELNET_ENTRY" &
+deno run --allow-all --node-modules-dir=auto --unstable-detect-cjs --unstable-kv --unstable-net src/telnet.ts &
 TELNET_PID=$!
 
 echo "Servers are running. Press Ctrl+C to stop."
