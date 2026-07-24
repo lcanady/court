@@ -21,6 +21,11 @@ fi
 
 mkdir -p "$LOG_DIR"
 
+# Start telnet proxy first — it stays up persistently across main server restarts.
+TELNET_LOG="$LOG_DIR/telnet.log"
+nohup deno run --minimum-dependency-age=0 --allow-all --node-modules-dir=auto --unstable-detect-cjs --unstable-kv --unstable-net src/telnet.ts >> "$TELNET_LOG" 2>&1 &
+TELNET_PID=$!
+
 # Start main server via the restart loop.
 # Exit code 75 (@reboot / @update) restarts automatically.
 # Exit code 0 (@shutdown) and crashes stop the loop.
@@ -29,7 +34,7 @@ MAIN_LOG="$MAIN_LOG" nohup bash "$(dirname "$0")/main-loop.sh" >> /dev/null 2>&1
 MAIN_PID=$!
 
 # Save PIDs
-printf "MAIN_PID=%s\n" "$MAIN_PID" > "$PID_FILE"
+printf "MAIN_PID=%s\nTELNET_PID=%s\n" "$MAIN_PID" "$TELNET_PID" > "$PID_FILE"
 
 # Read ports from config if available, otherwise use defaults
 HTTP_PORT=${URSAMU_HTTP_PORT:-4203}
