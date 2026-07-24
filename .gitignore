@@ -2,6 +2,8 @@
 .vscode/.deno/
 .env
 data/*.db
+data/*.db-wal
+data/*.db-shm
 config/config.json
 node_modules/
 run/
