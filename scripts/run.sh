@@ -20,11 +20,11 @@ cleanup() {
 trap cleanup SIGINT SIGTERM
 
 echo "Starting main server in watch mode..."
-deno run --allow-all --node-modules-dir=auto --unstable-detect-cjs --unstable-kv --unstable-net --watch src/main.ts &
+deno run --minimum-dependency-age=0 --allow-all --node-modules-dir=auto --unstable-detect-cjs --unstable-kv --unstable-net --watch src/main.ts &
 MAIN_PID=$!
 
 echo "Starting telnet server..."
-deno run --allow-all --node-modules-dir=auto --unstable-detect-cjs --unstable-kv --unstable-net src/telnet.ts &
+deno run --minimum-dependency-age=0 --allow-all --node-modules-dir=auto --unstable-detect-cjs --unstable-kv --unstable-net src/telnet.ts &
 TELNET_PID=$!
 
 echo "Servers are running. Press Ctrl+C to stop."

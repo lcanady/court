@@ -1,27 +1,34 @@
 #!/bin/bash
-# Stop the supervisor (and with it, main + telnet). Disconnects all telnet
-# clients. For a no-disconnect restart, use scripts/restart.sh or @reboot.
-cd "$(dirname "$0")/.."
+# Stop background UrsaMU processes.
 
-pidfile="run/supervisor.pid"
-if [ ! -f "$pidfile" ]; then
-  echo "Nothing to stop."
+cd "$(dirname "$0")/.." || exit 1
+
+PID_FILE=".ursamu.pid"
+
+if [ ! -f "$PID_FILE" ]; then
+  echo "UrsaMU is not running (no PID file found)."
   exit 0
 fi
 
-pid=$(cat "$pidfile")
-if kill -0 "$pid" 2>/dev/null; then
-  echo "Stopping supervisor (pid $pid)..."
-  kill "$pid" 2>/dev/null || true
-  for _ in 1 2 3 4 5 6 7 8 9 10; do
-    kill -0 "$pid" 2>/dev/null || break
-    sleep 0.5
-  done
-  kill -0 "$pid" 2>/dev/null && kill -9 "$pid" 2>/dev/null || true
-fi
-rm -f "$pidfile"
+# shellcheck disable=SC1090
+source "$PID_FILE"
 
-for port in 4201 4202 4203; do
-  pids=$(lsof -ti ":$port" 2>/dev/null || true)
-  [ -n "$pids" ] && echo "$pids" | xargs kill -9 2>/dev/null || true
-done
+DENO_PID_FILE=".ursamu-deno.pid"
+
+echo "Stopping UrsaMU..."
+if [ -n "$MAIN_PID" ]; then
+  # Killing the loop sends SIGTERM → main-loop.sh forwards it to the deno child.
+  kill "$MAIN_PID" 2>/dev/null && echo "  Stopped main loop      (PID: $MAIN_PID)" || echo "  Main loop already stopped."
+fi
+# Belt-and-suspenders: also kill the deno process directly if the pid file exists.
+if [ -f "$DENO_PID_FILE" ]; then
+  DENO_PID="$(cat "$DENO_PID_FILE")"
+  kill "$DENO_PID" 2>/dev/null && echo "  Stopped deno server    (PID: $DENO_PID)" || true
+  rm -f "$DENO_PID_FILE"
+fi
+if [ -n "$TELNET_PID" ]; then
+  kill "$TELNET_PID" 2>/dev/null && echo "  Stopped telnet server  (PID: $TELNET_PID)" || echo "  Telnet server already stopped."
+fi
+
+rm -f "$PID_FILE"
+echo "Done."

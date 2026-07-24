@@ -1,25 +1,26 @@
 #!/bin/bash
-# Report supervisor status and port bindings.
-cd "$(dirname "$0")/.."
+# Show running state of UrsaMU background processes.
 
-pidfile="run/supervisor.pid"
-if [ ! -f "$pidfile" ]; then
-  echo "supervisor  not running"
-else
-  pid=$(cat "$pidfile")
-  if kill -0 "$pid" 2>/dev/null; then
-    echo "supervisor  running (pid $pid)"
-  else
-    echo "supervisor  stale pidfile (pid $pid, no process)"
-  fi
+cd "$(dirname "$0")/.." || exit 1
+
+PID_FILE=".ursamu.pid"
+
+if [ ! -f "$PID_FILE" ]; then
+  echo "UrsaMU: stopped (no PID file)."
+  exit 1
 fi
 
-for port in 4201:telnet 4202:ws 4203:http; do
-  p=${port%:*}; label=${port#*:}
-  bound=$(lsof -ti ":$p" 2>/dev/null || true)
-  if [ -n "$bound" ]; then
-    printf "%-11s bound on :%s (pid %s)\n" "$label" "$p" "$bound"
-  else
-    printf "%-11s :%s free\n" "$label" "$p"
-  fi
-done
+# shellcheck disable=SC1090
+source "$PID_FILE"
+
+echo "UrsaMU status:"
+if kill -0 "$MAIN_PID" 2>/dev/null; then
+  echo "  Main server   : running  (PID: $MAIN_PID)"
+else
+  echo "  Main server   : stopped"
+fi
+if kill -0 "$TELNET_PID" 2>/dev/null; then
+  echo "  Telnet server : running  (PID: $TELNET_PID)"
+else
+  echo "  Telnet server : stopped"
+fi

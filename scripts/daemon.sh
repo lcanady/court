@@ -1,50 +1,50 @@
 #!/bin/bash
-# Start the UrsaMU supervisor (start.ts) in the background. The supervisor
-# spawns the telnet sidecar and the main server, and re-spawns main on
-# exit code 75 — so in-game @reboot just works. SIGUSR2 also triggers a
-# no-disconnect restart (scripts/restart.sh).
-set -e
-cd "$(dirname "$0")/.."
+# Start UrsaMU in the background with logging and PID tracking.
 
-mkdir -p run logs
+cd "$(dirname "$0")/.." || exit 1
 
-if [ -f run/supervisor.pid ] && kill -0 "$(cat run/supervisor.pid)" 2>/dev/null; then
-  echo "supervisor already running (pid $(cat run/supervisor.pid))"
-  exit 1
+PID_FILE=".ursamu.pid"
+LOG_DIR="logs"
+MAIN_LOG="$LOG_DIR/main.log"
+TELNET_LOG="$LOG_DIR/telnet.log"
+
+# Check if already running
+if [ -f "$PID_FILE" ]; then
+  # shellcheck disable=SC1090
+  source "$PID_FILE"
+  if kill -0 "$MAIN_PID" 2>/dev/null || kill -0 "$TELNET_PID" 2>/dev/null; then
+    echo "UrsaMU is already running (main: $MAIN_PID, telnet: $TELNET_PID)"
+    echo "Run 'deno task stop' first."
+    exit 1
+  fi
 fi
 
-for port in 4201 4202 4203; do
-  pids=$(lsof -ti ":$port" 2>/dev/null || true)
-  [ -n "$pids" ] && echo "$pids" | xargs kill -9 2>/dev/null || true
-done
+mkdir -p "$LOG_DIR"
 
-# Remove stale PGlite lock file left by hard kills or crash loops.
-# PGlite writes postmaster.pid with PID -42 (not a real OS process),
-# so it is always safe to remove when no server is running.
-PGDATA="data/typegraph.db"
-[ -f "$PGDATA/postmaster.pid" ] && rm -f "$PGDATA/postmaster.pid" && \
-  echo "Removed stale PGlite lock ($PGDATA/postmaster.pid)." || true
+# Start telnet first — it stays up across main restarts.
+nohup deno run --minimum-dependency-age=0 --allow-all --unstable-detect-cjs --unstable-kv --unstable-net src/telnet.ts >> "$TELNET_LOG" 2>&1 &
+TELNET_PID=$!
 
-DENO_FLAGS="--allow-all --unstable-detect-cjs --unstable-kv --unstable-net"
+# Start main server via the restart loop.
+# Exit code 75 (@reboot / @update) restarts automatically.
+# Exit code 0 (@shutdown) and crashes stop the loop.
+chmod +x "$(dirname "$0")/main-loop.sh"
+MAIN_LOG="$MAIN_LOG" nohup bash "$(dirname "$0")/main-loop.sh" >> /dev/null 2>&1 &
+MAIN_PID=$!
 
-# Local-link projects (`ursamu create --local`) have the engine checkout
-# somewhere above this directory; walk upward looking for mod.ts + start.ts.
-# Falls back to JSR when no engine checkout is found.
-ENTRY="jsr:@ursamu/ursamu/start"
-probe="$(pwd)"
-while [ "$probe" != "/" ]; do
-  if [ -f "$probe/mod.ts" ] && [ -f "$probe/packages/cli/src/start.ts" ]; then
-    ENTRY="$probe/packages/cli/src/start.ts"
-    break
-  fi
-  probe="$(dirname "$probe")"
-done
+# Save PIDs
+printf "MAIN_PID=%s\nTELNET_PID=%s\n" "$MAIN_PID" "$TELNET_PID" > "$PID_FILE"
 
-echo "Starting UrsaMU supervisor ($ENTRY)..."
-nohup deno run $DENO_FLAGS "$ENTRY" >>logs/main.log 2>&1 &
-echo $! > run/supervisor.pid
+# Read ports from config if available, otherwise use defaults
+HTTP_PORT=${URSAMU_HTTP_PORT:-4203}
+TELNET_PORT=${URSAMU_TELNET_PORT:-4201}
 
-sleep 1
-echo "supervisor pid: $(cat run/supervisor.pid)"
-echo "logs:           logs/main.log"
-echo "@reboot in-game (or scripts/restart.sh) respawns main without dropping telnet."
+echo ""
+echo "UrsaMU started."
+echo "  Telnet  : port $TELNET_PORT  (PID: $TELNET_PID)  log: $TELNET_LOG"
+echo "  HTTP/WS : port $HTTP_PORT  (PID: $MAIN_PID)  log: $MAIN_LOG"
+echo ""
+echo "  deno task stop    — stop all servers"
+echo "  deno task restart — stop + start"
+echo "  deno task status  — check running state"
+echo "  deno task logs    — follow logs"
