@@ -21,10 +21,6 @@ fi
 
 mkdir -p "$LOG_DIR"
 
-# Start telnet first — it stays up across main restarts.
-nohup deno run --minimum-dependency-age=0 --allow-all --unstable-detect-cjs --unstable-kv --unstable-net src/telnet.ts >> "$TELNET_LOG" 2>&1 &
-TELNET_PID=$!
-
 # Start main server via the restart loop.
 # Exit code 75 (@reboot / @update) restarts automatically.
 # Exit code 0 (@shutdown) and crashes stop the loop.
@@ -33,16 +29,18 @@ MAIN_LOG="$MAIN_LOG" nohup bash "$(dirname "$0")/main-loop.sh" >> /dev/null 2>&1
 MAIN_PID=$!
 
 # Save PIDs
-printf "MAIN_PID=%s\nTELNET_PID=%s\n" "$MAIN_PID" "$TELNET_PID" > "$PID_FILE"
+printf "MAIN_PID=%s\n" "$MAIN_PID" > "$PID_FILE"
 
 # Read ports from config if available, otherwise use defaults
 HTTP_PORT=${URSAMU_HTTP_PORT:-4203}
+WS_PORT=${URSAMU_WS_PORT:-4202}
 TELNET_PORT=${URSAMU_TELNET_PORT:-4201}
 
 echo ""
-echo "UrsaMU started."
-echo "  Telnet  : port $TELNET_PORT  (PID: $TELNET_PID)  log: $TELNET_LOG"
-echo "  HTTP/WS : port $HTTP_PORT  (PID: $MAIN_PID)  log: $MAIN_LOG"
+echo "UrsaMU daemon started."
+echo "  Telnet  : port $TELNET_PORT"
+echo "  WS      : port $WS_PORT"
+echo "  HTTP    : port $HTTP_PORT  (PID: $MAIN_PID)  log: $MAIN_LOG"
 echo ""
 echo "  deno task stop    — stop all servers"
 echo "  deno task restart — stop + start"
