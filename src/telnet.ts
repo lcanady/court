@@ -1,4 +1,4 @@
-import { startTelnetServer } from "ursamu";
+import { startTelnetServer } from "@ursamu/mush";
 
 startTelnetServer();
 

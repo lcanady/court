@@ -1,6 +1,5 @@
 // Main entry point for court
-import { mu } from "@ursamu/ursamu";
-import { applyLayoutFromConfig } from "@ursamu/mush";
+import { mu, applyLayoutFromConfig } from "@ursamu/mush";
 import { getConfig } from "@ursamu/core";
 
 const game = await mu(undefined, undefined, {
