@@ -21,11 +21,11 @@
     ]
   },
   "imports": {
-    "ursamu": "jsr:@ursamu/mush@0.1.7",
-    "ursamu/": "jsr:@ursamu/mush@0.1.7/",
-    "@ursamu/mush": "jsr:@ursamu/mush@0.1.7",
+    "ursamu": "jsr:@ursamu/mush@0.1.8",
+    "ursamu/": "jsr:@ursamu/mush@0.1.8/",
+    "@ursamu/mush": "jsr:@ursamu/mush@0.1.8",
     "@ursamu/core": "jsr:@ursamu/core@^0.1.3",
-    "@ursamu/ursamu": "jsr:@ursamu/mush@0.1.7",
+    "@ursamu/ursamu": "jsr:@ursamu/mush@0.1.8",
     "@ursamu/ursamu/app": "jsr:@ursamu/mush/app",
     "@ursamu/ursamu/channels": "jsr:@ursamu/channels",
     "@ursamu/ursamu/jobs": "jsr:@ursamu/jobs",
