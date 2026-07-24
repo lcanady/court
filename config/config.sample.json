@@ -1,7 +1,9 @@
 {
   "server": {
     "telnet": 4201,
-    "http": 4202,
+    "wsPort": 4202,
+    "port": 4203,
+    "http": 4203,
     "apiPort": 4203,
     "db": "data/ursamu.db",
     "plugins": [
