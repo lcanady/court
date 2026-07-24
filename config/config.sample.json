@@ -1,0 +1,48 @@
+{
+  "server": {
+    "telnet": 4201,
+    "http": 4202,
+    "apiPort": 4203,
+    "db": "data/ursamu.db",
+    "plugins": [
+      "@ursamu/builder",
+      "@ursamu/channels",
+      "@ursamu/help",
+      "@ursamu/bbs",
+      "@ursamu/mail",
+      "@ursamu/wiki",
+      "@ursamu/jobs",
+      "@ursamu/cofd-plugin"
+    ]
+  },
+  "game": {
+    "name": "cor",
+    "description": "A custom UrsaMU game",
+    "version": "0.0.1",
+    "playerStart": "1",
+    "text": {
+      "connect": "text/default_connect.txt"
+    },
+    "layout": {
+      "header":  "[center(%ch%cy%0%cn,%1,%cg=%cn)]",
+      "divider": "[center(%ch%cy%0%cn,%1,%cg-%cn)]",
+      "footer":  "[repeat(%cg=%cn,%1)]"
+    }
+  },
+  "plugins": {
+    "channels": {
+      "defaults": [
+        {
+          "name": "Public",
+          "alias": "pub",
+          "lock": "connected"
+        },
+        {
+          "name": "Admin",
+          "alias": "ad",
+          "lock": "connected admin+"
+        }
+      ]
+    }
+  }
+}

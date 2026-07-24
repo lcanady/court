@@ -1,0 +1,8 @@
+.deno/
+.vscode/.deno/
+.env
+data/*.db
+config/config.json
+node_modules/
+run/
+logs/
