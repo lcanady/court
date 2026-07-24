@@ -14,6 +14,8 @@
     "jsr:@zaubrik/djwt@^3.0.2": "3.0.2",
     "npm:@deno/sandbox@0.10.0": "0.10.0",
     "npm:@digibear/tags@1.0.0": "1.0.0",
+    "npm:@electric-sql/pglite@~0.5.2": "0.5.4",
+    "npm:@nicia-ai/typegraph@0.31": "0.31.0_@electric-sql+pglite@0.5.4_drizzle-orm@0.45.2__@electric-sql+pglite@0.5.4_zod@4.4.3",
     "npm:@ursamu/parser@1.2.4": "1.2.4",
     "npm:bcryptjs@2.4.3": "2.4.3",
     "npm:lodash@4.17.21": "4.17.21",
@@ -102,6 +104,9 @@
     "@digibear/tags@1.0.0": {
       "integrity": "sha512-WyNr8pR6B0NlN1mA6PD9JYSwvT5RoYKu1w3w6Q327qA9cqTZlhdBxlywXMTiHmDzVs4b90RmgCCwy+sxpobNSQ=="
     },
+    "@electric-sql/pglite@0.5.4": {
+      "integrity": "sha512-yYZUyyXrHU7tPlCjwZQJ6hIG9DscdCCn7Uk0mYKwC1FeHX286AbcmFveMiRBEak8e9iPupjsoVImN3yJZVed2g=="
+    },
     "@isaacs/cliui@8.0.2": {
       "integrity": "sha512-O8jcjabXaleOG9DQ0+ARXWZBTfnP4WNAqzuiJK7ll44AmxGKv/J2M4TPjxjY3znBCfvBXFzucm1twdyFybFqEA==",
       "dependencies": [
@@ -158,6 +163,18 @@
       "dependencies": [
         "@jridgewell/resolve-uri",
         "@jridgewell/sourcemap-codec"
+      ]
+    },
+    "@nicia-ai/typegraph@0.31.0_@electric-sql+pglite@0.5.4_drizzle-orm@0.45.2__@electric-sql+pglite@0.5.4_zod@4.4.3": {
+      "integrity": "sha512-BvfFHiBBlDwuNELkhlyqzkVmFl3dHsxSV3SXiexsCe6IIvOL0edAdKtWB4GTSs4o8amVLNOpRm5gw6csEcZ+fA==",
+      "dependencies": [
+        "@electric-sql/pglite",
+        "drizzle-orm",
+        "nanoid",
+        "zod"
+      ],
+      "optionalPeers": [
+        "@electric-sql/pglite"
       ]
     },
     "@pkgjs/parseargs@0.11.0": {
@@ -217,6 +234,15 @@
         "path-key",
         "shebang-command",
         "which@2.0.2"
+      ]
+    },
+    "drizzle-orm@0.45.2_@electric-sql+pglite@0.5.4": {
+      "integrity": "sha512-kY0BSaTNYWnoDMVoyY8uxmyHjpJW1geOmBMdSSicKo9CIIWkSxMIj2rkeSR51b8KAPB7m+qysjuHme5nKP+E5Q==",
+      "dependencies": [
+        "@electric-sql/pglite"
+      ],
+      "optionalPeers": [
+        "@electric-sql/pglite"
       ]
     },
     "eastasianwidth@0.2.0": {
@@ -294,6 +320,10 @@
         "object-assign",
         "thenify-all"
       ]
+    },
+    "nanoid@5.1.16": {
+      "integrity": "sha512-kVrnsrJqMR8+oLJnGEmSWw9BivK5mt7H3FZatVRjrc5wGqFYuBxX1yG7+A7Gi5AefkX6t/oCkizcQgpu0cY1dQ==",
+      "bin": true
     },
     "object-assign@4.1.1": {
       "integrity": "sha512-rJgTQnkUnH1sFw8yT6VSU3zD3sWmu6sZhIseY8VX+GRu3P6F7Fu+JNDoXfklElbLJSnc3FUQHVe4cU5hj+BcUg=="
@@ -466,6 +496,8 @@
       "jsr:@ursamu/wiki@*",
       "jsr:@zaubrik/djwt@^3.0.2",
       "npm:@digibear/tags@1.0.0",
+      "npm:@electric-sql/pglite@~0.5.2",
+      "npm:@nicia-ai/typegraph@0.31",
       "npm:@ursamu/parser@1.2.4",
       "npm:bcryptjs@2.4.3",
       "npm:lodash@^4.18.1",
