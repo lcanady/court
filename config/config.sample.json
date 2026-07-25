@@ -49,6 +49,41 @@
           "lock": "connected admin+"
         }
       ]
+    },
+    "globals": {
+      "theme": {
+        "look": {
+          "showShortDesc": true,
+          "showIdle": true,
+          "categorizeExits": true,
+          "showExitAliases": true,
+          "aliasCase": "preserve",
+          "exitColumns": 2,
+          "descIndent": 2,
+          "roleTags": [
+            {
+              "flag": "wizard",
+              "display": "(Wizard)"
+            },
+            {
+              "flag": "superuser",
+              "display": "(Root)"
+            },
+            {
+              "flag": "admin",
+              "display": "(Admin)"
+            },
+            {
+              "flag": "staff",
+              "display": "(Staff)"
+            },
+            {
+              "flag": "builder",
+              "display": "(Builder)"
+            }
+          ]
+        }
+      }
     }
   }
 }
