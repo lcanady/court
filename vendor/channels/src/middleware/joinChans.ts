@@ -92,7 +92,12 @@ export async function joinChans(
           dirty = true;
         }
         if (existing.active !== false) {
+          // Join by name and id so Discord inject can find listeners
+          // regardless of which key it broadcasts on.
           rooms.join(socketId, channel.name);
+          if (channel.id !== channel.name) {
+            rooms.join(socketId, channel.id);
+          }
         }
       } else {
         // Missing from list — auto-join (defaults and any open channel).
@@ -104,6 +109,9 @@ export async function joinChans(
         });
         dirty = true;
         rooms.join(socketId, channel.name);
+        if (channel.id !== channel.name) {
+          rooms.join(socketId, channel.id);
+        }
         send(
           [socketId],
           `You have joined ${channel.name} ` +

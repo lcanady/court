@@ -514,8 +514,16 @@ async function onMessageCreate(token: string, msg: any): Promise<void> {
   if (isSceneMsg) return;
 
   const gameChan = await gameChannelForDiscord(channelId);
-  console.log(`[discord] Resolved Discord channel ${channelId} -> Game channel "${gameChan || "(none)"}"`);
-  if (!gameChan) return;
+  if (!gameChan) {
+    console.log(
+      `[discord] No game link for Discord channel ${channelId}`,
+    );
+    return;
+  }
+  console.log(
+    `[discord] ${channelId} → game "${gameChan}" ` +
+      `from ${msg.author?.username}: ${content.slice(0, 80)}`,
+  );
   
   // Append URLs of any attachments (images, videos, files)
   if (Array.isArray(msg.attachments) && msg.attachments.length > 0) {
