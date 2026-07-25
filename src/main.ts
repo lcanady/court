@@ -4,6 +4,10 @@ import { getConfig } from "@ursamu/core";
 
 const game = await mu(undefined, undefined, {
   pluginsDir: "",
+  // @ursamu/channels seeds plugins.channels.defaults on engine:ready.
+  // Disable mush built-in seed to avoid duplicate Public (pub vs public)
+  // and bare admin+ locks that block staff auto-join.
+  autoCreateDefaultChannels: false,
 });
 
 // Ensure game.layout.* mushcode templates (header / divider / footer)
