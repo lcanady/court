@@ -1,50 +1,49 @@
 #!/bin/bash
-# Start UrsaMU in the background with logging and PID tracking.
-
+# Background daemon: telnet sidecar + main restart loop.
+set -e
 cd "$(dirname "$0")/.." || exit 1
 
 PID_FILE=".ursamu.pid"
 LOG_DIR="logs"
 MAIN_LOG="$LOG_DIR/main.log"
 TELNET_LOG="$LOG_DIR/telnet.log"
+DENO_FLAGS="--minimum-dependency-age=0 --allow-all --node-modules-dir=auto --unstable-detect-cjs --unstable-kv --unstable-net"
 
-# Check if already running
 if [ -f "$PID_FILE" ]; then
   # shellcheck disable=SC1090
   source "$PID_FILE"
-  if kill -0 "$MAIN_PID" 2>/dev/null || kill -0 "$TELNET_PID" 2>/dev/null; then
-    echo "UrsaMU is already running (main: $MAIN_PID, telnet: $TELNET_PID)"
+  if kill -0 "${MAIN_PID:-}" 2>/dev/null || \
+     kill -0 "${TELNET_PID:-}" 2>/dev/null; then
+    echo "Already running (main: ${MAIN_PID:-?}, telnet: ${TELNET_PID:-?})"
     echo "Run 'deno task stop' first."
     exit 1
   fi
 fi
 
 mkdir -p "$LOG_DIR"
+chmod +x "$(dirname "$0")/main-loop.sh"
 
-# Start telnet first — it stays up across main restarts.
-nohup deno run --allow-all --unstable-detect-cjs --unstable-kv --unstable-net packages/mush/src/telnet.ts >> "$TELNET_LOG" 2>&1 &
+for port in 4201 4202 4203; do
+  pids=$(lsof -ti ":$port" 2>/dev/null || true)
+  # shellcheck disable=SC2086
+  [ -n "$pids" ] && echo $pids | xargs kill -9 2>/dev/null || true
+done
+
+# shellcheck disable=SC2086
+nohup deno run $DENO_FLAGS src/telnet.ts >> "$TELNET_LOG" 2>&1 &
 TELNET_PID=$!
 
-# Start main server via the restart loop.
-# Exit code 75 (@reboot / @update) restarts automatically.
-# Exit code 0 (@shutdown) and crashes stop the loop.
-chmod +x "$(dirname "$0")/main-loop.sh"
-MAIN_LOG="$MAIN_LOG" nohup bash "$(dirname "$0")/main-loop.sh" >> /dev/null 2>&1 &
+MAIN_LOG="$MAIN_LOG" nohup bash "$(dirname "$0")/main-loop.sh" \
+  >> /dev/null 2>&1 &
 MAIN_PID=$!
 
-# Save PIDs
-printf "MAIN_PID=%s\nTELNET_PID=%s\n" "$MAIN_PID" "$TELNET_PID" > "$PID_FILE"
-
-# Read ports from config if available, otherwise use defaults
-HTTP_PORT=${URSAMU_HTTP_PORT:-4203}
-TELNET_PORT=${URSAMU_TELNET_PORT:-4201}
+printf "MAIN_PID=%s\nTELNET_PID=%s\n" \
+  "$MAIN_PID" "$TELNET_PID" > "$PID_FILE"
 
 echo ""
-echo "UrsaMU started."
-echo "  Telnet  : port $TELNET_PORT  (PID: $TELNET_PID)  log: $TELNET_LOG"
-echo "  HTTP/WS : port $HTTP_PORT  (PID: $MAIN_PID)  log: $MAIN_LOG"
+echo "UrsaMU daemon started."
+echo "  Telnet  : port 4201  (PID: $TELNET_PID)  log: $TELNET_LOG"
+echo "  Main    : WS 4202 / HTTP 4203  (loop PID: $MAIN_PID)"
+echo "            log: $MAIN_LOG"
 echo ""
-echo "  deno task stop    — stop all servers"
-echo "  deno task restart — stop + start"
-echo "  deno task status  — check running state"
-echo "  deno task logs    — follow logs"
+echo "  deno task stop | restart | status | logs"
