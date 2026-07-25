@@ -401,27 +401,34 @@ async function scanJsrHelp(
       `${pkg}@${ver}${prefix}/`,
   );
 
-  for (const filePath of mdKeys) {
-    const url = `https://jsr.io/${pkg}/${ver}${filePath}`;
-    let raw: string;
-    try {
-      const res = await fetch(url);
-      if (!res.ok) {
-        console.warn(
-          `[help] JSR fetch ${url} → HTTP ${res.status}`,
-        );
-        continue;
+  // Parallel fetch — sequential cold loads of large packages
+  // (e.g. cofd ~140 files) stall the event loop for seconds.
+  const settled = await Promise.all(
+    mdKeys.map(async (filePath) => {
+      const url = `https://jsr.io/${pkg}/${ver}${filePath}`;
+      try {
+        const res = await fetch(url);
+        if (!res.ok) {
+          console.warn(
+            `[help] JSR fetch ${url} → HTTP ${res.status}`,
+          );
+          return null;
+        }
+        const raw = await res.text();
+        const rel = filePath
+          .slice(prefix.length)
+          .replace(/^\//, "");
+        if (!rel) return null;
+        return entryFromFile(rel, section, raw);
+      } catch (e: unknown) {
+        console.warn(`[help] JSR fetch failed ${url}: ${e}`);
+        return null;
       }
-      raw = await res.text();
-    } catch (e: unknown) {
-      console.warn(`[help] JSR fetch failed ${url}: ${e}`);
-      continue;
-    }
+    }),
+  );
 
-    // Strip the registered prefix: /help/mail.md → mail.md
-    const rel = filePath.slice(prefix.length).replace(/^\//, "");
-    if (!rel) continue;
-    entries.push(entryFromFile(rel, section, raw));
+  for (const entry of settled) {
+    if (entry) entries.push(entry);
   }
 
   return entries;
@@ -431,12 +438,14 @@ async function buildCache(): Promise<Map<string, HelpEntry>> {
   const map = new Map<string, HelpEntry>();
   const cwd = Deno.cwd();
 
-  // ── Scan game-level root ./help/ ─────────────────────────────────────
+  // ── Optional game-level ./help/ (site-specific overrides only) ──
+  // Plugin topics come from registerHelpDir (package help/), not
+  // a vendored copy of every package under the game root.
   let rootResolved: string | null = null;
   try {
     rootResolved = await Deno.realPath("./help");
   } catch {
-    // ./help doesn't exist — fine, skip it silently
+    // ./help doesn't exist — fine
   }
 
   if (rootResolved) {
@@ -451,49 +460,46 @@ async function buildCache(): Promise<Map<string, HelpEntry>> {
     }
   }
 
-  // When the game ships a populated ./help/, skip remote JSR fetches.
-  // Vendored help already includes plugin topics; re-fetching 100+ md
-  // files from jsr.io on every cold cache starves the event loop.
-  const skipRemote = map.size > 0;
-
-  // ── Scan plugin-registered dirs ──────────────────────────────────────
-  for (const dir of _registeredDirs) {
-    if (dir.baseUrl) {
-      if (skipRemote) continue;
-      const remote = await scanJsrHelp(dir.baseUrl, dir.section);
-      for (const entry of remote) {
-        if (!map.has(entry.name)) map.set(entry.name, entry);
+  // ── Plugin-registered dirs (file: checkout or JSR https://) ────
+  // Load in parallel; single-flight cache() coalesces callers.
+  const batches = await Promise.all(
+    _registeredDirs.map(async (dir) => {
+      if (dir.baseUrl) {
+        return await scanJsrHelp(dir.baseUrl, dir.section);
       }
-      continue;
-    }
+      if (!dir.path) return [] as HelpEntry[];
 
-    if (!dir.path) continue;
+      let resolvedRoot: string;
+      try {
+        resolvedRoot = await Deno.realPath(dir.path);
+      } catch (e) {
+        console.warn(
+          `[help] Registered help dir "${dir.path}" cannot ` +
+            `be resolved — skipping: ${e}`,
+        );
+        return [] as HelpEntry[];
+      }
 
-    let resolvedRoot: string;
-    try {
-      resolvedRoot = await Deno.realPath(dir.path);
-    } catch (e) {
-      console.warn(
-        `[help] Registered help dir "${dir.path}" cannot be ` +
-          `resolved — skipping: ${e}`,
+      if (!resolvedRoot.startsWith(cwd)) {
+        console.warn(
+          `[help] Registered help dir "${resolvedRoot}" is ` +
+            `outside the game directory "${cwd}". Expected ` +
+            `for JSR/local plugin checkouts.`,
+        );
+      }
+
+      return await scanDir(
+        dir.path,
+        dir.section,
+        "",
+        resolvedRoot,
       );
-      continue;
-    }
+    }),
+  );
 
-    if (!resolvedRoot.startsWith(cwd)) {
-      console.warn(
-        `[help] Registered help dir "${resolvedRoot}" is outside ` +
-          `the game directory "${cwd}". Expected for JSR/local ` +
-          `plugin checkouts.`,
-      );
-    }
-
-    const entries = await scanDir(
-      dir.path,
-      dir.section,
-      "",
-      resolvedRoot,
-    );
+  // Plugin files win over game-root on name collision only when
+  // game root did not already define the topic (overrides first).
+  for (const entries of batches) {
     for (const entry of entries) {
       if (!map.has(entry.name)) {
         map.set(entry.name, entry);
