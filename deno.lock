@@ -459,7 +459,6 @@
       "jsr:@ursamu/combat@~0.8.1",
       "jsr:@ursamu/core@~0.1.5",
       "jsr:@ursamu/discord@0.2",
-      "jsr:@ursamu/help@~0.1.6",
       "jsr:@ursamu/jobs@*",
       "jsr:@ursamu/jobs@0.1",
       "jsr:@ursamu/lang-plugin@^3.1.1",
