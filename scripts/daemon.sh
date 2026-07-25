@@ -21,9 +21,8 @@ fi
 
 mkdir -p "$LOG_DIR"
 
-# Start telnet proxy first — it stays up persistently across main server restarts.
-TELNET_LOG="$LOG_DIR/telnet.log"
-nohup deno run --minimum-dependency-age=0 --allow-all --node-modules-dir=auto --unstable-detect-cjs --unstable-kv --unstable-net src/telnet.ts >> "$TELNET_LOG" 2>&1 &
+# Start telnet first — it stays up across main restarts.
+nohup deno run --allow-all --unstable-detect-cjs --unstable-kv --unstable-net packages/mush/src/telnet.ts >> "$TELNET_LOG" 2>&1 &
 TELNET_PID=$!
 
 # Start main server via the restart loop.
@@ -38,14 +37,12 @@ printf "MAIN_PID=%s\nTELNET_PID=%s\n" "$MAIN_PID" "$TELNET_PID" > "$PID_FILE"
 
 # Read ports from config if available, otherwise use defaults
 HTTP_PORT=${URSAMU_HTTP_PORT:-4203}
-WS_PORT=${URSAMU_WS_PORT:-4202}
 TELNET_PORT=${URSAMU_TELNET_PORT:-4201}
 
 echo ""
-echo "UrsaMU daemon started."
-echo "  Telnet  : port $TELNET_PORT"
-echo "  WS      : port $WS_PORT"
-echo "  HTTP    : port $HTTP_PORT  (PID: $MAIN_PID)  log: $MAIN_LOG"
+echo "UrsaMU started."
+echo "  Telnet  : port $TELNET_PORT  (PID: $TELNET_PID)  log: $TELNET_LOG"
+echo "  HTTP/WS : port $HTTP_PORT  (PID: $MAIN_PID)  log: $MAIN_LOG"
 echo ""
 echo "  deno task stop    — stop all servers"
 echo "  deno task restart — stop + start"

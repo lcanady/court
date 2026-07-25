@@ -66,6 +66,52 @@ Help, BBS, and native commands all honor these templates.
 
 Chronicles of Darkness 2e and other features are enabled via `@ursamu/jobs`, `@ursamu/cofd-plugin`, and `@ursamu/lang-plugin` in `server.plugins`. In-game: `+cg`, `+sheet`, `+roll`, `help cofd`.
 
+## Discord bridge
+
+Court loads `@ursamu/discord` from `server.plugins`. It supports:
+
+| Feature | Mode |
+|---------|------|
+| Game → Discord | Webhooks (no bot required) |
+| Discord → Game | Bot Gateway + channel links |
+| `/help` slash | Bot + public HTTPS interactions URL |
+
+### 1. Env secrets (`.env`)
+
+```bash
+DISCORD_APPLICATION_ID=...
+DISCORD_BOT_TOKEN=...
+DISCORD_PUBLIC_KEY=...
+# optional — faster slash-command deploy:
+DISCORD_GUILD_ID=...
+```
+
+Enable **Message Content Intent** on the bot. Invite with scopes
+`bot` and `applications.commands`.
+
+For `/help`, set the Interactions Endpoint URL to:
+
+```text
+https://<your-public-host>/api/v1/discord/interactions
+```
+
+Restart after editing `.env`: `deno task restart` (or `stop` + `daemon`).
+
+### 2. In-game wiring (admin+)
+
+```text
+@discord/set public=<webhook-url>
+@discord/link public=<discord-channel-id>
+@discord/set ooc=<webhook-url>
+@discord/link ooc=<discord-channel-id>
+@discord/list
+@discord/test public
+@discord/register-commands
+```
+
+Topic names should match game channel names/aliases (e.g. `Public` /
+`pub`). See `help discord` in-game.
+
 ## Extending
 
 Add plugins to `src/plugins/`:

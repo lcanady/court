@@ -1,10 +1,15 @@
 .deno/
 .vscode/.deno/
 .env
+# DB
 data/*.db
 data/*.db-wal
 data/*.db-shm
+data/typegraph.db/
+# Runtime
 config/config.json
 node_modules/
 run/
 logs/
+.ursamu.pid
+.ursamu-deno.pid

@@ -40,7 +40,7 @@ trap cleanup SIGTERM SIGINT
 
 while true; do
   START_TS=$(date +%s)
-  deno run --minimum-dependency-age=0 "${DENO_ARGS[@]}" src/main.ts >> "$MAIN_LOG" 2>&1 &
+  deno run "${DENO_ARGS[@]}" packages/mush/src/main.ts >> "$MAIN_LOG" 2>&1 &
   _deno_pid=$!
   echo "$_deno_pid" > "$DENO_PID_FILE"
 
@@ -53,19 +53,23 @@ while true; do
   RUN_SECS=$(( END_TS - START_TS ))
   TIMESTAMP="$(date '+%Y-%m-%d %H:%M:%S')"
 
-  if [ $EXIT_CODE -eq 0 ]; then
-    echo "[$TIMESTAMP] Clean shutdown (0) — loop stopped." >> "$MAIN_LOG"
-    break
-  else
+  if [ $EXIT_CODE -eq 75 ]; then
+    # Exponential backoff for rapid restarts; reset delay after a stable run.
     if [ $RUN_SECS -lt $FAST_EXIT_SECS ]; then
       RESTART_DELAY=$(( RESTART_DELAY * 2 ))
       [ $RESTART_DELAY -gt $MAX_DELAY ] && RESTART_DELAY=$MAX_DELAY
-      echo "[$TIMESTAMP] Server exit ($EXIT_CODE, ran ${RUN_SECS}s) — backing off ${RESTART_DELAY}s..." >> "$MAIN_LOG"
+      echo "[$TIMESTAMP] Rapid reboot (ran ${RUN_SECS}s) — backing off ${RESTART_DELAY}s..." >> "$MAIN_LOG"
     else
       RESTART_DELAY=1
-      echo "[$TIMESTAMP] Server exit ($EXIT_CODE) — restarting in ${RESTART_DELAY}s..." >> "$MAIN_LOG"
+      echo "[$TIMESTAMP] Reboot signal (75) — restarting in ${RESTART_DELAY}s..." >> "$MAIN_LOG"
     fi
     sleep $RESTART_DELAY
     continue
+  elif [ $EXIT_CODE -eq 0 ]; then
+    echo "[$TIMESTAMP] Clean shutdown (0) — loop stopped." >> "$MAIN_LOG"
+    break
+  else
+    echo "[$TIMESTAMP] Unexpected exit ($EXIT_CODE) — loop stopped. Check logs." >> "$MAIN_LOG"
+    break
   fi
 done

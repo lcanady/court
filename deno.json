@@ -21,11 +21,11 @@
     ]
   },
   "imports": {
-    "ursamu": "jsr:@ursamu/mush@^0.1.7",
-    "ursamu/": "jsr:@ursamu/mush@^0.1.7/",
-    "@ursamu/mush": "jsr:@ursamu/mush@^0.1.7",
-    "@ursamu/core": "jsr:@ursamu/core@^0.1.3",
-    "@ursamu/ursamu": "jsr:@ursamu/mush@^0.1.7",
+    "ursamu": "jsr:@ursamu/mush@^0.1.10",
+    "ursamu/": "jsr:@ursamu/mush@^0.1.10/",
+    "@ursamu/mush": "jsr:@ursamu/mush@^0.1.10",
+    "@ursamu/core": "jsr:@ursamu/core@^0.1.5",
+    "@ursamu/ursamu": "jsr:@ursamu/mush@^0.1.10",
     "@ursamu/ursamu/app": "jsr:@ursamu/mush/app",
     "@ursamu/ursamu/channels": "jsr:@ursamu/channels",
     "@ursamu/ursamu/jobs": "jsr:@ursamu/jobs",
@@ -69,7 +69,9 @@
     "@ursamu/cofd": "jsr:@ursamu/cofd-plugin@^1.1.2",
     "@ursamu/cofd-plugin": "jsr:@ursamu/cofd-plugin@^1.1.2",
     "@ursamu/lang": "jsr:@ursamu/lang-plugin@^3.1.1",
-    "@ursamu/lang-plugin": "jsr:@ursamu/lang-plugin@^3.1.1"
+    "@ursamu/lang-plugin": "jsr:@ursamu/lang-plugin@^3.1.1",
+    "@ursamu/discord": "jsr:@ursamu/discord@^0.2.0",
+    "tweetnacl": "npm:tweetnacl@1.0.3"
   },
   "minimumDependencyAge": 0
 }

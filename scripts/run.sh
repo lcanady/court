@@ -1,28 +1,53 @@
-#!/bin/bash
-# Run script for court
 
+# Clear the terminal
+clear
+
+# UrsaMU dev runner
+#
+# Runs start.ts under --watch so both hot-reload and @restart work correctly:
+#
+#   Code change in src/ or system/  →  --watch restarts start.ts
+#                                        → start.ts re-spawns main.ts + telnet
+#
+#   Admin types @restart in game    →  main.ts calls Deno.exit(75)
+#                                        → start.ts restart loop re-spawns main.ts
+#                                           (telnet stays up across @restart)
+#
+# This is the Deno-idiomatic approach: Deno.exit(code) + a supervising wrapper.
+# The old approach of running main.ts directly with --watch didn't handle
+# @restart because --watch only reacts to file changes, not exit codes.
+
+# Change to the project root directory
 cd "$(dirname "$0")/.." || exit
 
-# Free bound ports (4201 telnet, 4202 ws, 4203 http)
-for port in 4201 4202 4203; do
-  pids=$(lsof -ti ":$port" 2>/dev/null)
-  if [ -n "$pids" ]; then
-    echo "Freeing port $port (PIDs: $pids)..."
-    echo "$pids" | xargs kill -9 2>/dev/null
-  fi
-done
+# First-time setup: run interactive superuser creation if DB doesn't exist yet.
+# start.ts does this too, but TTY interaction works better here before backgrounding.
+if [ ! -f "data/ursamu.db" ]; then
+  echo "Database not found. Running interactive setup..."
+  deno run -A --unstable-detect-cjs --unstable-kv --unstable-net packages/mush/src/main.ts
+  echo "Setup complete. Starting in watch mode..."
+fi
 
 cleanup() {
-  echo "Shutting down servers..."
-  kill $MAIN_PID $TELNET_PID 2>/dev/null
+  echo "Shutting down UrsaMU..."
+  kill $START_PID 2>/dev/null
   exit 0
 }
+
 trap cleanup SIGINT SIGTERM
 
-echo "Starting Court of Miracles main server..."
-deno run --minimum-dependency-age=0 --allow-all --node-modules-dir=auto --unstable-detect-cjs --unstable-kv --unstable-net src/main.ts &
-MAIN_PID=$!
+echo "Starting UrsaMU (watch mode)..."
+# start.ts supervises both main.ts and telnet.ts as child processes.
+# --watch on src/ and system/ triggers a full restart when source files change.
+deno run --allow-all --unstable-detect-cjs --unstable-kv --unstable-net \
+  --watch=packages/,system/ \
+  --watch-exclude=config/,data/ \
+  packages/cli/src/start.ts &
+START_PID=$!
 
-echo "Server is running. Press Ctrl+C to stop."
-wait $MAIN_PID
+echo "Servers are running. Press Ctrl+C to stop."
+echo "  Code changes  → auto-reload (full restart)"
+echo "  @restart      → main.ts only restarts, telnet stays up"
+
+wait $START_PID
 cleanup

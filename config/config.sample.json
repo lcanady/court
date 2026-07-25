@@ -1,24 +1,28 @@
 {
   "server": {
+    "standaloneTelnet": true,
     "telnet": 4201,
     "wsPort": 4202,
+    "ws": 4202,
     "port": 4203,
     "http": 4203,
     "apiPort": 4203,
-    "db": "data/ursamu.db",
+    "db": "data/typegraph.db",
     "plugins": [
       "@ursamu/builder",
       "@ursamu/channels",
       "@ursamu/help",
       "@ursamu/bbs",
       "@ursamu/mail",
-      "@ursamu/wiki",
       "@ursamu/jobs",
-      "@ursamu/cofd-plugin"
+      "@ursamu/combat",
+      "@ursamu/cofd-plugin",
+      "@ursamu/lang-plugin",
+      "@ursamu/discord"
     ]
   },
   "game": {
-    "name": "cor",
+    "name": "Court of Miracles",
     "description": "A custom UrsaMU game",
     "version": "0.0.1",
     "playerStart": "1",
@@ -26,9 +30,9 @@
       "connect": "text/default_connect.txt"
     },
     "layout": {
-      "header":  "[center(%ch%cy%0%cn,%1,%cg=%cn)]",
-      "divider": "[center(%ch%cy%0%cn,%1,%cg-%cn)]",
-      "footer":  "[repeat(%cg=%cn,%1)]"
+      "header": "[center(%ch%cy%b%0%b%cn,%1,%cg=%cn)]",
+      "divider": "[if(neq(words(%0),0), center(%ch%cy%b%0%b%cn,%1,%cg-%cn), repeat(%cg-%cn,%1))]",
+      "footer": "[repeat(%cg=%cn,%1)]"
     }
   },
   "plugins": {
