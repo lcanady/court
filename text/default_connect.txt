@@ -1,16 +1,16 @@
->> A Modern MUSH-Like, text-based engine
+    .|'''',                          ||            .|';    
+    ||                               ||            ||      
+    ||      .|''|, '||  ||` '||''| ''||''  .|''|, '||'     
+    ||      ||  ||  ||  ||   ||      ||    ||  ||  ||      
+    `|....' `|..|'  `|..'|. .||.     `|..' `|..|' .||.     
+                                                           
+    '||\   /||`                           '||`             
+     ||\\.//||   ''                        ||              
+     ||     ||   ||  '||''|  '''|.  .|'',  ||  .|''|, (''''
+     ||     ||   ||   ||    .|''||  ||     ||  ||..||  `'')
+    .||     ||. .||. .||.   `|..||. `|..' .||. `|...  `...'
 
-dP     dP  888888ba  .d88888b   .d888888  8888ba.88ba  dP     dP 
-88     88  88    `8b 88.    "' d8'    88  88  `8b  `8b 88     88 
-88     88 a88aaaa8P' `Y88888b. 88aaaaa88a 88   88   88 88     88 
-88     88  88   `8b.       `8b 88     88  88   88   88 88     88 
-Y8.   .8P  88     88 d8'   .8P 88     88  88   88   88 Y8.   .8P 
-`Y88888P'  dP     dP  Y88888P  88     88  dP   dP   dP `Y88888P' 
-ooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooooo
+    Use 'create <character> <password>' to create.
+    Use 'connect <character> <password>' to connect.
 
->> https://github.com/ursamu/ursamu
-
-Use 'create <character> <password>' to create.
-Use 'connect <character> <password>' to connect.
-
-Use QUIT to quit.
+    Use QUIT to quit.

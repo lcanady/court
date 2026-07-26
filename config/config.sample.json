@@ -67,7 +67,7 @@
             },
             {
               "flag": "superuser",
-              "display": "(Root)"
+              "display": "%ch%cy<Dev>%cn"
             },
             {
               "flag": "admin",
