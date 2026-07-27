@@ -39,11 +39,11 @@ LLM summary.
 
 ### Punctuation ban: no em-dashes
 
-**Never use em-dashes** (Unicode U+2014, `—`) in player-facing text,
-help, short-descs, connect copy, commit messages for world prose, or
-agent docs that model house style.
+**Never use em-dashes** (Unicode U+2014) in player-facing text, help,
+short-descs, connect copy, commit messages for world prose, or agent
+docs that model house style. Do not paste the character at all.
 
-Also avoid en-dashes (U+2013, `–`) as a stylish substitute.
+Also avoid en-dashes (Unicode U+2013) as a stylish substitute.
 
 Use instead:
 
@@ -53,7 +53,7 @@ Use instead:
 - parentheses
 - a plain hyphen only in compound words (fog-bound, gaslight)
 
-Wrong: `The fog lifts — or pretends to.`  
+Wrong: a long dash between clauses (the fog lifts [em-dash] or pretends)  
 Right: `The fog lifts, or pretends to.`  
 Right: `The fog lifts. Or it pretends to.`
 
@@ -112,7 +112,7 @@ Right: `The fog lifts. Or it pretends to.`
 > This bustling hub of activity is nestled in the heart of Victorian
 > London, offering players a unique RP experience. Type +ic to begin!
 
-> The circus opens — gaslight, fog, and secrets — waiting for you.
+> The circus opens (em-dashes around a list) gaslight, fog, and secrets.
 
 ---
 
