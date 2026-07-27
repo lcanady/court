@@ -75,28 +75,32 @@ Right: `The fog lifts. Or it pretends to.`
 
 ### Masquerade (multi-splat, non-negotiable)
 
-Court is a **multi-splat** chronicle. Supernaturals hide. IC prose must
-never hand the reader a rulebook.
+Court is a **multi-splat** chronicle. Supernaturals hide from the public
+and from each other unless trust is earned.
 
-**IC `@desc`, exit names, short-descs, views, MOTD, connect copy, NPC
-descs** may only show what a careful mortal (or any splat keeping the
-peace) could notice: vice, fog, coin, fear, odd light, private doors.
+**Public IC layer** (`@desc`, exit names, short-descs, `+views` open to
+mortals, MOTD, connect copy, default NPC descs): only what a careful
+mortal could notice. Vice, fog, coin, fear, odd light, private doors.
+No rulebook handouts.
 
-**Never write in IC text:**
-- Splat names or fanspeak (Changeling, the Lost, Kindred, Garou, Mage,
-  freehold-as-rules-term, Court-as-Season, Masquerade-as-lecture)
-- Power names (Glamour, Vitae, Essence, Rage, Arcadia, Hedge, Hollow,
-  Gentry, Huntsman, Contract, Auspice, Clan, Tribe)
-- "Fae sight," "with kenning," "if you are fae," "Mask/Mien" as labels
+**Never in the public layer:**
+- Splat names or fanspeak aimed at everyone (Changeling, the Lost,
+  Kindred, Garou, Mage as labels on the street)
+- Power economy dumps (Glamour, Vitae, Essence, Rage) as plain facts
 - Chargen / approval / staff meta
 
-**Weird is fine.** Wrong geometry, cold without draft, fruit that looks
-unseasonable, a door that feels watched: show, do not name the splat.
+**Weird is fine on the public layer.** Wrong geometry, cold without
+draft, unseasonable fruit, a watched door: show, do not lecture.
 
-**`FAEDESC` / dual-perception fields** may be stranger, still without
-splat vocabulary. Prefer omen and sensation over lore dumps.
+**Splat-only perception (keep and use these):**
+- `FAEDESC` / kenning / fae dual-desc: **Changeling-facing**. May name
+  thorns, Mask/Mien tension, briar, Arcadian bleed, freehold truth, as
+  long as only fae sight sees it.
+- Other dual fields (Hisil, Auspex-only notes, etc.) when added: same
+  rule for that splat only.
+- Locked `+views` and staff OOC may hold clearer lore.
 
-**OOC** help, staff notes, and `+hedge` tooling may use real terms.
+**OOC** help, `+hedge`, and staff notes use real system terms freely.
 
 ### Do not
 
