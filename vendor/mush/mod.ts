@@ -167,6 +167,7 @@ export { execBoot, execToad, execNewpassword, execChown, execResetToken, execSit
 export { execReload, execNuke }                                    from "./src/verbs/admin-reload.ts";
 export { execAlias }                                               from "./src/verbs/alias.ts";
 export { execConnect, execQuit, execMotd, execPassword, execUpdate } from "./src/verbs/auth.ts";
+export { execPcreate }                                             from "./src/verbs/pcreate.ts";
 export { execPs }                                                  from "./src/verbs/queue-ps.ts";
 export { execTeleport, execTel, execEntrances, execForce, privLevel, REACTIVE_ATTRS } from "./src/verbs/world.ts";
 export { execSweep }                                               from "./src/verbs/world-sweep.ts";

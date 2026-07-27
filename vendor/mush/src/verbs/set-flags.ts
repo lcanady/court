@@ -7,11 +7,18 @@ import { log } from "@ursamu/core";
 async function execSetFlags(u: IUrsamuSDK): Promise<void> {
   const raw    = u.util.stripSubs(u.cmd.args[0] ?? "").trim();
   const eqIdx  = raw.indexOf("=");
-  if (eqIdx === -1) { u.send("Usage: @flags <target>=<flags>"); return; }
+  if (eqIdx === -1) {
+    u.send("Usage: @flags <target>=<flags>");
+    return;
+  }
   const targetStr = raw.slice(0, eqIdx).trim();
-  const flagStr   = raw.slice(eqIdx + 1).trim();
-  if (!targetStr || !flagStr) { u.send("Usage: @flags <target>=<flags>"); return; }
-  const tar = await u.util.target(u.me, targetStr);
+  const flagStr = raw.slice(eqIdx + 1).trim();
+  if (!targetStr || !flagStr) {
+    u.send("Usage: @flags <target>=<flags>");
+    return;
+  }
+  // Global + *Name: staff can @set offline players elsewhere.
+  const tar = await u.util.target(u.me, targetStr, true);
   if (!tar) { u.send("I can't find that here."); return; }
   if (!(await u.canEdit(u.me, tar))) { u.send("Permission denied."); return; }
   await u.setFlags(tar.id, flagStr);
@@ -25,10 +32,11 @@ addCmd({
   category: "Building",
   help: `@flags <target>=<flags>  — Set or remove flags on an object.
 
-Use ! to remove a flag.
+Use ! to remove a flag. Targets resolve globally (*Name ok).
 
 EXAMPLES
   @flags me=dark
+  @flags Builder=superuser
   @flags #5=!builder`,
   exec: execSetFlags,
 });
@@ -38,12 +46,14 @@ addCmd({
   pattern: /^@set\s+(.*)/i,
   lock: "connected",
   category: "Building",
-  help: `@set <target>=<flag>  — Set or clear a flag on an object (alias for @flags).
+  help: `@set <target>=<flag>  — Set or clear a flag (alias for @flags).
 
-Use ! to clear a flag.
+Use ! to clear a flag. Targets resolve globally (*Name ok).
 
 EXAMPLES
   @set me=quiet
+  @set Builder=superuser
+  @set *Alice=builder
   @set me=!quiet`,
   exec: execSetFlags,
 });

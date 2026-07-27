@@ -128,8 +128,16 @@ async function targetFn(
   query: string,
   _global?: boolean,
 ): Promise<IDBObj | undefined> {
-  const q = query.trim();
+  let q = query.trim();
   if (!q) return undefined;
+
+  // TinyMUX *Name — global lookup by player/object name.
+  let global = !!_global;
+  if (q.startsWith("*")) {
+    q = q.slice(1).trim();
+    global = true;
+    if (!q) return undefined;
+  }
 
   const lowerQ = q.toLowerCase();
   if (lowerQ === "me" || lowerQ === "self") return actor;
@@ -166,7 +174,7 @@ async function targetFn(
   if (inInv) return hydrate(inInv);
 
   // Global: scan for name / ;alias / data.alias
-  if (_global) {
+  if (global) {
     const all = await dbojs.query({});
     const hit = pickNameMatch(all, q);
     if (hit) return hydrate(hit);
@@ -460,8 +468,18 @@ export async function createNativeSDK(
           ]
         });
         if (!player || !player.data?.password) return false;
-        // Simple comparison — production systems should use bcrypt
-        if (String(player.data.password) !== password) return false;
+        const stored = String(player.data.password);
+        // bcrypt hashes ($2a$ / $2b$ / $2y$); legacy create used plaintext.
+        if (/^\$2[aby]\$/.test(stored)) {
+          const bcrypt = await import("bcrypt");
+          const compare = bcrypt.compare ??
+            (bcrypt as unknown as {
+              default: { compare: typeof bcrypt.compare };
+            }).default.compare;
+          const ok = await compare(password, stored);
+          return ok ? hydrate(player) : false;
+        }
+        if (stored !== password) return false;
         return hydrate(player);
       },
       login: async (id: string) => {

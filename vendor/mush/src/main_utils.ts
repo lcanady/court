@@ -166,14 +166,23 @@ export const target = async (
   tar:    string,
   global?: boolean,
 ): Promise<IDBOBJ | undefined | false> => {
-  if (!tar || ["here", "room"].includes(tar.toLowerCase())) {
+  let name = (tar ?? "").trim();
+  let g = !!global;
+  // TinyMUX *Name — force global name lookup.
+  if (name.startsWith("*")) {
+    name = name.slice(1).trim();
+    g = true;
+  }
+  if (!name || ["here", "room"].includes(name.toLowerCase())) {
     return en.location ? await dbojs.queryOne({ id: en.location }) : undefined;
   }
-  if (tar.startsWith("#")) return await dbojs.queryOne({ id: tar.slice(1) });
-  if (["me", "self"].includes(tar.toLowerCase())) return en;
+  if (name.startsWith("#")) {
+    return await dbojs.queryOne({ id: name.slice(1) });
+  }
+  if (["me", "self"].includes(name.toLowerCase())) return en;
 
   const all = await dbojs.query({});
-  if (global) return pickNameMatch(all, tar);
+  if (g) return pickNameMatch(all, name);
 
   const nearby = all.filter((obj) =>
     obj.location && (
@@ -182,7 +191,7 @@ export const target = async (
       obj.location === en.id
     )
   );
-  return pickNameMatch(nearby, tar);
+  return pickNameMatch(nearby, name);
 };
 
 import type { IAttribute } from "./world/types.ts";
