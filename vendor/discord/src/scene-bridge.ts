@@ -1,5 +1,6 @@
 import { dbojs, hydrate, gameHooks } from "@ursamu/mush";
 import { getBotCredentials } from "./config.ts";
+import { clean, stripMushMarkup } from "./helpers.ts";
 
 const API = "https://discord.com/api/v10";
 
@@ -43,15 +44,16 @@ async function onGameScenePose(e: {
   const creds = getBotCredentials();
   if (!creds?.botToken) return;
 
-  const speaker = e.actorName;
+  const speaker = clean(e.actorName);
+  const msg = stripMushMarkup(e.msg);
   let text = "";
 
   if (e.type === "ooc") {
-    text = `*OOC: ${speaker}: ${e.msg}*`;
+    text = `*OOC: ${speaker}: ${msg}*`;
   } else if (e.type === "set") {
-    text = `*[Scene Set] ${e.msg}*`;
+    text = `*[Scene Set] ${msg}*`;
   } else {
-    text = `**${speaker}** ${e.msg}`;
+    text = `**${speaker}** ${msg}`;
   }
 
   // 1. Post to public bridged channel/thread if linked
@@ -261,7 +263,7 @@ export async function handleDiscordSceneMessage(token: string, msg: any): Promis
       broadcastMsg = `%ch${charName}%cn says, "${content}"`;
     }
 
-    const { send: coreSend } = await import("@ursamu/core");
+    const { send: coreSend } = await import("@ursamu/mush");
     const inside = await dbojs.query({ location: instancedRoomId });
     const targetIds = inside.map((p) => p.id);
     if (targetIds.length > 0) {

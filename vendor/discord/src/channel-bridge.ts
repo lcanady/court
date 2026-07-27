@@ -4,8 +4,8 @@
  * Discord → game uses injectChannelMessage + source flag.
  */
 
-import { DBO, rooms, sessions, send } from "@ursamu/core";
-import { clean } from "./helpers.ts";
+import { DBO, rooms, sessions, send } from "@ursamu/mush";
+import { clean, stripMushMarkup } from "./helpers.ts";
 import { getWebhookUrl } from "./config.ts";
 import { postWebhook } from "./webhook.ts";
 
@@ -44,10 +44,14 @@ export async function onGameChannelMessage(
     ev.senderName,
     cfg.publicUrl,
   );
+  console.log(
+    `[discord] outbound ${ev.channelName} id=${ev.senderId} ` +
+      `avatar=${avatar ?? "(none)"}`,
+  );
   postWebhook(url, {
     username: clean(ev.senderName),
-    avatar_url: avatar,
-    content: ev.message.slice(0, 2000),
+    ...(avatar ? { avatar_url: avatar } : {}),
+    content: stripMushMarkup(ev.message).slice(0, 2000),
   });
 }
 
