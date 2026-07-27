@@ -73,6 +73,31 @@ Right: `The fog lifts. Or it pretends to.`
 - Read the line aloud. If it sounds like a thesaurus or a quest log,
   rewrite.
 
+### Masquerade (multi-splat, non-negotiable)
+
+Court is a **multi-splat** chronicle. Supernaturals hide. IC prose must
+never hand the reader a rulebook.
+
+**IC `@desc`, exit names, short-descs, views, MOTD, connect copy, NPC
+descs** may only show what a careful mortal (or any splat keeping the
+peace) could notice: vice, fog, coin, fear, odd light, private doors.
+
+**Never write in IC text:**
+- Splat names or fanspeak (Changeling, the Lost, Kindred, Garou, Mage,
+  freehold-as-rules-term, Court-as-Season, Masquerade-as-lecture)
+- Power names (Glamour, Vitae, Essence, Rage, Arcadia, Hedge, Hollow,
+  Gentry, Huntsman, Contract, Auspice, Clan, Tribe)
+- "Fae sight," "with kenning," "if you are fae," "Mask/Mien" as labels
+- Chargen / approval / staff meta
+
+**Weird is fine.** Wrong geometry, cold without draft, fruit that looks
+unseasonable, a door that feels watched: show, do not name the splat.
+
+**`FAEDESC` / dual-perception fields** may be stranger, still without
+splat vocabulary. Prefer omen and sensation over lore dumps.
+
+**OOC** help, staff notes, and `+hedge` tooling may use real terms.
+
 ### Do not
 
 - **Em-dashes or en-dashes** anywhere in narrative or house-style copy.
@@ -89,6 +114,7 @@ Right: `The fog lifts. Or it pretends to.`
 - **Repeating "London"** in every desc. The city can feel like London
   without the guidebook label.
 - Hard-wrapped lines inside a paragraph (look wraps for you).
+- **Splat leaks** (see Masquerade above).
 
 ### Room description format
 
