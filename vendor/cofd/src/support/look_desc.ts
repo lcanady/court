@@ -61,8 +61,9 @@ function wordWrap(text: string, width: number): string {
   return out.join("\n");
 }
 
+// Centered under desc when any view is visible to the looker.
 const VIEWS_BANNER =
-  "%ch%cg~~%cn %ch%cy+views%cn Available %ch%cg~~%cn";
+  "%cg<%cn %ch%cy+views%cn Available %ch%cg>%cn";
 
 /** DESCFORMAT: fae sight prefers FAEDESC; wrap; trailing blank; views. */
 export const cofdDescformatHandler = async (
