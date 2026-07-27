@@ -13,3 +13,6 @@ run/
 logs/
 .ursamu.pid
 .ursamu-deno.pid
+
+# local engine data from vendor rsync
+vendor/mush/data/
