@@ -1,0 +1,209 @@
+[
+  {
+    "key": "telekinesis",
+    "label": "Telekinesis",
+    "kind": "dread",
+    "tierMin": "minor",
+    "cost": "1 Willpower",
+    "pool": "Power + Finesse vs Resistance",
+    "description": "Move objects at a distance with mind alone. Heft equals the rating in dots."
+  },
+  {
+    "key": "possession",
+    "label": "Possession",
+    "kind": "dread",
+    "tierMin": "major",
+    "cost": "1 Willpower per scene",
+    "pool": "Power + Finesse - target Resolve",
+    "description": "Inhabit a mortal body and act as that character. Target keeps memories on success."
+  },
+  {
+    "key": "mortal-mask",
+    "label": "Mortal Mask",
+    "kind": "dread",
+    "tierMin": "minor",
+    "cost": "Free / reflexive",
+    "pool": "n/a",
+    "description": "The creature appears human to mundane senses. Defeated by Investigation versus Power + Finesse."
+  },
+  {
+    "key": "innocuous",
+    "label": "Innocuous",
+    "kind": "dread",
+    "tierMin": "minor",
+    "cost": "Free",
+    "pool": "Contested by Wits + Composure",
+    "description": "Witnesses overlook or rationalize the creature's presence until directly confronted."
+  },
+  {
+    "key": "mind-speech",
+    "label": "Mind Speech",
+    "kind": "numen",
+    "tierMin": "minor",
+    "cost": "1 Essence",
+    "pool": "Power + Finesse",
+    "description": "Project thoughts to one target within line of sight."
+  },
+  {
+    "key": "wall-crawl",
+    "label": "Wall Crawl",
+    "kind": "dread",
+    "tierMin": "minor",
+    "cost": "Free",
+    "pool": "n/a",
+    "description": "Move across vertical surfaces and ceilings at normal Speed."
+  },
+  {
+    "key": "regeneration",
+    "label": "Regeneration",
+    "kind": "dread",
+    "tierMin": "major",
+    "cost": "1 Essence per box",
+    "pool": "Reflexive",
+    "description": "Heal one bashing or lethal box per turn. Aggravated requires the creature's bane."
+  },
+  {
+    "key": "frenzy",
+    "label": "Frenzy",
+    "kind": "dread",
+    "tierMin": "minor",
+    "cost": "Free / triggered",
+    "pool": "Resolve + Composure to resist",
+    "description": "Loss of control. +2 to attack pools, -2 Defense, attacks the nearest living thing."
+  },
+  {
+    "key": "materialize",
+    "label": "Materialize",
+    "kind": "numen",
+    "tierMin": "major",
+    "cost": "1 Essence per turn",
+    "pool": "Power + Finesse",
+    "description": "Ephemeral being takes physical form, vulnerable to mundane attacks while material."
+  },
+  {
+    "key": "phantasm",
+    "label": "Phantasm",
+    "kind": "numen",
+    "tierMin": "minor",
+    "cost": "1 Essence",
+    "pool": "Power + Finesse vs Composure + Resolve",
+    "description": "Create a vivid sensory illusion. Disbelief requires contested resolve."
+  },
+  {
+    "key": "dread-aura",
+    "label": "Dread Aura",
+    "kind": "dread",
+    "tierMin": "major",
+    "cost": "1 Willpower",
+    "pool": "Power + Finesse vs Resolve + Composure",
+    "description": "All within sight gain the Shaken Condition for the scene."
+  },
+  {
+    "key": "awe",
+    "label": "Awe",
+    "kind": "numen",
+    "tierMin": "minor",
+    "cost": "1 Essence",
+    "pool": "Power + Finesse - Composure",
+    "description": "Witnesses are paralyzed with awe or terror for one turn."
+  },
+  {
+    "key": "among-the-sheep",
+    "label": "Among the Sheep",
+    "kind": "dread",
+    "tierMin": "major",
+    "cost": "2 Glamour",
+    "pool": "n/a",
+    "description": "Huntsman: take any roughly humanoid form (Size 4-6); not a specific person."
+  },
+  {
+    "key": "apex-predator",
+    "label": "Apex Predator",
+    "kind": "dread",
+    "tierMin": "major",
+    "cost": "1 Glamour",
+    "pool": "n/a",
+    "description": "Huntsman: conjure swarm or command a beast."
+  },
+  {
+    "key": "command-the-herald",
+    "label": "Command the Herald",
+    "kind": "dread",
+    "tierMin": "major",
+    "cost": "1 Glamour/hour",
+    "pool": "n/a",
+    "description": "Huntsman: remote view via a touched herald creature."
+  },
+  {
+    "key": "heart-of-iron",
+    "label": "Heart of Iron",
+    "kind": "dread",
+    "tierMin": "major",
+    "cost": "Free",
+    "pool": "n/a",
+    "description": "Huntsman: no fear of cold iron."
+  },
+  {
+    "key": "hungry-heart",
+    "label": "Hungry Heart",
+    "kind": "dread",
+    "tierMin": "storyteller",
+    "cost": "1 Willpower",
+    "pool": "Attack",
+    "description": "Huntsman: steal Glamour = successes on panoply hit vs Lost/Fae."
+  },
+  {
+    "key": "hunters-panoply",
+    "label": "Hunter's Panoply",
+    "kind": "dread",
+    "tierMin": "major",
+    "cost": "Free",
+    "pool": "n/a",
+    "description": "Huntsman: 8-again with panoply tools."
+  },
+  {
+    "key": "hunters-senses",
+    "label": "Hunter's Senses",
+    "kind": "dread",
+    "tierMin": "major",
+    "cost": "Free",
+    "pool": "Wits+Survival+Wyrd",
+    "description": "Huntsman: track quarry; +quarry Wyrd if Mask down."
+  },
+  {
+    "key": "inescapable-snare",
+    "label": "Inescapable Snare",
+    "kind": "dread",
+    "tierMin": "major",
+    "cost": "2 Glamour",
+    "pool": "n/a",
+    "description": "Huntsman: lay a snare (Immobilized ST)."
+  },
+  {
+    "key": "kindred-spirits",
+    "label": "Kindred Spirits",
+    "kind": "dread",
+    "tierMin": "major",
+    "cost": "1+ Glamour",
+    "pool": "n/a",
+    "description": "Huntsman: learn Needle, Thread, Aspirations, Clarity."
+  },
+  {
+    "key": "surprise-entrance",
+    "label": "Surprise Entrance",
+    "kind": "dread",
+    "tierMin": "major",
+    "cost": "1 Glamour",
+    "pool": "n/a",
+    "description": "Huntsman: appear via threshold/shadow."
+  },
+  {
+    "key": "watchful-gaze",
+    "label": "Watchful Gaze",
+    "kind": "dread",
+    "tierMin": "major",
+    "cost": "1 Glamour",
+    "pool": "n/a",
+    "description": "Huntsman: sense when quarry speaks their name."
+  }
+]

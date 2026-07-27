@@ -1,0 +1,20 @@
+{
+  "key": "changeling",
+  "name": "Changeling: The Lost",
+  "moralityName": "Clarity",
+  "powerStatName": "Wyrd",
+  "energyName": "Glamour",
+  "customFields": [
+    "seeming",
+    "kith",
+    "court",
+    "favored",
+    "needle",
+    "thread",
+    "mask",
+    "mien",
+    "animals"
+  ],
+  "validPowers": [],
+  "energyMaxFormulaType": "standard"
+}
