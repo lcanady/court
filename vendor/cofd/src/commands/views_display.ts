@@ -1,16 +1,34 @@
 // +views list / single-entry display.
 
-import { header, footer, divider, type IUrsamuSDK } from "@ursamu/ursamu";
 import {
-  getRoomViews,
-  viewSlug,
-  type RoomView,
-  type RoomViews,
-} from "../views/index.ts";
+  header,
+  footer,
+  dbrefWithFlags,
+  type IUrsamuSDK,
+} from "@ursamu/ursamu";
+import { getRoomViews, type RoomView, type RoomViews } from "../views/index.ts";
 import { canSeeView, visibleViews, type Place } from "./views_lib.ts";
 
-function fmtDate(ms: number): string {
-  return new Date(ms).toISOString().slice(0, 10);
+function primaryPlaceName(place: Place): string {
+  const raw = String(
+    (place as { state?: { moniker?: string; name?: string } }).state
+      ?.moniker ||
+      (place as { state?: { name?: string } }).state?.name ||
+      place.name ||
+      "Here",
+  );
+  return raw.split(";")[0]?.trim() || raw || "Here";
+}
+
+async function placeTitle(
+  u: IUrsamuSDK,
+  place: Place,
+): Promise<string> {
+  const base = primaryPlaceName(place);
+  const canEdit = await u.canEdit(u.me as never, place as never);
+  if (!canEdit) return base;
+  const flags = place.flags;
+  return `${base}(${dbrefWithFlags(place.id, flags)})`;
 }
 
 export async function showViewList(
@@ -18,26 +36,26 @@ export async function showViewList(
   place: Place,
 ): Promise<void> {
   const visible = await visibleViews(u, place);
-  const name = u.util.displayName(place as never, u.me);
+  const title = await placeTitle(u, place);
   const lines: string[] = [];
-  lines.push(await header(`Views: ${name}`));
+  lines.push(await header(`Views: ${title}`));
+
+  let anyLocked = false;
   if (visible.length === 0) {
     lines.push("No views are available here.");
   } else {
-    lines.push(
-      "  %chName%cn                                   %chLock%cn",
-    );
-    lines.push(await divider());
     for (const v of visible) {
-      const lock = v.lock?.trim()
-        ? v.lock.trim().slice(0, 28)
-        : "(open)";
-      lines.push(`  ${v.name.padEnd(40)}  ${lock}`);
+      const locked = !!(v.lock && v.lock.trim());
+      if (locked) anyLocked = true;
+      const mark = locked ? "+" : " ";
+      lines.push(` ${mark}${v.name}`);
     }
-    lines.push("");
-    lines.push("  Type %ch%cy+views <name>%cn to read a view.");
   }
+
   lines.push(await footer());
+  if (anyLocked) {
+    lines.push("%ch+%cn locked");
+  }
   u.send(lines.join("\n"));
 }
 
@@ -52,18 +70,17 @@ export async function showOneView(
     u.send("No such view.");
     return;
   }
-  const where = u.util.displayName(place as never, u.me);
+  const title = await placeTitle(u, place);
+  const locked = !!(view.lock && view.lock.trim());
+  const viewLabel = locked ? `+${view.name}` : view.name;
   const lines: string[] = [];
-  lines.push(await header(`${where} / ${view.name}`));
-  if (view.lock?.trim()) {
-    lines.push(`  Lock: ${view.lock.trim()}`);
-  }
-  lines.push(`  Updated: ${fmtDate(view.updatedAt)}`);
-  lines.push(await divider());
+  lines.push(await header(`${title} / ${viewLabel}`));
   lines.push(view.text);
   lines.push(await footer());
+  if (locked) {
+    lines.push("%ch+%cn locked");
+  }
   u.send(lines.join("\n"));
 }
 
 export type { RoomView, RoomViews };
-export { viewSlug };
