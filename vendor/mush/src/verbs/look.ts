@@ -2,25 +2,61 @@ import { addCmd } from "../commands/addCmd.ts";
 import type { IUrsamuSDK, IDBObj } from "../commands/types.ts";
 import { resolveFormat, header, divider, footer, registerFormatHandler } from "../format/handlers.ts";
 import { getConfig } from "@ursamu/core";
+import { dbrefWithFlags } from "../world/flags.ts";
 
 const WIDTH = 78;
 const NO_DESCRIPTION = "You see nothing special.";
 
-function headerName(target: IDBObj, canEdit: boolean): string {
+/**
+ * Name, or Name(#idFLAGS) for staff/editors.
+ * Flag short-codes follow the dbref (dark exit → `#12ed`).
+ */
+function nameWithDbref(
+  display: string,
+  obj: IDBObj,
+  showDbref: boolean,
+): string {
+  if (!showDbref) return display;
+  return `${display}(${dbrefWithFlags(obj.id, obj.flags)})`;
+}
+
+/** Staff or canEdit → show (#id + flag codes). */
+function showStaffDbref(actor: IDBObj, canEdit: boolean): boolean {
+  return canEdit || canSeeDark(actor);
+}
+
+function headerName(
+  target: IDBObj,
+  actor: IDBObj,
+  canEdit: boolean,
+): string {
   const base =
     (target.state?.moniker as string | undefined) ||
     (target.state?.name as string | undefined) ||
     target.name ||
     "Unknown";
-  return canEdit ? `${base}(#${target.id})` : base;
+  return nameWithDbref(
+    base,
+    target,
+    showStaffDbref(actor, canEdit),
+  );
 }
 
 const visualLen = (s: string): number =>
   s.replace(/<#[0-9a-fA-F]{6}>/g, "").replace(/%c[a-zA-Z]/g, "").replace(/%[nrtbR]/g, "").length;
 
+/** Turn MUSH %r / %t into real whitespace before wrap. */
+function normalizeDescNewlines(text: string): string {
+  return text
+    .replace(/%r/gi, "\n")
+    .replace(/%t/gi, " ")
+    .replace(/\r\n/g, "\n")
+    .replace(/\r/g, "\n");
+}
+
 function wordWrap(text: string, width: number): string {
   const out: string[] = [];
-  for (const paragraph of text.split("\n")) {
+  for (const paragraph of normalizeDescNewlines(text).split("\n")) {
     if (paragraph.trim() === "") { out.push(""); continue; }
     let i = 0;
     while (i < paragraph.length && (paragraph[i] === " " || paragraph[i] === "\t")) i++;
@@ -67,10 +103,44 @@ function exitDisplay(e: IDBObj): string {
   return name;
 }
 
+/** Staff+ always see dark exits; others need canEdit (owner/control). */
+function canSeeDark(actor: IDBObj): boolean {
+  return (
+    actor.flags.has("wizard") ||
+    actor.flags.has("admin") ||
+    actor.flags.has("superuser") ||
+    actor.flags.has("staff") ||
+    actor.flags.has("storyteller")
+  );
+}
+
+/**
+ * Exits listed on look. DARK exits are hidden unless the looker is
+ * staff or can edit the exit. When none remain, callers skip the
+ * whole Exits section (including parent EXITFORMAT).
+ */
+export async function visibleExitsForLook(
+  u: IUrsamuSDK,
+  actor: IDBObj,
+  exits: IDBObj[],
+): Promise<IDBObj[]> {
+  const out: IDBObj[] = [];
+  const staff = canSeeDark(actor);
+  for (const e of exits) {
+    if (!e.flags.has("exit")) continue;
+    if (!e.flags.has("dark") || staff) {
+      out.push(e);
+      continue;
+    }
+    if (await u.canEdit(actor, e)) out.push(e);
+  }
+  return out;
+}
+
 async function renderRoom(u: IUrsamuSDK, actor: IDBObj, target: IDBObj, showContents: boolean, canEdit: boolean): Promise<string> {
   const lines: string[] = [];
 
-  const displayName = headerName(target, canEdit);
+  const displayName = headerName(target, actor, canEdit);
   const nameOverride = await resolveFormat(u, target, "NAMEFORMAT", displayName);
   lines.push(nameOverride ?? header(displayName, "=", WIDTH));
   lines.push("");
@@ -92,7 +162,11 @@ async function renderRoom(u: IUrsamuSDK, actor: IDBObj, target: IDBObj, showCont
   const contents = target.contents || [];
   const characters = contents.filter((o) => o.flags.has("player") && o.flags.has("connected"));
   const objects = contents.filter((o) => !o.flags.has("player") && !o.flags.has("exit") && !o.flags.has("room"));
-  const exits = contents.filter((o) => o.flags.has("exit"));
+  const exits = await visibleExitsForLook(
+    u,
+    actor,
+    contents.filter((o) => o.flags.has("exit")),
+  );
 
   if (showContents) {
     const visible = [...characters, ...objects];
@@ -107,7 +181,13 @@ async function renderRoom(u: IUrsamuSDK, actor: IDBObj, target: IDBObj, showCont
           for (const c of characters) {
             const disp = u.util.displayName(c, actor);
             const canEditChar = await u.canEdit(actor, c);
-            lines.push(` ${canEditChar ? `${disp}(#${c.id})` : disp}`);
+            lines.push(
+              ` ${nameWithDbref(
+                disp,
+                c,
+                showStaffDbref(actor, canEditChar),
+              )}`,
+            );
           }
         }
         if (objects.length > 0) {
@@ -115,13 +195,20 @@ async function renderRoom(u: IUrsamuSDK, actor: IDBObj, target: IDBObj, showCont
           for (const o of objects) {
             const disp = u.util.displayName(o, actor);
             const canEditObj = await u.canEdit(actor, o);
-            lines.push(` ${canEditObj ? `${disp}(#${o.id})` : disp}`);
+            lines.push(
+              ` ${nameWithDbref(
+                disp,
+                o,
+                showStaffDbref(actor, canEditObj),
+              )}`,
+            );
           }
         }
       }
     }
   }
 
+  // No visible exits → omit section entirely (no divider, no EXITFORMAT).
   if (exits.length > 0) {
     const idList = exits.map((e) => `#${e.id}`).join(" ");
     const exitOverride = await resolveFormat(u, target, "EXITFORMAT", idList);
@@ -132,7 +219,11 @@ async function renderRoom(u: IUrsamuSDK, actor: IDBObj, target: IDBObj, showCont
       const exitStrings = await Promise.all(exits.map(async (e) => {
         const disp = exitDisplay(e);
         const canEditExit = await u.canEdit(actor, e);
-        return canEditExit ? `${disp}(#${e.id})` : disp;
+        return nameWithDbref(
+          disp,
+          e,
+          showStaffDbref(actor, canEditExit),
+        );
       }));
       lines.push(nColumn(exitStrings, 3, WIDTH));
     }
@@ -145,7 +236,7 @@ async function renderRoom(u: IUrsamuSDK, actor: IDBObj, target: IDBObj, showCont
 async function renderSingle(u: IUrsamuSDK, actor: IDBObj, target: IDBObj, showContents: boolean, canEdit: boolean): Promise<string> {
   const lines: string[] = [];
 
-  const displayName = headerName(target, canEdit);
+  const displayName = headerName(target, actor, canEdit);
   const nameOverride = await resolveFormat(u, target, "NAMEFORMAT", displayName);
   lines.push(nameOverride ?? header(displayName, "=", WIDTH));
   lines.push("");
@@ -179,7 +270,13 @@ async function renderSingle(u: IUrsamuSDK, actor: IDBObj, target: IDBObj, showCo
           for (const c of players) {
             const disp = u.util.displayName(c, actor);
             const canEditChar = await u.canEdit(actor, c);
-            lines.push(` ${canEditChar ? `${disp}(#${c.id})` : disp}`);
+            lines.push(
+              ` ${nameWithDbref(
+                disp,
+                c,
+                showStaffDbref(actor, canEditChar),
+              )}`,
+            );
           }
         }
         if (things.length > 0) {
@@ -187,7 +284,13 @@ async function renderSingle(u: IUrsamuSDK, actor: IDBObj, target: IDBObj, showCo
           for (const o of things) {
             const disp = u.util.displayName(o, actor);
             const canEditObj = await u.canEdit(actor, o);
-            lines.push(` ${canEditObj ? `${disp}(#${o.id})` : disp}`);
+            lines.push(
+              ` ${nameWithDbref(
+                disp,
+                o,
+                showStaffDbref(actor, canEditObj),
+              )}`,
+            );
           }
         }
       }
@@ -219,7 +322,17 @@ export async function execLook(u: IUrsamuSDK): Promise<void> {
 
   const canEditTarget = await u.canEdit(actor, lookTarget);
   const isOpaque = lookTarget.flags.has("opaque");
-  const showContents = !isOpaque || canEditTarget;
+  // Opaque: hide contents unless canEdit. Dark room: hide CONFORMAT
+  // (players/things) unless staff or canEdit the room.
+  let showContents = !isOpaque || canEditTarget;
+  if (
+    lookTarget.flags.has("room") &&
+    lookTarget.flags.has("dark") &&
+    !canEditTarget &&
+    !canSeeDark(actor)
+  ) {
+    showContents = false;
+  }
 
   const out = lookTarget.flags.has("room")
     ? await renderRoom(u, actor, lookTarget, showContents, canEditTarget)
@@ -345,7 +458,11 @@ export const defaultConformatHandler = async (
       const role = roleTag(c);
       const desc = getShortDesc(c) || SHORTDESC_PROMPT;
       const canEditChar = await u.canEdit(actor, c);
-      const nameWithRef = canEditChar ? `${cName}(#${c.id})` : cName;
+      const nameWithRef = nameWithDbref(
+        cName,
+        c,
+        showStaffDbref(actor, canEditChar),
+      );
 
       const namePad = " ".repeat(Math.max(1, 21 - visualLen(nameWithRef)));
       const rolePad = " ".repeat(Math.max(1, 13 - visualLen(role)));
@@ -360,7 +477,11 @@ export const defaultConformatHandler = async (
     for (const o of objects) {
       const disp = o.name || u.util.displayName(o, actor);
       const canEditObj = await u.canEdit(actor, o);
-      const name = canEditObj ? `${disp}(#${o.id})` : disp;
+      const name = nameWithDbref(
+        disp,
+        o,
+        showStaffDbref(actor, canEditObj),
+      );
       // Classic MUSH: room things show short-desc after the name.
       const sd = getShortDesc(o);
       if (sd) {
