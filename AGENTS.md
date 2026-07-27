@@ -1,4 +1,4 @@
-# Court of Miracles — Agent Instructions
+# Court of Miracles: Agent Instructions
 
 This file is the **authoritative** guide for any AI agent or developer
 working on this game. Prefer it over outdated copies of CLAUDE.md /
@@ -8,12 +8,12 @@ GEMINI.md. Those files should point here.
 
 ## What this is
 
-**Court of Miracles** — a *Changeling: The Lost* freehold game on the
+**Court of Miracles** is a *Changeling: The Lost* freehold game on the
 UrsaMU engine (vendored `@ursamu/mush` under `vendor/`).
 
 - **Tone:** Victorian literary fiction, not modern chat or RPG boxed text
 - **Setting:** A fog-bound, slightly wrong city of gaslight, iron, and
-  bargains — the freehold’s London-that-never-quite-was. Prefer atmosphere
+  bargains: the freehold's London-that-never-quite-was. Prefer atmosphere
   over naming the real city repeatedly.
 - **This repo:** game code, config samples, help, softcode, vendored
   packages, and ops scripts. Engine source of truth lives in the ursamu
@@ -31,11 +31,31 @@ UrsaMU engine (vendored `@ursamu/mush` under `vendor/`).
 
 ## Voice & prose (non-negotiable)
 
-All **player-facing prose** — room descriptions, exit messages, connect
-text, MOTD, IC prop text, short-descs that read as narrative — must sound
+All **player-facing prose** (room descriptions, exit messages, connect
+text, MOTD, IC prop text, short-descs that read as narrative) must sound
 **human**, **easy to read**, and **literary**. Write as if this were a
 Victorian novel or a careful period short story, not a wiki stub or an
 LLM summary.
+
+### Punctuation ban: no em-dashes
+
+**Never use em-dashes** (Unicode U+2014, `—`) in player-facing text,
+help, short-descs, connect copy, commit messages for world prose, or
+agent docs that model house style.
+
+Also avoid en-dashes (U+2013, `–`) as a stylish substitute.
+
+Use instead:
+
+- a period and a new sentence
+- a comma or semicolon
+- a colon
+- parentheses
+- a plain hyphen only in compound words (fog-bound, gaslight)
+
+Wrong: `The fog lifts — or pretends to.`  
+Right: `The fog lifts, or pretends to.`  
+Right: `The fog lifts. Or it pretends to.`
 
 ### Do
 
@@ -43,10 +63,10 @@ LLM summary.
   image per sentence.
 - Use **sensory detail** (smell of coal-smoke, wet iron, damp wool, gas
   hiss) sparingly and specifically.
-- Keep paragraphs short enough to breathe on a 78-column terminal — still
+- Keep paragraphs short enough to breathe on a 78-column terminal, still
   continuous prose, not bullet lists.
 - Let mood come from what is *seen*, not from telling the reader how to
-  feel (“eerie,” “epic,” “amazing”).
+  feel ("eerie," "epic," "amazing").
 - Match register to place: street and rookery can be rougher; drawing-room
   and club more measured; Arcadian bleed stranger, never purple for its
   own sake.
@@ -55,16 +75,18 @@ LLM summary.
 
 ### Do not
 
-- **AI sludge:** “nestled,” “sprawling,” “tapestry of,” “in the heart of,”
-  “stands as a testament,” “bustling hub,” “delve,” “realm,” “plethora.”
-- **Command coaching in IC space** — never “Type +ic to…” or “Use look
-  to…” inside an IC room or hub description. OOC / chargen rooms may
+- **Em-dashes or en-dashes** anywhere in narrative or house-style copy.
+- **AI sludge:** "nestled," "sprawling," "tapestry of," "in the heart of,"
+  "stands as a testament," "bustling hub," "delve," "realm," "plethora."
+- **Command coaching in IC space.** Never "Type +ic to..." or "Use look
+  to..." inside an IC room or hub description. OOC / chargen rooms may
   teach commands carefully (see below).
 - **Modern slang, UI chrome, or game-engine jargon** in narrative text
-  (no “NPC,” “respawn,” “grid,” “RP,” “pose” as in-world words).
-- **Walls of unbroken clause-chains** or fake archaic soup (“thou doth
-  thrice behold yon ethereal…”). Victorian ≠ unreadable.
-- **Repeating “London”** in every desc. The city can feel like London
+  (no "NPC," "respawn," "grid," "RP," "pose" as in-world words).
+- **Walls of unbroken clause-chains** or fake archaic soup ("thou doth
+  thrice behold yon ethereal..."). Victorian is not the same as
+  unreadable.
+- **Repeating "London"** in every desc. The city can feel like London
   without the guidebook label.
 - Hard-wrapped lines inside a paragraph (look wraps for you).
 
@@ -72,13 +94,13 @@ LLM summary.
 
 - Store as **continuous paragraphs** joined by `%r%r` (blank line
   between).
-- No manual mid-paragraph line breaks for “pretty” width.
+- No manual mid-paragraph line breaks for "pretty" width.
 - **IC rooms:** pure atmosphere and place. Exits speak for themselves.
 - **OOC / chargen / staff workshops:** may include clear, brief
-  instruction — still in complete sentences, not a man page dump. Highlight
-  command names with `%ch%cy…%cn` only where players must type them.
-- **short-desc** (`&short-desc me=…`): one spare clause, period voice,
-  fits a who/look column — not a second room desc.
+  instruction, still in complete sentences, not a man page dump. Highlight
+  command names with `%ch%cy...%cn` only where players must type them.
+- **short-desc** (`&short-desc me=...`): one spare clause, period voice,
+  fits a who/look column, not a second room desc.
 
 ### Good (voice)
 
@@ -89,6 +111,8 @@ LLM summary.
 
 > This bustling hub of activity is nestled in the heart of Victorian
 > London, offering players a unique RP experience. Type +ic to begin!
+
+> The circus opens — gaslight, fog, and secrets — waiting for you.
 
 ---
 
@@ -115,7 +139,7 @@ descs, flags, locks, soft attributes, and most world work:
 3. Leave the daemon running.
 
 Write offline scripts **only** when bulk migration or code-only work
-cannot be done in-game — and always stop the daemon first, then restart.
+cannot be done in-game, and always stop the daemon first, then restart.
 
 ### Deploy (code / vendor)
 
@@ -123,7 +147,7 @@ From the **local** court checkout:
 
 ```bash
 # after updating vendor/mush or game files
-git add -A && git commit -m "…" && git push origin main
+git add -A && git commit -m "..." && git push origin main
 ssh court.ursamu.io 'bash ./court-update.sh'
 ```
 
@@ -134,7 +158,7 @@ when the change belongs in the repo.
 ### Engine vendor
 
 - Production imports **`./vendor/mush`**, not JSR latest by default.
-- Bump engine by rsyncing from ursamu monorepo `packages/mush` →
+- Bump engine by rsyncing from ursamu monorepo `packages/mush` to
   `vendor/mush` (exclude `tests/`, `data/`), commit, push, deploy.
 - Other vendored packages: `vendor/builder`, `channels`, `help`,
   `discord`, etc.
@@ -145,23 +169,23 @@ when the change belongs in the repo.
 
 ```
 court/
-├── AGENTS.md           ← you are here (agent source of truth)
-├── CLAUDE.md           ← thin pointer → AGENTS.md
-├── deno.json           ← tasks + import map (vendor pins)
+├── AGENTS.md           <- you are here (agent source of truth)
+├── CLAUDE.md           <- thin pointer to AGENTS.md
+├── deno.json           <- tasks + import map (vendor pins)
 ├── config/
 │   ├── config.sample.json
-│   └── config.json     ← gitignored live config
+│   └── config.json     <- gitignored live config
 ├── src/
-│   ├── main.ts         ← main server entry
-│   ├── telnet.ts       ← telnet sidecar entry
-│   └── plugins/        ← local game plugins only
-├── scripts/            ← daemon, setup helpers, one-off tools
-├── system/scripts/     ← softcode overrides
-├── help/               ← in-game help (.md)
-├── text/               ← connect screen, etc.
-├── vendor/             ← mush + first-party plugins (committed)
-├── data/               ← DB (gitignored runtime)
-└── logs/               ← gitignored
+│   ├── main.ts         <- main server entry
+│   ├── telnet.ts       <- telnet sidecar entry
+│   └── plugins/        <- local game plugins only
+├── scripts/            <- daemon, setup helpers, one-off tools
+├── system/scripts/     <- softcode overrides
+├── help/               <- in-game help (.md)
+├── text/               <- connect screen, etc.
+├── vendor/             <- mush + first-party plugins (committed)
+├── data/               <- DB (gitignored runtime)
+└── logs/               <- gitignored
 ```
 
 ### Tasks
@@ -196,7 +220,7 @@ Ports: telnet **4201**, WS **4202**, HTTP **4203**.
 - **IC hub** (e.g. Blackfriars Circus `#14`): room flag `ic`.
 - `+ic` / `+ooc` move between bookmarked IC location and OOC; IC bookmark
   only sticks on rooms flagged `ic`.
-- Look may show `[IC]` on IC room titles — do not duplicate that in the
+- Look may show `[IC]` on IC room titles. Do not duplicate that in the
   `@desc`.
 - IC prose stays IC. Put meta and command teaching in OOC/chargen.
 
@@ -235,17 +259,18 @@ overriding deliberately via `registerHeader` / etc.
   before commit when you touch code.
 - **DB writes:** `$set` / `$inc` / `$unset` only. `stripSubs` user text
   before length checks or storage when coming from commands.
-- **Permissions:** `canEdit` before editing others’ objects; staff checks
+- **Permissions:** `canEdit` before editing others' objects; staff checks
   for admin verbs.
-- **Plugins:** three-phase load — `import` commands at load, `init()`
+- **Plugins:** three-phase load: `import` commands at load, `init()`
   returns true, `remove()` offs the same named hook refs. DBO namespaces
   prefixed with plugin name.
-- **Help files:** ≤78 cols, ≤22 content lines per page; split with
+- **Help files:** max 78 cols, max 22 content lines per page; split with
   SEE ALSO; subtle markdown (`**bold**`, `` `code` ``) only.
 - **Softcode / system scripts:** no Deno, no `fetch`, no real imports at
-  runtime — only `u` SDK.
+  runtime; only `u` SDK.
 - **Secrets:** never commit `.env`, `config/config.json`, or passwords.
   Staff account passwords are ops knowledge, not repo content.
+- **Prose in code strings:** same voice rules and **no em-dashes**.
 
 ### Local plugins
 
@@ -257,8 +282,8 @@ rewriting mail, jobs, channels, or combat.
 
 - Daemon lifecycle: `run.sh`, `daemon.sh`, `stop.sh`, `restart.sh`,
   `status.sh`.
-- One-offs (`setup-ic-hub.ts`, `setup-chargen.ts`, …): document “stop
-  server first” at the top; prefer in-game fixes when possible.
+- One-offs (`setup-ic-hub.ts`, `setup-chargen.ts`, ...): document "stop
+  server first" at the top; prefer in-game fixes when possible.
 
 ---
 
@@ -277,17 +302,19 @@ monorepo, then vendor.
 
 ## What agents must not do
 
+- Use em-dashes (or en-dashes as a dodge) in player-facing or house-style
+  copy.
 - Take production down for a one-line `@desc` you could set as Builder.
 - Force-push `main` or rewrite production git history without explicit
   ask.
 - Commit `data/`, `logs/`, `.env`, or live `config.json`.
-- “Improve” IC prose into modern marketing or gamified tutorial voice.
+- "Improve" IC prose into modern marketing or gamified tutorial voice.
 - Invent staff policy, canon NPCs, or freehold law without being asked.
 - Mention these internal ops notes inside player-visible room text.
 
 ---
 
-## Quick reference — building in-game
+## Quick reference: building in-game
 
 ```
 connect Builder animefan
@@ -305,6 +332,6 @@ Password and name changes: `@password` / `@newpassword` as staff.
 
 ## Related
 
-- Engine monorepo: ursamu (`packages/mush`, cofd, discord, …)
+- Engine monorepo: ursamu (`packages/mush`, cofd, discord, ...)
 - Player-facing README: `README.md`
 - Connect art: `text/default_connect.txt`
