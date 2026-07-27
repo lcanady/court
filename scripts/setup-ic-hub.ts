@@ -33,6 +33,7 @@ const flags = new Set(
 );
 flags.add("room");
 flags.add("safe");
+flags.add("ic"); // IC play space — +ooc bookmarks rooms with this flag
 
 await dbojs.modify({ id: HUB_ID }, "$set", {
   flags: [...flags].join(" "),
