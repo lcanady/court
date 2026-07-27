@@ -93,11 +93,11 @@ No rulebook handouts.
 draft, unseasonable fruit, a watched door: show, do not lecture.
 
 **Splat-only perception (keep and use these):**
-- `FAEDESC` / kenning / fae dual-desc: **Changeling-facing**. May name
-  thorns, Mask/Mien tension, briar, Arcadian bleed, freehold truth, as
-  long as only fae sight sees it.
-- Other dual fields (Hisil, Auspex-only notes, etc.) when added: same
-  rule for that splat only.
+- `FAEDESC` / kenning / fae dual-desc: **requires `fae` flag only**
+  (changeling template). Staff does not auto-see; preview with
+  `@set me=fae` / `@set me=!fae`. May name thorns, Mask/Mien, briar,
+  freehold truth when only fae sight applies.
+- Other dual fields (Hisil, etc.) when added: that splat's flag only.
 - Locked `+views` and staff OOC may hold clearer lore.
 
 **OOC** help, `+hedge`, and staff notes use real system terms freely.
