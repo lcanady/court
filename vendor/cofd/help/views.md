@@ -1,24 +1,24 @@
-+VIEWS
+---
+aliases: ["view", "+view", "+views", "views"]
+---
++VIEW / +VIEWS
 
-Detail views on a place (room). Like **+notes**, but for locations.
-Optional locks use normal lock logic (`flag()`, `perm()`, and, or, not).
+Detail views on a place (like **+notes** for rooms). Locks use normal
+lock logic. Look shows `< +views Available >` when any are visible.
 
 SYNTAX
-  +views                        List views you can see here.
-  +views <name>                 Read one view in full.
-  +views/list [<place>]         List views (default: here).
-  +views/add <name>=<text>      Create (needs canEdit on the place).
-  +views/edit <name>=<text>     Replace text.
-  +views/del <name>             Delete a view.
-  +views/lock <name>=<lock>     Set lock; `!` or empty clears.
+  +views                   List views you can see here.
+  +views <name>            Read one view.
+  +views/add <name>=<text> Create (needs canEdit).
+  +views/edit <name>=text  Replace text.
+  +views/del <name>        Delete.
+  +views/lock <name>=lock  Set lock; `!` clears.
 
-When any view is visible to you, look shows a centered
-`+views Available` line under the description.
+LIST  Names only. Leading **+** = locked (legend under footer).
 
 EXAMPLES
-  +views/add Angel=The bronze angel's wings weep verdigris.
+  +views/add Angel=Wings weep verdigris.
   +views/lock Angel=flag(approved)
   +views Angel
-  +views/lock Angel=!
 
-SEE ALSO: +help notes, +help lock
+SEE ALSO: +help notes
