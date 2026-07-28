@@ -8,7 +8,7 @@
     "jsr:@std/path@0.224": "0.224.0",
     "jsr:@std/semver@1": "1.0.8",
     "jsr:@ursamu/bbs@0.1": "0.1.0",
-    "jsr:@ursamu/channels@~0.1.3": "0.1.3",
+    "jsr:@ursamu/channels@~0.1.4": "0.1.4",
     "jsr:@ursamu/cofd-plugin@^1.1.8": "1.1.8",
     "jsr:@ursamu/combat@0.8": "0.8.1",
     "jsr:@ursamu/combat@~0.8.1": "0.8.1",
@@ -75,8 +75,8 @@
         "jsr:@ursamu/mush@0.1"
       ]
     },
-    "@ursamu/channels@0.1.3": {
-      "integrity": "b53009dc4f8fb65378bc9ce5fb07f69405d2b6312e626d953d02d37dd1a0289c",
+    "@ursamu/channels@0.1.4": {
+      "integrity": "708b5ddf5f382f09436c9f936f29f79729cf8b71ed0767fb876eeb308e82e689",
       "dependencies": [
         "jsr:@ursamu/core@0.1",
         "jsr:@ursamu/help@~0.1.5",
@@ -530,8 +530,8 @@
       "jsr:@std/semver@1",
       "jsr:@std/testing@^1.0.17",
       "jsr:@ursamu/bbs@0.1",
-      "jsr:@ursamu/channels@0.1.3",
-      "jsr:@ursamu/channels@~0.1.3",
+      "jsr:@ursamu/channels@0.1.4",
+      "jsr:@ursamu/channels@~0.1.4",
       "jsr:@ursamu/cofd-plugin@^1.1.8",
       "jsr:@ursamu/combat@~0.8.1",
       "jsr:@ursamu/core@~0.1.5",
