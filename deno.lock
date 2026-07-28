@@ -8,7 +8,7 @@
     "jsr:@std/path@0.224": "0.224.0",
     "jsr:@std/semver@1": "1.0.8",
     "jsr:@ursamu/bbs@0.1": "0.1.0",
-    "jsr:@ursamu/channels@~0.1.4": "0.1.4",
+    "jsr:@ursamu/channels@~0.1.5": "0.1.5",
     "jsr:@ursamu/cofd-plugin@^1.1.8": "1.1.8",
     "jsr:@ursamu/combat@0.8": "0.8.1",
     "jsr:@ursamu/combat@~0.8.1": "0.8.1",
@@ -31,6 +31,7 @@
     "jsr:@ursamu/mushcode@0.7": "0.7.0",
     "jsr:@zaubrik/djwt@^3.0.2": "3.0.2",
     "npm:@digibear/tags@1.0.0": "1.0.0",
+    "npm:@electric-sql/pglite@0.5.4": "0.5.4",
     "npm:@electric-sql/pglite@~0.5.2": "0.5.4",
     "npm:@nicia-ai/typegraph@0.31": "0.31.0_@electric-sql+pglite@0.5.4_drizzle-orm@0.45.2__@electric-sql+pglite@0.5.4_zod@4.4.3",
     "npm:@ursamu/parser@1.2.4": "1.2.4",
@@ -75,8 +76,8 @@
         "jsr:@ursamu/mush@0.1"
       ]
     },
-    "@ursamu/channels@0.1.4": {
-      "integrity": "708b5ddf5f382f09436c9f936f29f79729cf8b71ed0767fb876eeb308e82e689",
+    "@ursamu/channels@0.1.5": {
+      "integrity": "d8b218210e6cefad3fb52cec32e3cb32e95625d2d008b081795fafc65338a4eb",
       "dependencies": [
         "jsr:@ursamu/core@0.1",
         "jsr:@ursamu/help@~0.1.5",
@@ -530,8 +531,8 @@
       "jsr:@std/semver@1",
       "jsr:@std/testing@^1.0.17",
       "jsr:@ursamu/bbs@0.1",
-      "jsr:@ursamu/channels@0.1.4",
-      "jsr:@ursamu/channels@~0.1.4",
+      "jsr:@ursamu/channels@0.1.5",
+      "jsr:@ursamu/channels@~0.1.5",
       "jsr:@ursamu/cofd-plugin@^1.1.8",
       "jsr:@ursamu/combat@~0.8.1",
       "jsr:@ursamu/core@~0.1.5",
