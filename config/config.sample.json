@@ -41,12 +41,14 @@
         {
           "name": "Public",
           "alias": "pub",
-          "lock": "connected"
+          "lock": "connected",
+          "announce": true
         },
         {
           "name": "Admin",
           "alias": "ad",
-          "lock": "connected admin+"
+          "lock": "connected admin+",
+          "announce": false
         }
       ]
     },
