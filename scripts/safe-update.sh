@@ -79,6 +79,9 @@ PY
 
 # --- pre-warm Deno cache while old main still runs -------------------------
 echo "[safe-update] caching packages (game still up)..."
+# Drop lock + node_modules so soft-reboot cannot reuse a stale graph.
+rm -f deno.lock
+rm -rf node_modules
 if ! deno cache --reload --minimum-dependency-age=0 \
   src/main.ts src/telnet.ts; then
   echo "[safe-update] ERROR: deno cache failed — aborting reboot."
