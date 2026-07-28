@@ -20,7 +20,7 @@
     "jsr:@ursamu/jobs@~0.1.1": "0.1.1",
     "jsr:@ursamu/lang-plugin@^3.1.1": "3.1.1",
     "jsr:@ursamu/mail@^2.4.0": "2.4.0",
-    "jsr:@ursamu/mush@1.0.0": "1.0.0",
+    "jsr:@ursamu/mush@1.0.1": "1.0.1",
     "jsr:@ursamu/mush@~0.1.30": "0.1.30",
     "jsr:@ursamu/mushcode@0.7": "0.7.0",
     "jsr:@zaubrik/djwt@^3.0.2": "3.0.2",
@@ -66,7 +66,7 @@
       "dependencies": [
         "jsr:@ursamu/help",
         "jsr:@ursamu/jobs@0.1",
-        "jsr:@ursamu/mush@1.0.0"
+        "jsr:@ursamu/mush@1.0.1"
       ]
     },
     "@ursamu/builder@1.3.5": {
@@ -74,7 +74,7 @@
       "dependencies": [
         "jsr:@std/path",
         "jsr:@ursamu/help",
-        "jsr:@ursamu/mush@1.0.0",
+        "jsr:@ursamu/mush@1.0.1",
         "jsr:@ursamu/mush@~0.1.30"
       ]
     },
@@ -83,7 +83,7 @@
       "dependencies": [
         "jsr:@ursamu/core",
         "jsr:@ursamu/help",
-        "jsr:@ursamu/mush@1.0.0"
+        "jsr:@ursamu/mush@1.0.1"
       ]
     },
     "@ursamu/cofd-plugin@1.1.14": {
@@ -93,13 +93,13 @@
         "jsr:@ursamu/help",
         "jsr:@ursamu/jobs@~0.1.1",
         "jsr:@ursamu/mail",
-        "jsr:@ursamu/mush@1.0.0"
+        "jsr:@ursamu/mush@1.0.1"
       ]
     },
     "@ursamu/combat@0.8.1": {
       "integrity": "a9e84ada15925960b0a73d6ab62b63a28928ed233df861503fd65d905bfe768e",
       "dependencies": [
-        "jsr:@ursamu/mush@1.0.0"
+        "jsr:@ursamu/mush@1.0.1"
       ]
     },
     "@ursamu/core@1.0.0": {
@@ -118,14 +118,14 @@
         "jsr:@ursamu/channels",
         "jsr:@ursamu/help",
         "jsr:@ursamu/jobs@~0.1.1",
-        "jsr:@ursamu/mush@1.0.0",
+        "jsr:@ursamu/mush@1.0.1",
         "npm:tweetnacl"
       ]
     },
     "@ursamu/help@0.1.9": {
       "integrity": "746c56af6d6ff7ace3d808ea25fbcf20684a9339646fcee560850ad89ad5dae9",
       "dependencies": [
-        "jsr:@ursamu/mush@1.0.0"
+        "jsr:@ursamu/mush@1.0.1"
       ]
     },
     "@ursamu/jobs@0.1.1": {
@@ -133,7 +133,7 @@
       "dependencies": [
         "jsr:@ursamu/help",
         "jsr:@ursamu/mail",
-        "jsr:@ursamu/mush@1.0.0"
+        "jsr:@ursamu/mush@1.0.1"
       ]
     },
     "@ursamu/lang-plugin@3.1.1": {
@@ -141,14 +141,14 @@
       "dependencies": [
         "jsr:@std/path",
         "jsr:@ursamu/help",
-        "jsr:@ursamu/mush@1.0.0"
+        "jsr:@ursamu/mush@1.0.1"
       ]
     },
     "@ursamu/mail@2.4.0": {
       "integrity": "cf9110a2a6be102f85d54e3689e805a67a5f6b364be9e4fc9a7f5e1a8680d5be",
       "dependencies": [
         "jsr:@ursamu/help",
-        "jsr:@ursamu/mush@1.0.0"
+        "jsr:@ursamu/mush@1.0.1"
       ]
     },
     "@ursamu/mush@0.1.30": {
@@ -158,8 +158,8 @@
         "npm:@digibear/tags"
       ]
     },
-    "@ursamu/mush@1.0.0": {
-      "integrity": "ac3cace0a5687440a63ce8760a2540cc5ecaf97b2e2b8f24ab0442094c7cbad4",
+    "@ursamu/mush@1.0.1": {
+      "integrity": "039beeccb3cda1ecab10e32e79240a3c40262953df3215ce833d317669a1e42b",
       "dependencies": [
         "jsr:@std/dotenv",
         "jsr:@std/fs",
@@ -560,7 +560,7 @@
       "jsr:@ursamu/jobs@~0.1.1",
       "jsr:@ursamu/lang-plugin@^3.1.1",
       "jsr:@ursamu/mail@^2.4.0",
-      "jsr:@ursamu/mush@1.0.0",
+      "jsr:@ursamu/mush@1.0.1",
       "jsr:@ursamu/mushcode@0.7",
       "jsr:@zaubrik/djwt@^3.0.2",
       "npm:@digibear/tags@1.0.0",
