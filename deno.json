@@ -60,7 +60,7 @@
     "@ursamu/channels": "jsr:@ursamu/channels@1.0.1",
     "@ursamu/help": "jsr:@ursamu/help@1.0.0",
     "@ursamu/help-plugin": "jsr:@ursamu/help@1.0.0",
-    "@ursamu/bbs": "jsr:@ursamu/bbs@^0.1.0",
+    "@ursamu/bbs": "jsr:@ursamu/bbs@0.1.1",
     "@ursamu/mail": "jsr:@ursamu/mail@2.5.0",
     "@ursamu/mail-plugin": "jsr:@ursamu/mail@2.5.0",
     "@ursamu/jobs": "jsr:@ursamu/jobs@1.1.0",
@@ -351,7 +351,14 @@
     "jsr:@ursamu/jobs@1.0.0": "jsr:@ursamu/jobs@1.1.0",
     "jsr:@ursamu/jobs@^1.0.0": "jsr:@ursamu/jobs@1.1.0",
     "jsr:@ursamu/jobs@1.1.0": "jsr:@ursamu/jobs@1.1.0",
-    "jsr:@ursamu/jobs@^1.1.0": "jsr:@ursamu/jobs@1.1.0"
+    "jsr:@ursamu/jobs@^1.1.0": "jsr:@ursamu/jobs@1.1.0",
+    "jsr:@ursamu/bbs@0.1.0": "jsr:@ursamu/bbs@0.1.1",
+    "jsr:@ursamu/bbs@^0.1.0": "jsr:@ursamu/bbs@0.1.1",
+    "jsr:@ursamu/bbs@~0.1.0": "jsr:@ursamu/bbs@0.1.1",
+    "jsr:@ursamu/bbs@0.1.1": "jsr:@ursamu/bbs@0.1.1",
+    "jsr:@ursamu/bbs@^0.1.1": "jsr:@ursamu/bbs@0.1.1",
+    "jsr:@ursamu/bbs@~0.1.1": "jsr:@ursamu/bbs@0.1.1",
+    "jsr:@ursamu/bbs@^0.1": "jsr:@ursamu/bbs@0.1.1"
   },
   "minimumDependencyAge": 0
 }
