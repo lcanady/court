@@ -19,7 +19,7 @@
     "jsr:@ursamu/jobs@0.1": "0.1.1",
     "jsr:@ursamu/jobs@~0.1.1": "0.1.1",
     "jsr:@ursamu/lang-plugin@^3.1.1": "3.1.1",
-    "jsr:@ursamu/mail@^2.4.0": "2.4.0",
+    "jsr:@ursamu/mail@2.5.0": "2.5.0",
     "jsr:@ursamu/mush@1": "1.0.1",
     "jsr:@ursamu/mush@1.0.1": "1.0.1",
     "jsr:@ursamu/mushcode@0.7": "0.7.0",
@@ -144,8 +144,8 @@
         "jsr:@ursamu/mush@1.0.1"
       ]
     },
-    "@ursamu/mail@2.4.0": {
-      "integrity": "cf9110a2a6be102f85d54e3689e805a67a5f6b364be9e4fc9a7f5e1a8680d5be",
+    "@ursamu/mail@2.5.0": {
+      "integrity": "54926684c2d955528c7ec1ad5c6472584474593f497287b758671c1e094633aa",
       "dependencies": [
         "jsr:@ursamu/help",
         "jsr:@ursamu/mush@1.0.1"
@@ -552,7 +552,7 @@
       "jsr:@ursamu/help@1.0.0",
       "jsr:@ursamu/jobs@~0.1.1",
       "jsr:@ursamu/lang-plugin@^3.1.1",
-      "jsr:@ursamu/mail@^2.4.0",
+      "jsr:@ursamu/mail@2.5.0",
       "jsr:@ursamu/mush@1.0.1",
       "jsr:@ursamu/mushcode@0.7",
       "jsr:@zaubrik/djwt@^3.0.2",

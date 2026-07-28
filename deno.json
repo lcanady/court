@@ -61,8 +61,8 @@
     "@ursamu/help": "jsr:@ursamu/help@1.0.0",
     "@ursamu/help-plugin": "jsr:@ursamu/help@1.0.0",
     "@ursamu/bbs": "jsr:@ursamu/bbs@^0.1.0",
-    "@ursamu/mail": "jsr:@ursamu/mail@^2.4.0",
-    "@ursamu/mail-plugin": "jsr:@ursamu/mail@^2.4.0",
+    "@ursamu/mail": "jsr:@ursamu/mail@2.5.0",
+    "@ursamu/mail-plugin": "jsr:@ursamu/mail@2.5.0",
     "@ursamu/jobs": "jsr:@ursamu/jobs@^0.1.1",
     "@ursamu/jobs-plugin": "jsr:@ursamu/jobs@^0.1.1",
     "@ursamu/combat": "jsr:@ursamu/combat@^0.8.1",
@@ -335,7 +335,15 @@
     "jsr:@ursamu/discord@0.2": "jsr:@ursamu/discord@1.0.0",
     "jsr:@ursamu/discord@1.0.0": "jsr:@ursamu/discord@1.0.0",
     "jsr:@ursamu/discord@^1.0.0": "jsr:@ursamu/discord@1.0.0",
-    "jsr:@ursamu/discord@^1.0": "jsr:@ursamu/discord@1.0.0"
+    "jsr:@ursamu/discord@^1.0": "jsr:@ursamu/discord@1.0.0",
+    "jsr:@ursamu/mail@2.4.0": "jsr:@ursamu/mail@2.5.0",
+    "jsr:@ursamu/mail@^2.4.0": "jsr:@ursamu/mail@2.5.0",
+    "jsr:@ursamu/mail@^2.4": "jsr:@ursamu/mail@2.5.0",
+    "jsr:@ursamu/mail@~2.4.0": "jsr:@ursamu/mail@2.5.0",
+    "jsr:@ursamu/mail@2.5.0": "jsr:@ursamu/mail@2.5.0",
+    "jsr:@ursamu/mail@^2.5.0": "jsr:@ursamu/mail@2.5.0",
+    "jsr:@ursamu/mail@^2.5": "jsr:@ursamu/mail@2.5.0",
+    "jsr:@ursamu/mail@~2.5.0": "jsr:@ursamu/mail@2.5.0"
   },
   "minimumDependencyAge": 0
 }
