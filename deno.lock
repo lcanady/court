@@ -15,7 +15,7 @@
     "jsr:@ursamu/combat@~0.8.1": "0.8.1",
     "jsr:@ursamu/core@1.0.0": "1.0.0",
     "jsr:@ursamu/discord@0.2.4": "0.2.4",
-    "jsr:@ursamu/help@0.1.9": "0.1.9",
+    "jsr:@ursamu/help@1.0.0": "1.0.0",
     "jsr:@ursamu/jobs@0.1": "0.1.1",
     "jsr:@ursamu/jobs@~0.1.1": "0.1.1",
     "jsr:@ursamu/lang-plugin@^3.1.1": "3.1.1",
@@ -122,8 +122,8 @@
         "npm:tweetnacl"
       ]
     },
-    "@ursamu/help@0.1.9": {
-      "integrity": "746c56af6d6ff7ace3d808ea25fbcf20684a9339646fcee560850ad89ad5dae9",
+    "@ursamu/help@1.0.0": {
+      "integrity": "57c0f30602ebe74a7caa676d794f64ff6623837c7200566287565731a55fa10a",
       "dependencies": [
         "jsr:@ursamu/mush@1.0.1"
       ]
@@ -549,7 +549,7 @@
       "jsr:@ursamu/combat@~0.8.1",
       "jsr:@ursamu/core@1.0.0",
       "jsr:@ursamu/discord@0.2.4",
-      "jsr:@ursamu/help@0.1.9",
+      "jsr:@ursamu/help@1.0.0",
       "jsr:@ursamu/jobs@~0.1.1",
       "jsr:@ursamu/lang-plugin@^3.1.1",
       "jsr:@ursamu/mail@^2.4.0",
