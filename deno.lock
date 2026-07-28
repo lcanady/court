@@ -8,8 +8,8 @@
     "jsr:@std/path@0.224": "0.224.0",
     "jsr:@std/semver@1": "1.0.8",
     "jsr:@ursamu/bbs@0.1": "0.1.0",
-    "jsr:@ursamu/builder@1.3.5": "1.3.5",
-    "jsr:@ursamu/channels@1.0.0": "1.0.0",
+    "jsr:@ursamu/builder@1.3.6": "1.3.6",
+    "jsr:@ursamu/channels@1.0.1": "1.0.1",
     "jsr:@ursamu/cofd-plugin@1.1.14": "1.1.14",
     "jsr:@ursamu/combat@0.8": "0.8.1",
     "jsr:@ursamu/combat@~0.8.1": "0.8.1",
@@ -20,8 +20,8 @@
     "jsr:@ursamu/jobs@~0.1.1": "0.1.1",
     "jsr:@ursamu/lang-plugin@^3.1.1": "3.1.1",
     "jsr:@ursamu/mail@^2.4.0": "2.4.0",
+    "jsr:@ursamu/mush@1": "1.0.1",
     "jsr:@ursamu/mush@1.0.1": "1.0.1",
-    "jsr:@ursamu/mush@~0.1.30": "0.1.30",
     "jsr:@ursamu/mushcode@0.7": "0.7.0",
     "jsr:@zaubrik/djwt@^3.0.2": "3.0.2",
     "npm:@digibear/tags@1.0.0": "1.0.0",
@@ -69,17 +69,17 @@
         "jsr:@ursamu/mush@1.0.1"
       ]
     },
-    "@ursamu/builder@1.3.5": {
-      "integrity": "00c430d01535bb885ba23b666b21c4c147d21cf949b9a2326a8c70d7275c4d78",
+    "@ursamu/builder@1.3.6": {
+      "integrity": "4fecbff7f6c30f4f08ddb350746e99db2167da6bd96ea7afa174c2273ca4a235",
       "dependencies": [
         "jsr:@std/path",
         "jsr:@ursamu/help",
-        "jsr:@ursamu/mush@1.0.1",
-        "jsr:@ursamu/mush@~0.1.30"
+        "jsr:@ursamu/mush@1",
+        "jsr:@ursamu/mush@1.0.1"
       ]
     },
-    "@ursamu/channels@1.0.0": {
-      "integrity": "09858518a6fd86ee3cadf72b5dd9252f1e45eae8166224f6f10ec60392e3794d",
+    "@ursamu/channels@1.0.1": {
+      "integrity": "1f3d5bd7fa912da70ce9e9807c06aa4e397f483431223fe1251452f119fd64c1",
       "dependencies": [
         "jsr:@ursamu/core",
         "jsr:@ursamu/help",
@@ -149,13 +149,6 @@
       "dependencies": [
         "jsr:@ursamu/help",
         "jsr:@ursamu/mush@1.0.1"
-      ]
-    },
-    "@ursamu/mush@0.1.30": {
-      "integrity": "97411714828810f0ff9067a6fc5292b57ce238123a2916aa2875e7da239c9811",
-      "dependencies": [
-        "jsr:@ursamu/core",
-        "npm:@digibear/tags"
       ]
     },
     "@ursamu/mush@1.0.1": {
@@ -550,8 +543,8 @@
       "jsr:@std/semver@1",
       "jsr:@std/testing@^1.0.17",
       "jsr:@ursamu/bbs@0.1",
-      "jsr:@ursamu/builder@1.3.5",
-      "jsr:@ursamu/channels@1.0.0",
+      "jsr:@ursamu/builder@1.3.6",
+      "jsr:@ursamu/channels@1.0.1",
       "jsr:@ursamu/cofd-plugin@1.1.14",
       "jsr:@ursamu/combat@~0.8.1",
       "jsr:@ursamu/core@1.0.0",
