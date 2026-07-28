@@ -56,7 +56,7 @@
     "@electric-sql/pglite": "npm:@electric-sql/pglite@^0.5.2",
     "@nicia-ai/typegraph": "npm:@nicia-ai/typegraph@^0.31.0",
     "@nicia-ai/typegraph/postgres/pglite": "npm:@nicia-ai/typegraph@^0.31.0/postgres/pglite",
-    "@ursamu/builder": "./vendor/builder/mod.ts",
+    "@ursamu/builder": "jsr:@ursamu/builder@1.3.4",
     "@ursamu/channels": "jsr:@ursamu/channels@0.1.8",
     "@ursamu/help": "jsr:@ursamu/help@0.1.9",
     "@ursamu/help-plugin": "jsr:@ursamu/help@0.1.9",
