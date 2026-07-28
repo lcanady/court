@@ -8,7 +8,7 @@
     "jsr:@std/path@0.224": "0.224.0",
     "jsr:@std/semver@1": "1.0.8",
     "jsr:@ursamu/core@~0.1.5": "0.1.5",
-    "jsr:@ursamu/mush@~0.1.26": "0.1.26",
+    "jsr:@ursamu/mush@~0.1.27": "0.1.27",
     "jsr:@ursamu/mushcode@0.7": "0.7.0",
     "jsr:@zaubrik/djwt@^3.0.2": "3.0.2",
     "npm:@digibear/tags@1.0.0": "1.0.0",
@@ -59,8 +59,8 @@
         "npm:zod"
       ]
     },
-    "@ursamu/mush@0.1.26": {
-      "integrity": "20d353051eb1e90b949bb5e81bb31d6e571a824ac027edc120e3d88d216a39dd",
+    "@ursamu/mush@0.1.27": {
+      "integrity": "f6952a1bec4447d1329490d1f241e5b66c6eaa9f9b7eef276004f7f4d67298fb",
       "dependencies": [
         "jsr:@std/dotenv",
         "jsr:@std/fs",
@@ -451,7 +451,7 @@
       "jsr:@std/semver@1",
       "jsr:@std/testing@^1.0.17",
       "jsr:@ursamu/bbs@0.1",
-      "jsr:@ursamu/channels@~0.1.6",
+      "jsr:@ursamu/channels@~0.1.7",
       "jsr:@ursamu/cofd-plugin@^1.1.8",
       "jsr:@ursamu/combat@~0.8.1",
       "jsr:@ursamu/core@~0.1.5",
@@ -459,7 +459,7 @@
       "jsr:@ursamu/jobs@~0.1.1",
       "jsr:@ursamu/lang-plugin@^3.1.1",
       "jsr:@ursamu/mail@^2.4.0",
-      "jsr:@ursamu/mush@~0.1.26",
+      "jsr:@ursamu/mush@~0.1.27",
       "jsr:@ursamu/mushcode@0.7",
       "jsr:@zaubrik/djwt@^3.0.2",
       "npm:@digibear/tags@1.0.0",
