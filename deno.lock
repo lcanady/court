@@ -14,7 +14,7 @@
     "jsr:@ursamu/combat@0.8": "0.8.1",
     "jsr:@ursamu/combat@~0.8.1": "0.8.1",
     "jsr:@ursamu/core@1.0.0": "1.0.0",
-    "jsr:@ursamu/discord@0.2.4": "0.2.4",
+    "jsr:@ursamu/discord@1.0.0": "1.0.0",
     "jsr:@ursamu/help@1.0.0": "1.0.0",
     "jsr:@ursamu/jobs@0.1": "0.1.1",
     "jsr:@ursamu/jobs@~0.1.1": "0.1.1",
@@ -112,8 +112,8 @@
         "npm:zod"
       ]
     },
-    "@ursamu/discord@0.2.4": {
-      "integrity": "5189012529b50ef9e738cdcc06f75400d5abec0f45d9b464d69ca9e9987e2659",
+    "@ursamu/discord@1.0.0": {
+      "integrity": "774a6dff405a9a805b0c6b9beabb677586a3125b4deb5c8ffc3fadeecaeec536",
       "dependencies": [
         "jsr:@ursamu/channels",
         "jsr:@ursamu/help",
@@ -548,7 +548,7 @@
       "jsr:@ursamu/cofd-plugin@1.1.14",
       "jsr:@ursamu/combat@~0.8.1",
       "jsr:@ursamu/core@1.0.0",
-      "jsr:@ursamu/discord@0.2.4",
+      "jsr:@ursamu/discord@1.0.0",
       "jsr:@ursamu/help@1.0.0",
       "jsr:@ursamu/jobs@~0.1.1",
       "jsr:@ursamu/lang-plugin@^3.1.1",
