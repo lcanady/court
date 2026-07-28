@@ -7,8 +7,21 @@
     "jsr:@std/fs@0.224": "0.224.0",
     "jsr:@std/path@0.224": "0.224.0",
     "jsr:@std/semver@1": "1.0.8",
+    "jsr:@ursamu/bbs@0.1": "0.1.0",
+    "jsr:@ursamu/builder@1.3.5": "1.3.5",
+    "jsr:@ursamu/channels@1.0.0": "1.0.0",
+    "jsr:@ursamu/cofd-plugin@1.1.14": "1.1.14",
+    "jsr:@ursamu/combat@0.8": "0.8.1",
+    "jsr:@ursamu/combat@~0.8.1": "0.8.1",
     "jsr:@ursamu/core@1.0.0": "1.0.0",
+    "jsr:@ursamu/discord@0.2.4": "0.2.4",
+    "jsr:@ursamu/help@0.1.9": "0.1.9",
+    "jsr:@ursamu/jobs@0.1": "0.1.1",
+    "jsr:@ursamu/jobs@~0.1.1": "0.1.1",
+    "jsr:@ursamu/lang-plugin@^3.1.1": "3.1.1",
+    "jsr:@ursamu/mail@^2.4.0": "2.4.0",
     "jsr:@ursamu/mush@1.0.0": "1.0.0",
+    "jsr:@ursamu/mush@~0.1.30": "0.1.30",
     "jsr:@ursamu/mushcode@0.7": "0.7.0",
     "jsr:@zaubrik/djwt@^3.0.2": "3.0.2",
     "npm:@digibear/tags@1.0.0": "1.0.0",
@@ -48,6 +61,47 @@
     "@std/semver@1.0.8": {
       "integrity": "dc830e8b8b6a380c895d53fbfd1258dc253704ca57bbe1629ac65fd7830179b7"
     },
+    "@ursamu/bbs@0.1.0": {
+      "integrity": "33b20012344b26c62767c03e5676e3a618779c2f181f8a5d51230aa595587bd1",
+      "dependencies": [
+        "jsr:@ursamu/help",
+        "jsr:@ursamu/jobs@0.1",
+        "jsr:@ursamu/mush@1.0.0"
+      ]
+    },
+    "@ursamu/builder@1.3.5": {
+      "integrity": "00c430d01535bb885ba23b666b21c4c147d21cf949b9a2326a8c70d7275c4d78",
+      "dependencies": [
+        "jsr:@std/path",
+        "jsr:@ursamu/help",
+        "jsr:@ursamu/mush@1.0.0",
+        "jsr:@ursamu/mush@~0.1.30"
+      ]
+    },
+    "@ursamu/channels@1.0.0": {
+      "integrity": "09858518a6fd86ee3cadf72b5dd9252f1e45eae8166224f6f10ec60392e3794d",
+      "dependencies": [
+        "jsr:@ursamu/core",
+        "jsr:@ursamu/help",
+        "jsr:@ursamu/mush@1.0.0"
+      ]
+    },
+    "@ursamu/cofd-plugin@1.1.14": {
+      "integrity": "c07f0c23e1ca4cebff7db8dbb71c81c73ad00dbad30a5663b02b4d1ef439a0ab",
+      "dependencies": [
+        "jsr:@ursamu/combat@0.8",
+        "jsr:@ursamu/help",
+        "jsr:@ursamu/jobs@~0.1.1",
+        "jsr:@ursamu/mail",
+        "jsr:@ursamu/mush@1.0.0"
+      ]
+    },
+    "@ursamu/combat@0.8.1": {
+      "integrity": "a9e84ada15925960b0a73d6ab62b63a28928ed233df861503fd65d905bfe768e",
+      "dependencies": [
+        "jsr:@ursamu/mush@1.0.0"
+      ]
+    },
     "@ursamu/core@1.0.0": {
       "integrity": "b1bfb7712982a00a259425699dcdd9b32ed9d6e2b32f9728bd6185e7becfb743",
       "dependencies": [
@@ -56,6 +110,52 @@
         "jsr:@zaubrik/djwt",
         "npm:@nicia-ai/typegraph",
         "npm:zod"
+      ]
+    },
+    "@ursamu/discord@0.2.4": {
+      "integrity": "5189012529b50ef9e738cdcc06f75400d5abec0f45d9b464d69ca9e9987e2659",
+      "dependencies": [
+        "jsr:@ursamu/channels",
+        "jsr:@ursamu/help",
+        "jsr:@ursamu/jobs@~0.1.1",
+        "jsr:@ursamu/mush@1.0.0",
+        "npm:tweetnacl"
+      ]
+    },
+    "@ursamu/help@0.1.9": {
+      "integrity": "746c56af6d6ff7ace3d808ea25fbcf20684a9339646fcee560850ad89ad5dae9",
+      "dependencies": [
+        "jsr:@ursamu/mush@1.0.0"
+      ]
+    },
+    "@ursamu/jobs@0.1.1": {
+      "integrity": "2f2a78c3c09ada4b41762f73a48f0b4b6e0be4de5967baf4a00a1d30ea98dfb7",
+      "dependencies": [
+        "jsr:@ursamu/help",
+        "jsr:@ursamu/mail",
+        "jsr:@ursamu/mush@1.0.0"
+      ]
+    },
+    "@ursamu/lang-plugin@3.1.1": {
+      "integrity": "78d2faf6e7230400e849cb00d2a5f70e6996ca12b5f880e4fee1cc8bb49aca95",
+      "dependencies": [
+        "jsr:@std/path",
+        "jsr:@ursamu/help",
+        "jsr:@ursamu/mush@1.0.0"
+      ]
+    },
+    "@ursamu/mail@2.4.0": {
+      "integrity": "cf9110a2a6be102f85d54e3689e805a67a5f6b364be9e4fc9a7f5e1a8680d5be",
+      "dependencies": [
+        "jsr:@ursamu/help",
+        "jsr:@ursamu/mush@1.0.0"
+      ]
+    },
+    "@ursamu/mush@0.1.30": {
+      "integrity": "97411714828810f0ff9067a6fc5292b57ce238123a2916aa2875e7da239c9811",
+      "dependencies": [
+        "jsr:@ursamu/core",
+        "npm:@digibear/tags"
       ]
     },
     "@ursamu/mush@1.0.0": {
