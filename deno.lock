@@ -7,7 +7,7 @@
     "jsr:@std/fs@0.224": "0.224.0",
     "jsr:@std/path@0.224": "0.224.0",
     "jsr:@std/semver@1": "1.0.8",
-    "jsr:@ursamu/cofd-plugin@1.2.0": "1.2.0",
+    "jsr:@ursamu/cofd-plugin@1.2.1": "1.2.1",
     "jsr:@ursamu/combat@0.8": "0.8.1",
     "jsr:@ursamu/core@1.0.0": "1.0.0",
     "jsr:@ursamu/help@1.0.0": "1.0.0",
@@ -53,8 +53,8 @@
     "@std/semver@1.0.8": {
       "integrity": "dc830e8b8b6a380c895d53fbfd1258dc253704ca57bbe1629ac65fd7830179b7"
     },
-    "@ursamu/cofd-plugin@1.2.0": {
-      "integrity": "c3b79cb44644ed34f11064dee460ca4c1fda8c01cda3f167a5bb6b2cd018f2cc",
+    "@ursamu/cofd-plugin@1.2.1": {
+      "integrity": "b3610bfdd495d39ac5e2f92dd396cc1d05af70e608df836513f2e99ede0bd2ce",
       "dependencies": [
         "jsr:@ursamu/combat",
         "jsr:@ursamu/help",
@@ -494,7 +494,7 @@
       "jsr:@ursamu/bbs@0.1.1",
       "jsr:@ursamu/builder@1.3.6",
       "jsr:@ursamu/channels@1.0.1",
-      "jsr:@ursamu/cofd-plugin@1.2.0",
+      "jsr:@ursamu/cofd-plugin@1.2.1",
       "jsr:@ursamu/combat@~0.8.1",
       "jsr:@ursamu/core@1.0.0",
       "jsr:@ursamu/discord@1.0.0",
