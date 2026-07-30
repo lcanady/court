@@ -359,8 +359,8 @@
     "jsr:@ursamu/bbs@^0.1.1": "jsr:@ursamu/bbs@1.1.1",
     "jsr:@ursamu/bbs@~0.1.1": "jsr:@ursamu/bbs@1.1.1",
     "jsr:@ursamu/bbs@^0.1": "jsr:@ursamu/bbs@1.1.1",
-    "@ursamu/wiki": "jsr:@ursamu/wiki@0.2.1",
-    "@ursamu/web": "jsr:@ursamu/web@0.2.2",
+    "@ursamu/wiki": "jsr:@ursamu/wiki@0.2.2",
+    "@ursamu/web": "jsr:@ursamu/web@0.2.3",
     "zod": "npm:zod@^4.4.3",
     "jsr:@ursamu/bbs@0.2.0": "jsr:@ursamu/bbs@1.1.1",
     "jsr:@ursamu/bbs@1.0.0": "jsr:@ursamu/bbs@1.1.1",
@@ -385,12 +385,16 @@
     "jsr:@ursamu/jobs@^1.1.2": "jsr:@ursamu/jobs@1.1.2",
     "jsr:@ursamu/bbs@1.1.1": "jsr:@ursamu/bbs@1.1.1",
     "jsr:@ursamu/bbs@^1.1.1": "jsr:@ursamu/bbs@1.1.1",
-    "jsr:@ursamu/web@0.2.1": "jsr:@ursamu/web@0.2.2",
-    "jsr:@ursamu/web@^0.2.1": "jsr:@ursamu/web@0.2.2",
-    "jsr:@ursamu/wiki@0.2.1": "jsr:@ursamu/wiki@0.2.1",
-    "jsr:@ursamu/wiki@^0.2.1": "jsr:@ursamu/wiki@0.2.1",
-    "jsr:@ursamu/web@0.2.2": "jsr:@ursamu/web@0.2.2",
-    "jsr:@ursamu/web@^0.2.2": "jsr:@ursamu/web@0.2.2"
+    "jsr:@ursamu/web@0.2.1": "jsr:@ursamu/web@0.2.3",
+    "jsr:@ursamu/web@^0.2.1": "jsr:@ursamu/web@0.2.3",
+    "jsr:@ursamu/wiki@0.2.1": "jsr:@ursamu/wiki@0.2.2",
+    "jsr:@ursamu/wiki@^0.2.1": "jsr:@ursamu/wiki@0.2.2",
+    "jsr:@ursamu/web@0.2.2": "jsr:@ursamu/web@0.2.3",
+    "jsr:@ursamu/web@^0.2.2": "jsr:@ursamu/web@0.2.3",
+    "jsr:@ursamu/wiki@0.2.2": "jsr:@ursamu/wiki@0.2.2",
+    "jsr:@ursamu/wiki@^0.2.2": "jsr:@ursamu/wiki@0.2.2",
+    "jsr:@ursamu/web@0.2.3": "jsr:@ursamu/web@0.2.3",
+    "jsr:@ursamu/web@^0.2.3": "jsr:@ursamu/web@0.2.3"
   },
   "minimumDependencyAge": 0
 }
