@@ -1,20 +1,38 @@
 {
   "version": "5",
   "specifiers": {
+    "jsr:@db/sqlite@0.12": "0.12.0",
+    "jsr:@denosaurs/plug@1": "1.1.0",
+    "jsr:@std/assert@0.217": "0.217.0",
     "jsr:@std/assert@0.224": "0.224.0",
     "jsr:@std/dotenv@0.224": "0.224.2",
     "jsr:@std/encoding@0.224.0": "0.224.0",
+    "jsr:@std/encoding@1": "1.0.11",
+    "jsr:@std/fmt@1": "1.0.10",
     "jsr:@std/fs@0.224": "0.224.0",
+    "jsr:@std/fs@1": "1.0.24",
+    "jsr:@std/internal@^1.0.14": "1.0.14",
+    "jsr:@std/path@0.217": "0.217.0",
     "jsr:@std/path@0.224": "0.224.0",
+    "jsr:@std/path@1": "1.1.6",
+    "jsr:@std/path@^1.1.5": "1.1.6",
     "jsr:@std/semver@1": "1.0.8",
+    "jsr:@ursamu/bbs@1.1.1": "1.1.1",
+    "jsr:@ursamu/builder@1.3.6": "1.3.6",
+    "jsr:@ursamu/channels@1.0.1": "1.0.1",
     "jsr:@ursamu/cofd-plugin@1.2.1": "1.2.1",
     "jsr:@ursamu/combat@0.8": "0.8.1",
-    "jsr:@ursamu/core@1.0.0": "1.0.0",
-    "jsr:@ursamu/help@1.0.0": "1.0.0",
-    "jsr:@ursamu/jobs@1.1.0": "1.1.0",
+    "jsr:@ursamu/combat@~0.8.1": "0.8.1",
+    "jsr:@ursamu/discord@1.0.0": "1.0.0",
+    "jsr:@ursamu/help@1.0.1": "1.0.1",
+    "jsr:@ursamu/help@^1.0.1": "1.0.1",
+    "jsr:@ursamu/jobs@1.1.2": "1.1.2",
+    "jsr:@ursamu/lang-plugin@^3.1.1": "3.1.1",
     "jsr:@ursamu/mail@2.5.0": "2.5.0",
-    "jsr:@ursamu/mush@1.0.1": "1.0.1",
+    "jsr:@ursamu/mush@1": "1.0.1",
     "jsr:@ursamu/mushcode@0.7": "0.7.0",
+    "jsr:@ursamu/web@0.2.2": "0.2.2",
+    "jsr:@ursamu/wiki@0.2.1": "0.2.1",
     "jsr:@zaubrik/djwt@^3.0.2": "3.0.2",
     "npm:@digibear/tags@1.0.0": "1.0.0",
     "npm:@electric-sql/pglite@~0.5.2": "0.5.4",
@@ -25,9 +43,28 @@
     "npm:quickjs-emscripten@0.29.0": "0.29.0",
     "npm:sucrase@3.35.0": "3.35.0",
     "npm:tweetnacl@1.0.3": "1.0.3",
-    "npm:zod@4.4.3": "4.4.3"
+    "npm:zod@^4.4.3": "4.4.3"
   },
   "jsr": {
+    "@db/sqlite@0.12.0": {
+      "integrity": "dd1ef7f621ad50fc1e073a1c3609c4470bd51edc0994139c5bf9851de7a6d85f",
+      "dependencies": [
+        "jsr:@denosaurs/plug",
+        "jsr:@std/path@0.217"
+      ]
+    },
+    "@denosaurs/plug@1.1.0": {
+      "integrity": "eb2f0b7546c7bca2000d8b0282c54d50d91cf6d75cb26a80df25a6de8c4bc044",
+      "dependencies": [
+        "jsr:@std/encoding@1",
+        "jsr:@std/fmt",
+        "jsr:@std/fs@1",
+        "jsr:@std/path@1"
+      ]
+    },
+    "@std/assert@0.217.0": {
+      "integrity": "c98e279362ca6982d5285c3b89517b757c1e3477ee9f14eb2fdf80a45aaa9642"
+    },
     "@std/assert@0.224.0": {
       "integrity": "8643233ec7aec38a940a8264a6e3eed9bfa44e7a71cc6b3c8874213ff401967f"
     },
@@ -37,91 +74,144 @@
     "@std/encoding@0.224.0": {
       "integrity": "efb6dca97d3e9c31392bd5c8cfd9f9fc9decf5a1f4d1f78af7900a493bcf89b5"
     },
+    "@std/encoding@1.0.11": {
+      "integrity": "e7cef2f0b3153bccc17431e7c864a1de03a4b6d9647389c43e08aaa775d37385"
+    },
+    "@std/fmt@1.0.10": {
+      "integrity": "90dfba288802ac6de82fb31d0917eb9e4450b9925b954d5e51fc29ac07419db5"
+    },
     "@std/fs@0.224.0": {
       "integrity": "52a5ec89731ac0ca8f971079339286f88c571a4d61686acf75833f03a89d8e69",
       "dependencies": [
-        "jsr:@std/assert",
-        "jsr:@std/path"
+        "jsr:@std/assert@0.224",
+        "jsr:@std/path@0.224"
+      ]
+    },
+    "@std/fs@1.0.24": {
+      "integrity": "f3061b45b81673a2bece689da041df32d174be064c89eb6397fb5718d3fb7877",
+      "dependencies": [
+        "jsr:@std/internal",
+        "jsr:@std/path@^1.1.5"
+      ]
+    },
+    "@std/internal@1.0.14": {
+      "integrity": "291516b3d4c35024d6ffbc0a9df5bf4c64116e05b50012cf846710152d2ffdf7"
+    },
+    "@std/path@0.217.0": {
+      "integrity": "1217cc25534bca9a2f672d7fe7c6f356e4027df400c0e85c0ef3e4343bc67d11",
+      "dependencies": [
+        "jsr:@std/assert@0.217"
       ]
     },
     "@std/path@0.224.0": {
       "integrity": "55bca6361e5a6d158b9380e82d4981d82d338ec587de02951e2b7c3a24910ee6",
       "dependencies": [
-        "jsr:@std/assert"
+        "jsr:@std/assert@0.224"
+      ]
+    },
+    "@std/path@1.1.6": {
+      "integrity": "c68485c2a4dfbb5ae3cc74fae4e8c4e5d874cf8a8ed12927917235c758b46cbe",
+      "dependencies": [
+        "jsr:@std/internal"
       ]
     },
     "@std/semver@1.0.8": {
       "integrity": "dc830e8b8b6a380c895d53fbfd1258dc253704ca57bbe1629ac65fd7830179b7"
     },
+    "@ursamu/bbs@1.1.1": {
+      "integrity": "c84bc6a8f8efda24464ff09503e8bf9967ffefd5f91d668d1552550327f368dd",
+      "dependencies": [
+        "jsr:@std/path@0.224",
+        "jsr:@ursamu/help@^1.0.1",
+        "jsr:@ursamu/jobs"
+      ]
+    },
+    "@ursamu/builder@1.3.6": {
+      "integrity": "4fecbff7f6c30f4f08ddb350746e99db2167da6bd96ea7afa174c2273ca4a235",
+      "dependencies": [
+        "jsr:@std/path@0.224",
+        "jsr:@ursamu/help@1.0.1",
+        "jsr:@ursamu/mush"
+      ]
+    },
+    "@ursamu/channels@1.0.1": {
+      "integrity": "1f3d5bd7fa912da70ce9e9807c06aa4e397f483431223fe1251452f119fd64c1",
+      "dependencies": [
+        "jsr:@ursamu/help@1.0.1"
+      ]
+    },
     "@ursamu/cofd-plugin@1.2.1": {
       "integrity": "b3610bfdd495d39ac5e2f92dd396cc1d05af70e608df836513f2e99ede0bd2ce",
       "dependencies": [
-        "jsr:@ursamu/combat",
-        "jsr:@ursamu/help",
+        "jsr:@ursamu/combat@0.8",
+        "jsr:@ursamu/help@1.0.1",
         "jsr:@ursamu/jobs",
-        "jsr:@ursamu/mail",
-        "jsr:@ursamu/mush"
+        "jsr:@ursamu/mail"
       ]
     },
     "@ursamu/combat@0.8.1": {
-      "integrity": "a9e84ada15925960b0a73d6ab62b63a28928ed233df861503fd65d905bfe768e",
+      "integrity": "a9e84ada15925960b0a73d6ab62b63a28928ed233df861503fd65d905bfe768e"
+    },
+    "@ursamu/discord@1.0.0": {
+      "integrity": "774a6dff405a9a805b0c6b9beabb677586a3125b4deb5c8ffc3fadeecaeec536",
       "dependencies": [
-        "jsr:@ursamu/mush"
+        "jsr:@ursamu/channels",
+        "jsr:@ursamu/help@1.0.1",
+        "jsr:@ursamu/jobs",
+        "npm:tweetnacl"
       ]
     },
-    "@ursamu/core@1.0.0": {
-      "integrity": "b1bfb7712982a00a259425699dcdd9b32ed9d6e2b32f9728bd6185e7becfb743",
+    "@ursamu/help@1.0.1": {
+      "integrity": "02bcc8a47fe9d2dd9d19bf62ec917e2d826c6ea93f7a4eafa6248321a039de32"
+    },
+    "@ursamu/jobs@1.1.2": {
+      "integrity": "484c8dc5c650f0b7bb85419f6a408620069bfcb29c6954cc76863c8f1da65089",
       "dependencies": [
-        "jsr:@std/path",
-        "jsr:@std/semver",
-        "jsr:@zaubrik/djwt",
-        "npm:@nicia-ai/typegraph",
-        "npm:zod"
+        "jsr:@ursamu/help@1.0.1",
+        "jsr:@ursamu/mail"
       ]
     },
-    "@ursamu/help@1.0.0": {
-      "integrity": "57c0f30602ebe74a7caa676d794f64ff6623837c7200566287565731a55fa10a",
+    "@ursamu/lang-plugin@3.1.1": {
+      "integrity": "78d2faf6e7230400e849cb00d2a5f70e6996ca12b5f880e4fee1cc8bb49aca95",
       "dependencies": [
-        "jsr:@ursamu/mush"
-      ]
-    },
-    "@ursamu/jobs@1.1.0": {
-      "integrity": "fda8eabeb840c69f558fbe4f8e60ee120f5e7689f33199d02067d2edc74e6fff",
-      "dependencies": [
-        "jsr:@ursamu/help",
-        "jsr:@ursamu/mail",
-        "jsr:@ursamu/mush"
+        "jsr:@std/path@0.224",
+        "jsr:@ursamu/help@1.0.1"
       ]
     },
     "@ursamu/mail@2.5.0": {
       "integrity": "54926684c2d955528c7ec1ad5c6472584474593f497287b758671c1e094633aa",
       "dependencies": [
-        "jsr:@ursamu/help",
-        "jsr:@ursamu/mush"
+        "jsr:@ursamu/help@1.0.1"
       ]
     },
     "@ursamu/mush@1.0.1": {
       "integrity": "039beeccb3cda1ecab10e32e79240a3c40262953df3215ce833d317669a1e42b",
       "dependencies": [
-        "jsr:@std/dotenv",
-        "jsr:@std/fs",
-        "jsr:@std/path",
-        "jsr:@ursamu/core",
-        "jsr:@ursamu/mushcode",
-        "npm:@digibear/tags",
-        "npm:@ursamu/parser",
-        "npm:bcryptjs",
-        "npm:quickjs-emscripten",
-        "npm:sucrase"
+        "npm:@digibear/tags"
       ]
     },
     "@ursamu/mushcode@0.7.0": {
       "integrity": "bf68b211b4448f0dcb79f66b9ef5b032661af293f771a732e191e77353a028da"
     },
+    "@ursamu/web@0.2.2": {
+      "integrity": "4f653e693f52cb8e5efa2923046998f239271d28f690f26737105a1b611450b9",
+      "dependencies": [
+        "jsr:@std/path@0.224",
+        "jsr:@ursamu/jobs",
+        "jsr:@ursamu/wiki"
+      ]
+    },
+    "@ursamu/wiki@0.2.1": {
+      "integrity": "7bbfbb39aedc072623cf8118ae2cb4910298fdf94c981347e01557b38418557f",
+      "dependencies": [
+        "jsr:@std/fs@0.224",
+        "jsr:@std/path@0.224"
+      ]
+    },
     "@zaubrik/djwt@3.0.2": {
       "integrity": "8070adaa49cd9e5d2b8ae82fd461132c966ef2f8ff8378db4a4da8df4f17c664",
       "dependencies": [
-        "jsr:@std/encoding"
+        "jsr:@std/encoding@0.224.0"
       ]
     }
   },
@@ -481,6 +571,16 @@
       "integrity": "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ=="
     }
   },
+  "remote": {
+    "https://deno.land/std@0.221.0/encoding/_util.ts": "beacef316c1255da9bc8e95afb1fa56ed69baef919c88dc06ae6cb7a6103d376",
+    "https://deno.land/std@0.221.0/encoding/base64.ts": "8ccae67a1227b875340a8582ff707f37b131df435b07080d3bb58e07f5f97807",
+    "https://deno.land/std@0.221.0/encoding/base64url.ts": "9cc46cf510436be63ac00ebf97a7de1993e603ca58e1853b344bf90d80ea9945",
+    "https://deno.land/x/djwt@v3.0.2/algorithm.ts": "b1c6645f9dbd6e6c47c123a3b18c28b956f91c65ed17f5b6d5d968fc3750542b",
+    "https://deno.land/x/djwt@v3.0.2/deps.ts": "a7954fe567f2097b4f6aca11d091b6df658e485a817ac4dee47257ed5c28fd6e",
+    "https://deno.land/x/djwt@v3.0.2/mod.ts": "962d8f2c4d6a4db111f45d777b152356aec31ba7db0ca664601175a422629857",
+    "https://deno.land/x/djwt@v3.0.2/signature.ts": "16238fbf558267c85dd6c0178045f006c8b914a7301db87149f3318326569272",
+    "https://deno.land/x/djwt@v3.0.2/util.ts": "5cb264d2125c553678e11446bcfa0494025d120e3f59d0a3ab38f6800def697d"
+  },
   "workspace": {
     "dependencies": [
       "jsr:@std/assert@0.224",
@@ -491,19 +591,20 @@
       "jsr:@std/path@0.224",
       "jsr:@std/semver@1",
       "jsr:@std/testing@^1.0.17",
-      "jsr:@ursamu/bbs@0.1.1",
+      "jsr:@ursamu/bbs@1.1.1",
       "jsr:@ursamu/builder@1.3.6",
       "jsr:@ursamu/channels@1.0.1",
       "jsr:@ursamu/cofd-plugin@1.2.1",
       "jsr:@ursamu/combat@~0.8.1",
-      "jsr:@ursamu/core@1.0.0",
       "jsr:@ursamu/discord@1.0.0",
-      "jsr:@ursamu/help@1.0.0",
-      "jsr:@ursamu/jobs@1.1.0",
+      "jsr:@ursamu/help@1.0.1",
+      "jsr:@ursamu/jobs@1.1.2",
       "jsr:@ursamu/lang-plugin@^3.1.1",
       "jsr:@ursamu/mail@2.5.0",
       "jsr:@ursamu/mush@1.0.1",
       "jsr:@ursamu/mushcode@0.7",
+      "jsr:@ursamu/web@0.2.2",
+      "jsr:@ursamu/wiki@0.2.1",
       "jsr:@zaubrik/djwt@^3.0.2",
       "npm:@digibear/tags@1.0.0",
       "npm:@electric-sql/pglite@~0.5.2",
@@ -512,7 +613,8 @@
       "npm:bcryptjs@2.4.3",
       "npm:lodash@^4.18.1",
       "npm:quickjs-emscripten@0.29.0",
-      "npm:tweetnacl@1.0.3"
+      "npm:tweetnacl@1.0.3",
+      "npm:zod@^4.4.3"
     ]
   }
 }
