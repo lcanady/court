@@ -16,3 +16,8 @@ logs/
 
 # local engine data from vendor rsync
 vendor/mush/data/
+
+# wiki editor history
+wiki/.history/
+
+.jwt_secret

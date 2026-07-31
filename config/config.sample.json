@@ -18,7 +18,9 @@
       "@ursamu/combat",
       "@ursamu/cofd-plugin",
       "@ursamu/lang-plugin",
-      "@ursamu/discord"
+      "@ursamu/discord",
+      "@ursamu/wiki",
+      "@ursamu/web"
     ]
   },
   "game": {

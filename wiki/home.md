@@ -1,14 +1,16 @@
-# cor Wiki
+---
+title: Home
+draft: false
+readLock: public
+author: Kumakun
+date: 2026-07-29
+tags: [home]
+---
 
-Welcome to the cor wiki. Use this directory to document your game world, lore, rules, and staff notes.
+Welcome to the Court wiki.
 
-## Getting Started
+## Start here
 
-- [Lore & Setting](lore.md) — world background and theme
-- [Rules](rules.md) — game rules and policies
-- [Staff Notes](staff.md) — internal notes for staff
-
-## Tips
-
-- Add new `.md` files to this directory for each topic.
-- Link between pages using relative paths, e.g. `[Rules](rules.md)`.
+- [[lore/city]] — the city and its districts
+- [[rules/chargen]] — character generation notes
+- [[staff/ops]] — staff-only operations notes

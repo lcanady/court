@@ -311,9 +311,8 @@ rewriting mail, jobs, channels, or combat.
 ### Scripts under `scripts/`
 
 - Daemon lifecycle: `run.sh`, `daemon.sh`, `stop.sh`, `restart.sh`,
-  `status.sh`.
-- One-offs (`setup-ic-hub.ts`, `setup-chargen.ts`, ...): document "stop
-  server first" at the top; prefer in-game fixes when possible.
+  `status.sh`, `main-loop.sh`, `safe-update.sh`.
+- Pin bumps: `update.ts` (`deno task update`).
 
 ---
 

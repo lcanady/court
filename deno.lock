@@ -7,6 +7,8 @@
     "jsr:@std/fs@0.224": "0.224.0",
     "jsr:@std/path@0.224": "0.224.0",
     "jsr:@std/semver@1": "1.0.8",
+    "jsr:@ursamu/core@^1.0.1": "1.0.1",
+    "jsr:@ursamu/mush@^1.0.2": "1.0.2",
     "jsr:@ursamu/mushcode@0.7": "0.7.0",
     "jsr:@zaubrik/djwt@^3.0.2": "3.0.2",
     "npm:@digibear/tags@1.0.0": "1.0.0",
@@ -18,6 +20,7 @@
     "npm:quickjs-emscripten@0.29.0": "0.29.0",
     "npm:sucrase@3.35.0": "3.35.0",
     "npm:tweetnacl@1.0.3": "1.0.3",
+    "npm:zod@4.4.3": "4.4.3",
     "npm:zod@^4.4.3": "4.4.3"
   },
   "jsr": {
@@ -45,6 +48,31 @@
     },
     "@std/semver@1.0.8": {
       "integrity": "dc830e8b8b6a380c895d53fbfd1258dc253704ca57bbe1629ac65fd7830179b7"
+    },
+    "@ursamu/core@1.0.1": {
+      "integrity": "4842bb97d86d99ec9dde3154f1425d596893c67c29c7e9e85d00fefc5664e37b",
+      "dependencies": [
+        "jsr:@std/path",
+        "jsr:@std/semver",
+        "jsr:@zaubrik/djwt",
+        "npm:@nicia-ai/typegraph",
+        "npm:zod@4.4.3"
+      ]
+    },
+    "@ursamu/mush@1.0.2": {
+      "integrity": "bbce73391ecb3879636db3fdae1485f875d648879f9f61914fce1dc691c8226d",
+      "dependencies": [
+        "jsr:@std/dotenv",
+        "jsr:@std/fs",
+        "jsr:@std/path",
+        "jsr:@ursamu/core",
+        "jsr:@ursamu/mushcode",
+        "npm:@digibear/tags",
+        "npm:@ursamu/parser",
+        "npm:bcryptjs",
+        "npm:quickjs-emscripten",
+        "npm:sucrase"
+      ]
     },
     "@ursamu/mushcode@0.7.0": {
       "integrity": "bf68b211b4448f0dcb79f66b9ef5b032661af293f771a732e191e77353a028da"
@@ -422,7 +450,9 @@
       "jsr:@std/path@0.224",
       "jsr:@std/semver@1",
       "jsr:@std/testing@^1.0.17",
+      "jsr:@ursamu/bbs@^1.1.2",
       "jsr:@ursamu/builder@^1.3.6",
+      "jsr:@ursamu/channels@^1.0.3",
       "jsr:@ursamu/cofd-plugin@^1.2.1",
       "jsr:@ursamu/combat@~0.8.1",
       "jsr:@ursamu/core@^1.0.1",
@@ -430,8 +460,11 @@
       "jsr:@ursamu/help@^1.0.2",
       "jsr:@ursamu/jobs@^1.1.3",
       "jsr:@ursamu/lang-plugin@^3.1.1",
+      "jsr:@ursamu/mail@^2.6.0",
       "jsr:@ursamu/mush@^1.0.2",
       "jsr:@ursamu/mushcode@0.7",
+      "jsr:@ursamu/web@~0.2.12",
+      "jsr:@ursamu/wiki@~0.2.3",
       "jsr:@zaubrik/djwt@^3.0.2",
       "npm:@digibear/tags@1.0.0",
       "npm:@electric-sql/pglite@~0.5.2",
