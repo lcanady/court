@@ -66,21 +66,6 @@ Help, BBS, and native commands all honor these templates.
 
 Chronicles of Darkness 2e and other features are enabled via `@ursamu/jobs`, `@ursamu/cofd-plugin`, and `@ursamu/lang-plugin` in `server.plugins`. In-game: `+cg`, `+sheet`, `+roll`, `help cofd`.
 
-## Map (JSR)
-
-The sector map is the published package
-[`@ursamu/map-plugin`](https://jsr.io/@ursamu/map-plugin) (not a local
-vendor tree). Enable it in `server.plugins` and configure under
-`plugins.map`:
-
-```json
-"plugins": {
-  "map": { "theme": "hedge", "realm": "default" }
-}
-```
-
-In-game: `+map`, `help map`. Staff console: **Map** tab when
-`@ursamu/web` is loaded.
 
 ## Production update
 
@@ -96,7 +81,7 @@ The updater:
 
 1. Resets to `origin/main`
 2. Merges `config/config.sample.json` into live `config/config.json`
-   (adds new `server.plugins` entries + `plugins.*` blocks like map)
+   (syncs `server.plugins` from sample; merges `plugins.*` blocks)
 3. Reloads the Deno/JSR cache with `--minimum-dependency-age=0`
 4. Soft-restarts main (telnet stays up when possible)
 5. Health-checks and **fails** if a configured plugin did not load

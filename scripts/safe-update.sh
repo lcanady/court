@@ -69,8 +69,10 @@ def deep_merge(base: Any, over: Any) -> Any:
     return over
 
 
+import os
+
 def ensure_plugins_list(live: list[str], sample: list[str]) -> list[str]:
-    """Sample order is canonical; keep live-only extras at the end."""
+    """Sample order is canonical. Live extras only if ALLOW_EXTRA_PLUGINS=1."""
     seen: set[str] = set()
     out: list[str] = []
     for name in sample:
@@ -79,12 +81,13 @@ def ensure_plugins_list(live: list[str], sample: list[str]) -> list[str]:
             continue
         seen.add(n)
         out.append(n)
-    for name in live:
-        n = str(name).strip()
-        if not n or n in seen:
-            continue
-        seen.add(n)
-        out.append(n)
+    if os.environ.get("ALLOW_EXTRA_PLUGINS", "").strip() == "1":
+        for name in live:
+            n = str(name).strip()
+            if not n or n in seen:
+                continue
+            seen.add(n)
+            out.append(n)
     return out
 
 
@@ -97,19 +100,23 @@ sample: dict[str, Any] = (
     json.loads(sample_p.read_text()) if sample_p.exists() else {}
 )
 
-# server.plugins — pull every sample entry into live
+# server.plugins — sample is the game's shipped plugin list
 live_srv = live.setdefault("server", {})
 sample_srv = sample.get("server") or {}
 live_list = list(live_srv.get("plugins") or [])
 sample_list = list(sample_srv.get("plugins") or [])
 if sample_list:
     merged = ensure_plugins_list(live_list, sample_list)
+    dropped = [p for p in live_list if p not in merged]
     live_srv["plugins"] = merged
     print("[safe-update] server.plugins:", ", ".join(merged))
+    if dropped:
+        print("[safe-update] plugins removed:", ", ".join(dropped))
 else:
     print("[safe-update] WARN: sample has no server.plugins", file=sys.stderr)
+    merged = live_list
 
-# plugins.* blocks from sample (channels, globals, map, …)
+# plugins.* blocks from sample (channels, globals, …)
 # Deep-merge so live-only keys (secrets, discord ids) are kept.
 live_pl = live.setdefault("plugins", {})
 sample_pl = sample.get("plugins") or {}
@@ -127,6 +134,14 @@ if isinstance(sample_pl, dict):
             else:
                 print(f"[safe-update] plugins.{key}: ok")
 
+# Drop plugin config blocks for packages no longer in server.plugins
+# (e.g. remove plugins.map when map-plugin is unshipped).
+plug_pkgs = " ".join(merged).lower()
+for orphan in ("map",):
+    token = orphan if orphan != "map" else "map"
+    if token not in plug_pkgs and orphan in live_pl:
+        del live_pl[orphan]
+        print(f"[safe-update] plugins.{orphan}: removed (not in server.plugins)")
 # Always ensure channels + globals.theme.look exist (legacy defaults)
 ch = live_pl.get("channels") or {
     "defaults": [

@@ -626,11 +626,8 @@
     "jsr:@ursamu/help@1.0.2": "jsr:@ursamu/help@1.0.2",
     "jsr:@ursamu/help@^1.0.2": "jsr:@ursamu/help@1.0.2",
     "jsr:@ursamu/help@~1.0.2": "jsr:@ursamu/help@1.0.2",
-    "@ursamu/map": "jsr:@ursamu/map-plugin@3.2.1",
-    "@ursamu/map-plugin": "jsr:@ursamu/map-plugin@3.2.1",
     "jsr:@ursamu/web@0.2.31": "jsr:@ursamu/web@0.2.31",
-    "jsr:@ursamu/web@^0.2.24": "jsr:@ursamu/web@0.2.31",
-    "jsr:@ursamu/map-plugin@3.2.1": "jsr:@ursamu/map-plugin@3.2.1"
+    "jsr:@ursamu/web@^0.2.24": "jsr:@ursamu/web@0.2.31"
   },
   "minimumDependencyAge": 0
 }
