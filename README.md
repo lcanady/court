@@ -66,6 +66,22 @@ Help, BBS, and native commands all honor these templates.
 
 Chronicles of Darkness 2e and other features are enabled via `@ursamu/jobs`, `@ursamu/cofd-plugin`, and `@ursamu/lang-plugin` in `server.plugins`. In-game: `+cg`, `+sheet`, `+roll`, `help cofd`.
 
+## Map (JSR)
+
+The sector map is the published package
+[`@ursamu/map-plugin`](https://jsr.io/@ursamu/map-plugin) (not a local
+vendor tree). Enable it in `server.plugins` and configure under
+`plugins.map`:
+
+```json
+"plugins": {
+  "map": { "theme": "hedge", "realm": "default" }
+}
+```
+
+In-game: `+map`, `help map`. Staff console: **Map** tab when
+`@ursamu/web` is loaded.
+
 ## Discord bridge
 
 Court loads `@ursamu/discord` from `server.plugins`. It supports:

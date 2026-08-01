@@ -20,7 +20,8 @@
       "@ursamu/lang-plugin",
       "@ursamu/discord",
       "@ursamu/wiki",
-      "@ursamu/web"
+      "@ursamu/web",
+      "@ursamu/map-plugin"
     ]
   },
   "game": {
@@ -98,6 +99,10 @@
         "8",
         "11"
       ]
+    },
+    "map": {
+      "theme": "hedge",
+      "realm": "default"
     }
   }
 }
