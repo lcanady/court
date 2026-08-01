@@ -82,6 +82,26 @@ vendor tree). Enable it in `server.plugins` and configure under
 In-game: `+map`, `help map`. Staff console: **Map** tab when
 `@ursamu/web` is loaded.
 
+## Production update
+
+On the game host (`ursamu@court.ursamu.io`):
+
+```bash
+bash ~/court-update.sh
+# or:
+bash ./scripts/safe-update.sh
+```
+
+The updater:
+
+1. Resets to `origin/main`
+2. Merges `config/config.sample.json` into live `config/config.json`
+   (adds new `server.plugins` entries + `plugins.*` blocks like map)
+3. Reloads the Deno/JSR cache with `--minimum-dependency-age=0`
+4. Soft-restarts main (telnet stays up when possible)
+5. Health-checks and **fails** if a configured plugin did not load
+   or a key package version does not match `deno.json` pins
+
 ## Discord bridge
 
 Court loads `@ursamu/discord` from `server.plugins`. It supports:
