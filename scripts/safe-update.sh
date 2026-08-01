@@ -242,18 +242,30 @@ if [ -f logs/main.log ]; then
 fi
 
 # --- soft restart main only ------------------------------------------------
-if [ -f .ursamu-deno.pid ]; then
-  kill -TERM "$(cat .ursamu-deno.pid)" 2>/dev/null || true
-  sleep 2
-fi
-if [ -f .ursamu.pid ] && kill -0 "$(
+# Prefer scripts/restart.sh (kills main loop + deno child, keeps telnet).
+# Fall back to stop+daemon only when nothing is running.
+rm -f data/typegraph.db/postmaster.pid 2>/dev/null || true
+if [ -f .ursamu.pid ]; then
   # shellcheck disable=SC1090
-  source .ursamu.pid 2>/dev/null
-  echo "${MAIN_PID:-}"
-)" 2>/dev/null; then
-  bash ./scripts/restart.sh
+  # shellcheck source=/dev/null
+  source .ursamu.pid 2>/dev/null || true
+  if [ -n "${MAIN_PID:-}" ] && kill -0 "$MAIN_PID" 2>/dev/null; then
+    log "restarting main loop (PID ${MAIN_PID}); telnet stays up"
+    bash ./scripts/restart.sh
+  else
+    log "stale .ursamu.pid — full daemon start"
+    bash ./scripts/stop.sh 2>/dev/null || true
+    sleep 1
+    bash ./scripts/daemon.sh
+  fi
+elif [ -f .ursamu-deno.pid ]; then
+  log "deno pid without loop — killing child and starting daemon"
+  kill -TERM "$(cat .ursamu-deno.pid)" 2>/dev/null || true
+  sleep 1
+  bash ./scripts/stop.sh 2>/dev/null || true
+  bash ./scripts/daemon.sh
 else
-  rm -f data/typegraph.db/postmaster.pid
+  log "not running — starting daemon"
   bash ./scripts/daemon.sh
 fi
 
