@@ -1,6 +1,12 @@
 // Main entry point for court
-import { mu, applyLayoutFromConfig } from "@ursamu/mush";
-import { getConfig } from "@ursamu/core";
+// getConfig MUST come from @ursamu/mush (same core instance mu() uses).
+// Importing getConfig from @ursamu/core separately can dual-load core
+// and return undefined for game.layout, wiping boot templates.
+import {
+  mu,
+  applyLayoutFromConfig,
+  getConfig,
+} from "@ursamu/mush";
 
 const game = await mu(undefined, undefined, {
   pluginsDir: "",

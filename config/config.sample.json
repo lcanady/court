@@ -20,7 +20,8 @@
       "@ursamu/lang-plugin",
       "@ursamu/discord",
       "@ursamu/wiki",
-      "@ursamu/web"
+      "@ursamu/web",
+      "@ursamu/site"
     ]
   },
   "game": {
@@ -38,6 +39,32 @@
     }
   },
   "plugins": {
+    "site": {
+      "skin": "changeling",
+      "title": "Court of Miracles",
+      "bannerImage": "/site/skins/changeling/imgs/header.png",
+      "serveRoot": false,
+      "telnet": "court.ursamu.io:4201",
+      "nav": [
+        {
+          "label": "Home",
+          "href": "/site/",
+          "active": true
+        },
+        {
+          "label": "Characters",
+          "href": "#"
+        },
+        {
+          "label": "Help",
+          "href": "#"
+        },
+        {
+          "label": "Wiki",
+          "href": "#"
+        }
+      ]
+    },
     "channels": {
       "defaults": [
         {

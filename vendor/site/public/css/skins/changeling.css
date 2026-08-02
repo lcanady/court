@@ -1,0 +1,306 @@
+/**
+ * Changeling skin (Court of Miracles) — matches court-template when assets load.
+ *
+ * Layout + components stay generic. This file only remaps tokens and
+ * a few type/spacing hooks. Copy it to re-skin your game:
+ *
+ *   cp court.css theme/my-game.css
+ *   # edit tokens + image URLs
+ *   plugins.site.skinCss = "/site/theme/my-game.css"
+ *   plugins.site.themeDir = "theme"
+ */
+
+:root {
+  --site-bg: #020201;
+  --site-bg-elevated: #020201;
+  --site-bg-surface: #0a0908;
+  --site-bg-surface-2: #12100e;
+  --site-bg-code: #020201;
+
+  --site-border: color-mix(in srgb, #f7e4dd 50%, transparent);
+  --site-border-subtle: color-mix(in srgb, #f7e4dd 28%, transparent);
+  --site-border-strong: color-mix(in srgb, #f7e4dd 70%, transparent);
+
+  --site-text: #f7e4dd;
+  --site-text-secondary: #f7e4dd;
+  --site-text-muted: color-mix(in srgb, #f7e4dd 72%, transparent);
+  --site-text-on-accent: #020201;
+
+  --site-accent: #c4944a;
+  --site-accent-hover: #e0b56a;
+  --site-accent-muted: rgba(196, 148, 74, 0.18);
+  --site-accent-border: rgba(196, 148, 74, 0.55);
+
+  --site-btn-bg: #c4944a;
+  --site-btn-bg-hover: #e0b56a;
+  --site-btn-fg: #020201;
+
+  --site-font-ui: "Lato", ui-sans-serif, system-ui, sans-serif;
+  --site-font-display: "Smythe", "smythe", serif;
+
+  --site-nav-h: 60px;
+  --site-banner-offset: 200px;
+  --site-sticky-top: 120px;
+  --site-gutter: 40px;
+  --site-main-max: 800px;
+  --site-aside-min: 300px;
+  --site-aside-max: 450px;
+  --site-max-w: 1440px;
+
+  --site-bg-image-top: url("/site/skins/changeling/imgs/background.png");
+  --site-bg-image-bottom: url("/site/skins/changeling/imgs/footer.png");
+  --site-rule-image: url("/site/skins/changeling/imgs/hr.svg");
+  --site-search-icon: url("/site/skins/changeling/imgs/search.png");
+}
+
+@font-face {
+  font-family: "Smythe";
+  src:
+    url("/site/skins/changeling/fonts/smythe-regular.woff2") format("woff2"),
+    url("/site/skins/changeling/fonts/smythe-regular.woff") format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "royal majesty";
+  src:
+    url("/site/skins/changeling/fonts/your_royal_majesty_fancy.woff2")
+      format("woff2"),
+    url("/site/skins/changeling/fonts/your_royal_majesty_fancy.woff")
+      format("woff");
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── Nav (court-template: fixed bar, Smythe 36/24) ───────────────── */
+
+.site-nav {
+  padding: 30px 40px;
+  height: auto;
+  min-height: var(--site-nav-h);
+  box-sizing: border-box;
+}
+
+.site-nav::before {
+  height: 60px;
+}
+
+.site-nav.is-scrolled::before {
+  background-color: var(--site-bg);
+}
+
+.site-nav__brand {
+  font-family: var(--site-font-display);
+  font-size: 36px;
+  font-weight: normal;
+  color: var(--site-text);
+  letter-spacing: 0;
+}
+
+.site-nav__brand:hover {
+  color: var(--site-text);
+}
+
+.site-nav__list {
+  font-family: var(--site-font-display);
+  font-size: 24px;
+  gap: 0;
+}
+
+.site-nav__list li {
+  margin-right: 40px;
+}
+
+.site-nav__list li:last-child {
+  margin-right: 0;
+}
+
+.site-nav__list a {
+  color: var(--site-text);
+  border-bottom-width: 2px;
+  padding-bottom: 0;
+}
+
+.site-nav__list a:hover {
+  color: var(--site-text);
+}
+
+.site-nav__list a.is-active {
+  border-bottom-color: var(--site-accent);
+}
+
+/* ── Banner ──────────────────────────────────────────────────────── */
+
+.site-banner {
+  margin-top: 200px;
+  padding: 0;
+}
+
+.site-banner__title {
+  font-family: var(--site-font-display);
+  font-size: 100px;
+  font-weight: normal;
+  color: var(--site-text);
+  line-height: 1;
+}
+
+.site-banner.has-image .site-banner__title {
+  display: none;
+}
+
+.site-banner__img {
+  max-width: none;
+  width: auto;
+  height: auto;
+}
+
+/* ── Body / columns ──────────────────────────────────────────────── */
+
+.site-body {
+  padding: 120px 40px 0;
+  margin-bottom: 50px;
+  max-width: 1440px;
+}
+
+.site-aside {
+  min-width: 300px;
+  max-width: 450px;
+  top: 120px;
+}
+
+.site-main {
+  max-width: 800px;
+  padding: 0 50px;
+}
+
+/* ── Search ──────────────────────────────────────────────────────── */
+
+.site-search {
+  margin-top: 16px;
+  gap: 16px;
+}
+
+.site-search__input {
+  height: 34px;
+  margin-bottom: 8px;
+  padding-left: 8px;
+  border-radius: 0;
+  background: var(--site-bg);
+  border-color: color-mix(in srgb, #f7e4dd 50%, transparent);
+  color: var(--site-text);
+  font-size: 16px;
+}
+
+.site-search__btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 0;
+  background: var(--site-bg);
+  border-color: color-mix(in srgb, #f7e4dd 50%, transparent);
+}
+
+/* PNG search glyph (not a mask) — matches court-template img */
+.site-search__btn-icon {
+  width: 50%;
+  height: 50%;
+  background: center / contain no-repeat var(--site-search-icon);
+  mask: none;
+  -webkit-mask: none;
+}
+
+.site-search__btn-icon::before {
+  content: none;
+}
+
+/* ── Menus / sections ────────────────────────────────────────────── */
+
+.site-menu__title {
+  font-family: var(--site-font-display);
+  font-size: 32px;
+  font-weight: normal;
+  color: var(--site-accent);
+  margin: 20px 0 10px;
+}
+
+.site-menu__list a:hover {
+  color: #fff;
+}
+
+.site-section__title {
+  font-family: var(--site-font-display);
+  font-size: 36px;
+  font-weight: normal;
+  color: var(--site-accent);
+  margin: 0 0 8px;
+}
+
+.site-rule,
+.site-rule--image {
+  height: 6px;
+  margin: 0;
+  border-radius: 0;
+  background: transparent center / 100% 100% no-repeat
+    var(--site-rule-image);
+}
+
+.site-section__body p {
+  padding: 10px 0;
+  line-height: 1.5;
+  color: var(--site-text);
+}
+
+.site-footer {
+  margin-top: 50px;
+  padding: 0;
+  font-size: 14px;
+  color: var(--site-text);
+}
+
+.site-footer a {
+  color: var(--site-accent);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--site-accent-hover);
+  text-decoration: none;
+}
+
+/* ── Mobile ──────────────────────────────────────────────────────── */
+
+@media (max-width: 720px) {
+  .site-banner {
+    margin-top: 5.5rem;
+  }
+
+  .site-banner__title {
+    font-size: 3rem;
+  }
+
+  .site-nav {
+    padding: 0.65rem 1.15rem;
+  }
+
+  .site-nav__brand {
+    font-size: 1.5rem;
+  }
+
+  .site-nav__list {
+    font-size: 1.15rem;
+  }
+
+  .site-nav__list li {
+    margin-right: 1.25rem;
+  }
+
+  .site-body {
+    padding: 2.5rem 1.15rem 0;
+  }
+
+  .site-main {
+    padding: 0;
+  }
+}

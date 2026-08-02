@@ -627,7 +627,8 @@
     "jsr:@ursamu/help@^1.0.2": "jsr:@ursamu/help@1.0.2",
     "jsr:@ursamu/help@~1.0.2": "jsr:@ursamu/help@1.0.2",
     "jsr:@ursamu/web@0.2.36": "jsr:@ursamu/web@0.2.36",
-    "jsr:@ursamu/web@^0.2.24": "jsr:@ursamu/web@0.2.36"
+    "jsr:@ursamu/web@^0.2.24": "jsr:@ursamu/web@0.2.36",
+    "@ursamu/site": "./vendor/site/mod.ts"
   },
   "minimumDependencyAge": 0
 }

@@ -1,0 +1,279 @@
+/**
+ * @ursamu/site — layout framing only.
+ *
+ * Structure mirrors court-template (shell / nav / banner / 3-col / footer)
+ * with generic class names. Skins supply color, type, and decoration.
+ */
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--site-bg);
+  color: var(--site-text);
+  font-family: var(--site-font-ui);
+  font-size: var(--site-font-size);
+  line-height: var(--site-line-height);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* ── Shell ───────────────────────────────────────────────────────── */
+
+.site-shell {
+  width: 100%;
+  min-height: 100vh;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: var(--site-bg);
+  background-image: var(--site-bg-image-top), var(--site-bg-image-bottom);
+  background-position: center top, bottom center;
+  background-repeat: no-repeat, no-repeat;
+  background-size: auto, auto;
+}
+
+.site-shell.is-plain {
+  background-image: none, var(--site-bg-image-bottom);
+}
+
+/* ── Top nav ─────────────────────────────────────────────────────── */
+
+.site-nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  height: var(--site-nav-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  max-width: var(--site-max-w);
+  margin: 0 auto;
+  padding: 0 var(--site-gutter);
+  box-sizing: border-box;
+  background: transparent;
+}
+
+.site-nav::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: var(--site-nav-h);
+  z-index: -1;
+  background: transparent;
+  transition: background-color 0.45s ease;
+}
+
+.site-nav.is-scrolled::before {
+  background: var(--site-bg);
+}
+
+.site-nav__brand {
+  font-family: var(--site-font-display);
+  font-size: 1.5rem;
+  font-weight: 600;
+  color: var(--site-text);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.site-nav__brand:hover {
+  color: var(--site-accent-hover);
+}
+
+.site-nav__list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 1.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-family: var(--site-font-display);
+  font-size: 1.125rem;
+}
+
+.site-nav__list a {
+  color: var(--site-text-secondary);
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
+  padding-bottom: 0.15rem;
+}
+
+.site-nav__list a:hover {
+  color: var(--site-text);
+}
+
+.site-nav__list a.is-active {
+  color: var(--site-text);
+  border-bottom-color: var(--site-accent);
+}
+
+/* ── Banner ──────────────────────────────────────────────────────── */
+
+.site-banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  margin-top: var(--site-banner-offset);
+  padding: 0 var(--site-gutter);
+  box-sizing: border-box;
+}
+
+.site-banner__title {
+  margin: 0;
+  width: 100%;
+  text-align: center;
+  font-family: var(--site-font-display);
+  font-size: clamp(2.5rem, 8vw, 5.5rem);
+  font-weight: 500;
+  color: var(--site-text);
+  line-height: 1.05;
+}
+
+.site-banner__img {
+  display: block;
+  max-width: min(100%, 720px);
+  height: auto;
+  margin: 0 auto;
+}
+
+.site-banner__img:not([src]),
+.site-banner__img[src=""] {
+  display: none;
+}
+
+/* ── 3-column body ───────────────────────────────────────────────── */
+
+.site-body {
+  width: 100%;
+  max-width: var(--site-max-w);
+  margin: 0 auto 3rem;
+  padding: 4rem var(--site-gutter) 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  gap: 0;
+}
+
+.site-aside {
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: var(--site-sticky-top);
+  align-self: flex-start;
+  min-width: var(--site-aside-min);
+  max-width: var(--site-aside-max);
+  flex: 0 1 var(--site-aside-max);
+  min-height: 1px;
+}
+
+.site-aside--start {
+  order: 0;
+}
+
+.site-aside--end {
+  order: 2;
+}
+
+.site-main {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  max-width: var(--site-main-max);
+  min-width: 0;
+  padding: 0 2.75rem;
+  order: 1;
+}
+
+/* ── Footer ──────────────────────────────────────────────────────── */
+
+.site-footer {
+  margin-top: 3rem;
+  padding: 1rem 0 2rem;
+  text-align: center;
+  font-size: 0.875rem;
+  color: var(--site-text-muted);
+}
+
+.site-footer a {
+  color: var(--site-accent);
+  text-decoration: none;
+}
+
+.site-footer a:hover {
+  color: var(--site-accent-hover);
+  text-decoration: underline;
+}
+
+/* ── Responsive ──────────────────────────────────────────────────── */
+
+@media (max-width: 1100px) {
+  .site-body {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .site-aside {
+    position: static;
+    max-width: 100%;
+    min-width: 0;
+    flex: 1 1 100%;
+  }
+
+  .site-aside--end {
+    order: 3;
+  }
+
+  .site-main {
+    order: 1;
+    max-width: 100%;
+    padding: 0;
+    flex: 1 1 100%;
+  }
+
+  .site-aside--start {
+    order: 2;
+    margin-top: 2rem;
+  }
+}
+
+@media (max-width: 720px) {
+  :root {
+    --site-gutter: 1.15rem;
+    --site-banner-offset: 5.5rem;
+    --site-nav-h: 3.25rem;
+  }
+
+  .site-nav {
+    height: auto;
+    min-height: var(--site-nav-h);
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-block: 0.65rem;
+  }
+
+  .site-nav::before {
+    height: 100%;
+    min-height: var(--site-nav-h);
+  }
+
+  .site-nav__list {
+    width: 100%;
+    gap: 0.75rem 1.25rem;
+    font-size: 1rem;
+  }
+
+  .site-main {
+    padding: 0;
+  }
+}
