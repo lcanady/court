@@ -805,7 +805,7 @@
     });
   }
 
-  // ── Scroll nav ─────────────────────────────────────────────────────────────
+  // ── Scroll nav + TOC spy ───────────────────────────────────────────────────
 
   var threshold = 100;
   function onScroll() {
@@ -814,6 +814,33 @@
   }
   window.addEventListener("scroll", onScroll, { passive: true });
   onScroll();
+
+  /** Highlight right-rail TOC links for headings in view (optional). */
+  function wireScrollSpy() {
+    if (!mainEl || !rightPanels) return;
+    var links = rightPanels.querySelectorAll('a[href^="#"]');
+    if (!links.length) return;
+    var heads = [];
+    for (var i = 0; i < links.length; i++) {
+      var id = (links[i].getAttribute("href") || "").slice(1);
+      var el = id ? document.getElementById(id) : null;
+      if (el) heads.push({ el: el, link: links[i] });
+    }
+    if (!heads.length || typeof IntersectionObserver === "undefined") return;
+    var obs = new IntersectionObserver(function (entries) {
+      for (var j = 0; j < entries.length; j++) {
+        if (!entries[j].isIntersecting) continue;
+        var t = entries[j].target;
+        for (var k = 0; k < heads.length; k++) {
+          heads[k].link.classList.toggle(
+            "is-active",
+            heads[k].el === t,
+          );
+        }
+      }
+    }, { rootMargin: "-20% 0px -60% 0px", threshold: 0 });
+    for (var h = 0; h < heads.length; h++) obs.observe(heads[h].el);
+  }
 
   // ── Boot sequence ──────────────────────────────────────────────────────────
 

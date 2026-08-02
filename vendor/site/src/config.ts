@@ -48,7 +48,7 @@ export function normalizeMount(raw: unknown): string {
 }
 
 /** Cache-bust query for shipped site CSS (bump when layout/tokens change). */
-export const SITE_ASSET_V = "20260802c";
+export const SITE_ASSET_V = "20260802d";
 
 /** Resolve stylesheet href for the active skin. */
 export function resolveSkinHref(cfg: SitePluginConfig): string {
