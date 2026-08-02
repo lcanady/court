@@ -43,6 +43,8 @@
   --site-sticky-top: 120px;
   --site-gutter: 40px;
   --site-main-max: 800px;
+  /* Preferred column width (court-template left/right). */
+  --site-aside-width: 300px;
   --site-aside-min: 300px;
   --site-aside-max: 450px;
   --site-max-w: 1440px;
@@ -166,13 +168,10 @@
 }
 
 .site-aside {
-  min-width: 300px;
-  max-width: 450px;
   top: 120px;
 }
 
 .site-main {
-  max-width: 800px;
   padding: 0 50px;
 }
 

@@ -171,9 +171,12 @@ body {
   position: sticky;
   top: var(--site-sticky-top);
   align-self: flex-start;
+  /* Match court-template: size to content within min/max.
+     Do NOT flex-basis the max — that stole space from main. */
+  flex: 0 1 auto;
+  width: var(--site-aside-width, 300px);
   min-width: var(--site-aside-min);
   max-width: var(--site-aside-max);
-  flex: 0 1 var(--site-aside-max);
   min-height: 1px;
 }
 
@@ -188,9 +191,10 @@ body {
 .site-main {
   display: flex;
   flex-direction: column;
+  /* Grow into free space; cap at --site-main-max (800). */
   flex: 1 1 auto;
   max-width: var(--site-main-max);
-  min-width: 0;
+  min-width: min(100%, 20rem);
   padding: 0 2.75rem;
   order: 1;
 }
@@ -225,6 +229,7 @@ body {
 
   .site-aside {
     position: static;
+    width: auto;
     max-width: 100%;
     min-width: 0;
     flex: 1 1 100%;
