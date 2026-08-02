@@ -56,13 +56,15 @@
   --site-font-size: 16px;
   --site-line-height: 1.5;
 
-  /* Chrome */
+  /* Chrome — defaults; skins (changeling) override to Figma */
   --site-nav-h: 60px;
-  --site-max-w: 1440px;
-  --site-main-max: 960px;
-  --site-aside-width: 260px;
-  --site-aside-min: 220px;
-  --site-aside-max: 300px;
+  --site-max-w: 108rem; /* 1728 @ 16px */
+  --site-main-max: 55.3125rem; /* 885 */
+  --site-aside-width: 20.6875rem; /* 331 */
+  --site-aside-min: 16rem;
+  --site-aside-max: 22.0625rem; /* 353 */
+  --site-col-gap: clamp(1rem, 2.5vw, 2.5rem);
+  --site-main-pad-inline: clamp(1rem, 2vw, 2.5rem);
   --site-gutter: 2.5rem;
   --site-banner-offset: 12rem;
   --site-sticky-top: 7.5rem;

@@ -44,12 +44,14 @@
   --site-banner-offset: 200px;
   --site-sticky-top: 120px;
   --site-gutter: 40px;
-  --site-main-max: 800px;
-  /* Preferred column width (court-template left/right). */
-  --site-aside-width: 300px;
-  --site-aside-min: 300px;
-  --site-aside-max: 450px;
-  --site-max-w: 1440px;
+  /* Figma Main page (1728): left ~331, main ~885, right ~331 */
+  --site-max-w: 1728px;
+  --site-main-max: 885px;
+  --site-aside-width: 331px;
+  --site-aside-min: 280px;
+  --site-aside-max: 353px;
+  --site-col-gap: clamp(1.25rem, 2vw, 2.75rem);
+  --site-main-pad-inline: clamp(1.25rem, 2vw, 3.125rem);
 
   --site-bg-image-top: url("/site/skins/changeling/imgs/background.png");
   --site-bg-image-bottom: url("/site/skins/changeling/imgs/footer.png");
@@ -161,20 +163,15 @@
   height: auto;
 }
 
-/* ── Body / columns ──────────────────────────────────────────────── */
+/* ── Body / columns (widths via tokens — see :root above) ──────── */
 
 .site-body {
-  padding: 120px 40px 0;
+  padding: 120px var(--site-gutter) 0;
   margin-bottom: 50px;
-  max-width: 1440px;
 }
 
 .site-aside {
-  top: 120px;
-}
-
-.site-main {
-  padding: 0 50px;
+  top: var(--site-sticky-top);
 }
 
 /* ── Search ──────────────────────────────────────────────────────── */
