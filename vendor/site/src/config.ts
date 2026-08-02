@@ -47,15 +47,24 @@ export function normalizeMount(raw: unknown): string {
   return m;
 }
 
+/** Cache-bust query for shipped site CSS (bump when layout/tokens change). */
+export const SITE_ASSET_V = "20260802c";
+
 /** Resolve stylesheet href for the active skin. */
 export function resolveSkinHref(cfg: SitePluginConfig): string {
   const custom = (cfg.skinCss ?? "").trim();
-  if (custom) return custom;
+  if (custom) {
+    // Preserve absolute/custom URLs; append bust only for same-origin skins
+    if (custom.startsWith("/site/") && !custom.includes("?")) {
+      return `${custom}?v=${SITE_ASSET_V}`;
+    }
+    return custom;
+  }
   const named = (cfg.skin ?? "default").trim() || "default";
   if (named.startsWith("/") || named.startsWith("http")) {
     return named;
   }
-  return `/site/css/skins/${named}.css`;
+  return `/site/css/skins/${named}.css?v=${SITE_ASSET_V}`;
 }
 
 /**

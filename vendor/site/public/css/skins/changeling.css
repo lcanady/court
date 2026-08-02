@@ -134,8 +134,21 @@
   color: var(--site-text);
 }
 
-.site-nav__list a.is-active {
+.site-nav__list a.is-active,
+.site-nav__list .site-nav-login-link.is-active,
+.site-nav__list .site-nav-user-link.is-active {
   border-bottom-color: var(--site-accent);
+}
+
+/* Sign in / user chip — same type metrics as other nav links */
+.site-nav__list .site-nav-login-link,
+.site-nav__list .site-nav-user-link {
+  font-family: var(--site-font-display);
+  font-size: 24px;
+  font-weight: normal;
+  color: var(--site-text);
+  border-bottom-width: 2px;
+  padding-bottom: 0;
 }
 
 /* ── Banner ──────────────────────────────────────────────────────── */

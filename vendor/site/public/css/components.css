@@ -525,36 +525,39 @@
   background: var(--site-bg-surface-2);
 }
 
-/* ── Top Nav User & Avatar ───────────────────────────────────────── */
+/* ── Top Nav User & Avatar ─────────────────────────────────────────
+ * Match .site-nav__list a size/weight — skins set list font-size.
+ */
 
 .site-nav-user-item {
-  display: inline-flex;
-  align-items: center;
+  display: list-item;
+  list-style: none;
 }
 
-.site-nav-user-link,
-.site-nav-login-link {
+.site-nav__list .site-nav-user-link,
+.site-nav__list .site-nav-login-link {
   display: inline-flex;
   align-items: center;
   gap: 0.45rem;
-  color: var(--site-text-secondary);
+  /* Inherit family/size/color/border from .site-nav__list a */
+  color: inherit;
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  line-height: inherit;
   text-decoration: none;
   border-bottom: 2px solid transparent;
   padding-bottom: 0.15rem;
-  font-family: var(--site-font-display);
-  font-size: 1.125rem;
-  line-height: inherit;
 }
 
-.site-nav-user-link:hover,
-.site-nav-login-link:hover {
-  color: var(--site-text);
+.site-nav__list .site-nav-user-link:hover,
+.site-nav__list .site-nav-login-link:hover {
+  color: inherit;
   border-bottom-color: var(--site-accent);
 }
 
-.site-nav-user-link.is-active,
-.site-nav-login-link.is-active {
-  color: var(--site-text);
+.site-nav__list .site-nav-user-link.is-active,
+.site-nav__list .site-nav-login-link.is-active {
   border-bottom-color: var(--site-accent);
 }
 

@@ -152,11 +152,11 @@ body {
   display: none;
 }
 
-/* ── 3-column body (flex — Figma proportions, fluid) ───────────────
+/* ── 3-column body (CSS grid — Figma proportions, fluid) ───────────
  * Desktop target (changeling / Figma 1728):
  *   aside ~331 | main ~885 | aside ~331
- * Prefer flex + min/max over fixed/absolute placement so columns
- * shrink and stack on smaller viewports.
+ * Grid tracks keep center from being squeezed by flex-shrink.
+ * No absolute positioning — stacks cleanly on small viewports.
  */
 
 .site-body {
@@ -165,11 +165,15 @@ body {
   margin: 0 auto 3rem;
   padding: 4rem var(--site-gutter) 0;
   box-sizing: border-box;
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns:
+    minmax(var(--site-aside-min), var(--site-aside-width))
+    minmax(18rem, var(--site-main-max))
+    minmax(var(--site-aside-min), var(--site-aside-width));
+  column-gap: var(--site-col-gap, 1.5rem);
+  row-gap: 1.5rem;
   justify-content: center;
-  gap: var(--site-col-gap, 1.5rem);
+  align-items: start;
 }
 
 .site-aside {
@@ -177,35 +181,31 @@ body {
   flex-direction: column;
   position: sticky;
   top: var(--site-sticky-top);
-  align-self: flex-start;
-  /* Prefer Figma width; may shrink toward --site-aside-min */
-  flex: 0 1 var(--site-aside-width);
-  width: var(--site-aside-width);
-  min-width: min(100%, var(--site-aside-min));
+  align-self: start;
+  width: 100%;
   max-width: var(--site-aside-max);
+  min-width: 0;
   min-height: 1px;
   box-sizing: border-box;
 }
 
 .site-aside--start {
-  order: 0;
+  grid-column: 1;
 }
 
 .site-aside--end {
-  order: 2;
+  grid-column: 3;
 }
 
 .site-main {
   display: flex;
   flex-direction: column;
-  /* Grow/shrink around Figma main width; never absolute */
-  flex: 1 1 var(--site-main-max);
+  grid-column: 2;
   width: 100%;
+  min-width: 0;
   max-width: var(--site-main-max);
-  min-width: min(100%, 18rem);
   padding-inline: var(--site-main-pad-inline, 1.5rem);
   box-sizing: border-box;
-  order: 1;
 }
 
 /* ── Footer ──────────────────────────────────────────────────────── */
@@ -230,44 +230,41 @@ body {
 
 /* ── Responsive ──────────────────────────────────────────────────── */
 
-/* Medium: keep 3-col but let rails shrink harder */
+/* Medium: keep 3-col, softer rail width */
 @media (max-width: 1280px) {
   :root {
-    --site-aside-width: min(18rem, 28vw);
+    --site-aside-width: 18rem;
+    --site-aside-min: 14rem;
     --site-main-pad-inline: 1rem;
     --site-col-gap: 1rem;
   }
 }
 
-/* Stack: main first, then side rails full-width */
+/* Stack: main → left → right */
 @media (max-width: 1100px) {
   .site-body {
-    flex-wrap: wrap;
+    grid-template-columns: 1fr;
     justify-content: stretch;
-    gap: 1.5rem 0;
   }
 
-  .site-aside {
-    position: static;
-    width: 100%;
+  .site-aside,
+  .site-main {
+    grid-column: 1;
     max-width: none;
-    flex: 1 1 100%;
-  }
-
-  .site-aside--end {
-    order: 3;
+    position: static;
+    padding-inline: 0;
   }
 
   .site-main {
     order: 1;
-    max-width: none;
-    min-width: 0;
-    padding-inline: 0;
-    flex: 1 1 100%;
   }
 
   .site-aside--start {
     order: 2;
+  }
+
+  .site-aside--end {
+    order: 3;
   }
 }
 

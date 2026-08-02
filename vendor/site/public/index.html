@@ -9,11 +9,12 @@
     <meta name="color-scheme" content="dark" />
     <title>UrsaMU</title>
 
-    <!-- Base: reset → tokens → layout → components → skin -->
-    <link rel="stylesheet" href="/site/css/reset.css" />
-    <link rel="stylesheet" href="/site/css/tokens.css" />
-    <link rel="stylesheet" href="/site/css/layout.css" />
-    <link rel="stylesheet" href="/site/css/components.css" />
+    <!-- Base: reset → tokens → layout → components → skin
+         ?v= busts sticky browser caches during skin iteration -->
+    <link rel="stylesheet" href="/site/css/reset.css?v=20260802c" />
+    <link rel="stylesheet" href="/site/css/tokens.css?v=20260802c" />
+    <link rel="stylesheet" href="/site/css/layout.css?v=20260802c" />
+    <link rel="stylesheet" href="/site/css/components.css?v=20260802c" />
     <!--
       Skin stylesheet. Swap via:
         - data-skin="court" | "default" on <html>
@@ -22,7 +23,7 @@
     -->
     <link
       rel="stylesheet"
-      href="/site/css/skins/default.css"
+      href="/site/css/skins/default.css?v=20260802c"
       data-site-skin
     />
 
@@ -41,7 +42,7 @@
       rel="stylesheet"
     />
 
-    <script src="/site/js/site.js" defer></script>
+    <script src="/site/js/site.js?v=20260802c" defer></script>
   </head>
   <body>
     <div

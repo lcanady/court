@@ -861,16 +861,40 @@
       })
       .catch(function () { return null; });
   } else if (MODE === "home") {
-    // Featured article on home page
+    // Featured → home wiki page → static welcome (never leave "Loading…")
     articlePromise = fetch("/api/v1/wiki/featured", {
       credentials: "same-origin",
     })
       .then(function (r) { return r.ok ? r.json() : null; })
       .then(function (page) {
-        if (page && page.body) injectArticle(page);
-        return page;
+        if (page && page.body) return page;
+        return fetch("/api/v1/wiki/home", { credentials: "same-origin" })
+          .then(function (r2) { return r2.ok ? r2.json() : null; });
       })
-      .catch(function () { return null; });
+      .then(function (page) {
+        if (page && page.body) {
+          injectArticle(page);
+          return page;
+        }
+        if (mainEl) {
+          injectArticle({
+            title: "Welcome",
+            body: "Welcome to the game wiki.\n\n" +
+              "Browse **Wiki** in the nav, or ask staff to mark a page " +
+              "`featured: true` for the home article.",
+          });
+        }
+        return null;
+      })
+      .catch(function () {
+        if (mainEl) {
+          injectArticle({
+            title: "Welcome",
+            body: "Welcome. The wiki could not be loaded right now.",
+          });
+        }
+        return null;
+      });
   } else {
     articlePromise = Promise.resolve(null);
   }
