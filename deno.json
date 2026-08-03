@@ -70,7 +70,7 @@
     "@ursamu/mushcode/eval": "jsr:@ursamu/mushcode@0.7.0/eval",
     "@ursamu/mushcode/parse": "jsr:@ursamu/mushcode@0.7.0/parse",
     "@ursamu/parser": "npm:@ursamu/parser@1.2.4",
-    "@ursamu/site": "jsr:@ursamu/site@0.1.10",
+    "@ursamu/site": "jsr:@ursamu/site@0.1.11",
     "@ursamu/ursamu": "jsr:@ursamu/mush@1.0.9",
     "@ursamu/ursamu/app": "jsr:@ursamu/mush@1.0.9/app",
     "@ursamu/ursamu/channels": "jsr:@ursamu/channels@1.0.3/channel-events",
