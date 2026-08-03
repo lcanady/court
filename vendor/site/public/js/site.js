@@ -8,13 +8,14 @@
  *
  * Left sidebar:
  *   - Search box (static HTML)
- *   - "Featured" list (all featured:true wiki pages, all modes)
- *   - "In this section" siblings (wiki mode only)
+ *   - Left menu (Figma): Featured, then Related (section siblings)
+ *   - Home main content = wiki path "home" (not featured)
+ * Wiki chrome: bgImage → home-height + theme bg; else compact
  *
  * Right sidebar:
  *   - "On this page" TOC (scraped from rendered headings)
  *   - "Edit this page" staff link (wiki mode, authenticated staff only)
- *   - "Connect" panel (home/generic, non-staff — shows telnet address)
+ *   - Telnet host under hero title when title + plugins.site.telnet
  */
 
 (function () {
@@ -28,7 +29,9 @@
   var bannerTitle = document.querySelector("[data-site-banner-title]");
   var bannerImg   = document.querySelector("[data-site-banner-img]");
   var banner      = document.querySelector("[data-site-banner]");
+  var bannerConnect = document.querySelector("[data-site-banner-connect]");
   var navList     = document.querySelector("[data-site-nav-list]");
+  var navToggle   = document.querySelector("[data-site-nav-toggle]");
   var skinLink    = document.querySelector("[data-site-skin]");
   var mainEl      = document.querySelector("[data-site-main]");
   var leftPanels  = document.querySelector("[data-site-left-panels]");
@@ -37,8 +40,14 @@
   // ── Page mode ─────────────────────────────────────────────────────────────
 
   // Support mount /site and serveRoot apex (court.ursamu.io/)
-  var pathname = window.location.pathname.replace(/\/+$/, "") || "/";
-  if (pathname === "") pathname = "/";
+  // Recomputed on SPA navigations via refreshPathname().
+  var pathname = "/";
+
+  function refreshPathname() {
+    pathname = window.location.pathname.replace(/\/+$/, "") || "/";
+    if (pathname === "") pathname = "/";
+  }
+  refreshPathname();
 
   function detectMode() {
     if (
@@ -68,7 +77,18 @@
     ) {
       return "wiki";
     }
+    if (
+      pathname.startsWith("/help") ||
+      pathname.startsWith("/site/help")
+    ) {
+      return "help";
+    }
     return "generic";
+  }
+
+  // Alias used by SPA route loader
+  function modeFromUrl() {
+    return detectMode();
   }
 
   // "/wiki/lore" or "/site/wiki/lore" → "lore"
@@ -76,15 +96,25 @@
     return pathname.replace(/^\/(?:site\/)?wiki\/?/, "") || "";
   }
 
+  // "/help/mail" or "/site/help/mail" → "mail"
+  function helpPathFromUrl() {
+    return pathname.replace(/^\/(?:site\/)?help\/?/, "") || "";
+  }
+
   /** Public path prefix for in-app links ("" at apex, "/site" under mount). */
   function publicBase() {
     if (pathname === "/" || pathname === "/login" ||
-      pathname === "/profile" || pathname.startsWith("/wiki")) {
+      pathname === "/profile" || pathname.startsWith("/wiki") ||
+      pathname.startsWith("/help")) {
       return "";
     }
     return "/site";
   }
   var PUB = publicBase();
+
+  function refreshPub() {
+    PUB = publicBase();
+  }
 
   function pubPath(sub) {
     sub = String(sub || "").replace(/^\/+/, "");
@@ -94,6 +124,10 @@
   function wikiHref(path) {
     var rest = String(path || "").replace(/^\/+/, "");
     return pubPath(rest ? "wiki/" + rest : "wiki/");
+  }
+  function helpHref(topic) {
+    var rest = String(topic || "").replace(/^\/+/, "");
+    return pubPath(rest ? "help/" + rest : "help/");
   }
 
   /**
@@ -112,10 +146,59 @@
 
   var MODE     = detectMode();
   var WIKI_PATH = wikiPathFromUrl();
+  var HELP_PATH = helpPathFromUrl();
+  /** Wiki frontmatter bgImage (default false). Home uses site settings. */
+  var pageBgImage = false;
+  /** Cached GET /api/v1/help payload. */
+  var helpIndex = null;
+  var helpIndexPromise = null;
 
   // ── Config helpers ─────────────────────────────────────────────────────────
 
   var siteConfig = {};
+
+  /**
+   * Shell chrome: home height vs compact (no title height).
+   * - home: site plainBg + hero offset from settings
+   * - wiki + bgImage: theme top bg, home-height spacer
+   * - wiki default / login / profile: compact under nav
+   */
+  function applyShellChrome() {
+    if (!shell) return;
+    var cfg = siteConfig || {};
+    var wikiBg = MODE === "wiki" && pageBgImage === true;
+    var compactMode = MODE === "login" || MODE === "profile" ||
+      MODE === "help" ||
+      (MODE === "wiki" && !pageBgImage);
+
+    if (MODE === "home") {
+      if (cfg.plainBg) shell.classList.add("is-plain");
+      else shell.classList.remove("is-plain");
+    } else if (wikiBg) {
+      shell.classList.remove("is-plain");
+    } else if (compactMode) {
+      shell.classList.add("is-plain");
+    } else if (cfg.plainBg) {
+      shell.classList.add("is-plain");
+    } else {
+      shell.classList.remove("is-plain");
+    }
+
+    if (compactMode) {
+      shell.classList.add("is-compact");
+      shell.classList.add("is-mode-no-hero");
+    } else if (wikiBg || MODE === "home") {
+      // Same home-height hero chrome (title / offset / bg)
+      shell.classList.remove("is-mode-no-hero");
+      var bSrc = String(cfg.bannerImage || "").trim();
+      var hTitle = String(cfg.title || "").trim();
+      if (!bSrc && !hTitle) shell.classList.add("is-compact");
+      else shell.classList.remove("is-compact");
+    } else {
+      shell.classList.remove("is-compact");
+      shell.classList.remove("is-mode-no-hero");
+    }
+  }
 
   function setSkinHref(href) {
     if (!skinLink || !href) return;
@@ -154,7 +237,11 @@
     var heroTitle = String(cfg.title || "").trim();
     var brandTitle = heroTitle || "UrsaMU";
     // Nav brand always uses site name; document title set per-mode below
-    if (brand) brand.textContent = brandTitle;
+    if (brand) {
+      brand.textContent = brandTitle;
+      // Logo always goes to public home (/ at apex, /site/ when mounted)
+      brand.setAttribute("href", pubPath(""));
+    }
 
     var href  = String(cfg.skinHref || cfg.skinCss || "").trim();
     var named = String(cfg.skin || "default").trim();
@@ -173,11 +260,11 @@
     }
 
     var bannerSrc = String(cfg.bannerImage || "").trim();
-    // Wiki/login/profile: no site hero — page title lives in main
-    var hideHero = MODE === "wiki" || MODE === "login" ||
-      MODE === "profile";
+    // Home always; wiki only when page bgImage (home-height layout)
+    var showHero = MODE === "home" ||
+      (MODE === "wiki" && pageBgImage === true);
     if (bannerImg) {
-      if (!hideHero && bannerSrc) {
+      if (showHero && bannerSrc) {
         bannerImg.src = bannerSrc;
         bannerImg.hidden = false;
         if (banner) banner.classList.add("has-image");
@@ -188,7 +275,7 @@
       }
     }
     if (bannerTitle) {
-      if (!hideHero && heroTitle) {
+      if (showHero && heroTitle) {
         bannerTitle.textContent = heroTitle;
         bannerTitle.hidden = false;
         bannerTitle.removeAttribute("hidden");
@@ -197,22 +284,22 @@
         bannerTitle.hidden = true;
       }
     }
-    if (hideHero) {
-      document.title = brandTitle;
-    } else {
-      document.title = brandTitle;
-    }
-
-    // Compact: no hero art/title, or wiki reading mode
-    if (shell) {
-      if (cfg.plainBg) shell.classList.add("is-plain");
-      else shell.classList.remove("is-plain");
-      if (hideHero || (!bannerSrc && !heroTitle)) {
-        shell.classList.add("is-compact");
+    // Connect under title (not a right-rail "Connect" menu)
+    var telnetHost = String((cfg && cfg.telnet) || "").trim();
+    if (bannerConnect) {
+      if (showHero && heroTitle && telnetHost) {
+        bannerConnect.textContent = telnetHost;
+        bannerConnect.href = "telnet://" + telnetHost;
+        bannerConnect.hidden = false;
+        bannerConnect.removeAttribute("hidden");
       } else {
-        shell.classList.remove("is-compact");
+        bannerConnect.textContent = "";
+        bannerConnect.removeAttribute("href");
+        bannerConnect.hidden = true;
       }
     }
+    document.title = brandTitle;
+    applyShellChrome();
 
     if (Array.isArray(cfg.nav) && navList) {
       navList.innerHTML = "";
@@ -251,7 +338,39 @@
       .replace(/-+/g, "-");
   }
 
-  function inlineMarkdown(text) {
+  /**
+   * Page-local image refs → API URL.
+   * Authors write: ![crest](crest.png)
+   * Also: _assets/crest.png  ./crest.png
+   * Absolute /http(s) left as-is.
+   */
+  function resolveImageSrc(src, pagePath) {
+    var raw = String(src || "").trim();
+    if (!raw) return null;
+    if (/^\s*javascript:/i.test(raw) || /^\s*data:/i.test(raw)) {
+      return null;
+    }
+    if (/^https?:\/\//i.test(raw) || raw.charAt(0) === "/") {
+      return raw;
+    }
+    var ref = raw.replace(/^\.\//, "");
+    if (ref.indexOf("_assets/") === 0) {
+      ref = ref.slice("_assets/".length);
+    }
+    // basename + safe chars only
+    ref = ref.replace(/^.*[/\\]/, "").toLowerCase();
+    ref = ref.replace(/\s+/g, "-").replace(/[^a-z0-9._-]+/g, "");
+    if (!/^[a-z0-9][a-z0-9._-]*\.(png|jpe?g|gif|webp|svg)$/i
+      .test(ref)) {
+      return null;
+    }
+    var page = String(pagePath || "").replace(/^\/+|\/+$/g, "");
+    if (!page) return null;
+    return "/api/v1/wiki/" + page.split("/").map(encodeURIComponent)
+      .join("/") + "/_assets/" + encodeURIComponent(ref);
+  }
+
+  function inlineMarkdown(text, pagePath) {
     // Wikilinks [[target|label]] or [[target]] — resolve to real links
     text = text.replace(
       /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g,
@@ -275,6 +394,16 @@
     text = text.replace(/`([^`]+)`/g, function (_, t) {
       return "<code>" + esc(t) + "</code>";
     });
+    // Images ![alt](url|filename) — before links
+    text = text.replace(
+      /!\[([^\]]*)\]\(([^)]+)\)/g,
+      function (_, alt, url) {
+        var src = resolveImageSrc(url, pagePath);
+        if (!src) return esc(alt || "");
+        return '<img src="' + esc(src) + '" alt="' +
+          esc(alt || "") + '" loading="lazy">';
+      }
+    );
     // Markdown links
     text = text.replace(
       /\[([^\]]+)\]\(([^)]+)\)/g,
@@ -285,7 +414,7 @@
     return text;
   }
 
-  function renderMarkdown(md) {
+  function renderMarkdown(md, pagePath) {
     var lines    = md.split(/\r?\n/);
     var html     = "";
     var inList   = false;
@@ -293,6 +422,7 @@
     var inPara   = false;
     var inTable  = false;
     var tableRows = []; // array of string[] (one per row)
+    var pg = pagePath || "";
 
     function closePara() {
       if (inPara) { html += "</p>\n"; inPara = false; }
@@ -308,14 +438,14 @@
       html += "<table>\n<thead>\n<tr>";
       var headers = tableRows[0];
       for (var h = 0; h < headers.length; h++) {
-        html += "<th>" + inlineMarkdown(headers[h]) + "</th>";
+        html += "<th>" + inlineMarkdown(headers[h], pg) + "</th>";
       }
       html += "</tr>\n</thead>\n<tbody>\n";
       for (var r = 1; r < tableRows.length; r++) {
         html += "<tr>";
         var cells = tableRows[r];
         for (var c = 0; c < cells.length; c++) {
-          html += "<td>" + inlineMarkdown(cells[c]) + "</td>";
+          html += "<td>" + inlineMarkdown(cells[c], pg) + "</td>";
         }
         html += "</tr>\n";
       }
@@ -358,7 +488,7 @@
         var hText = hMatch[2];
         var hId   = slug(hText);
         html += "<h" + level + ' id="' + esc(hId) + '">' +
-          inlineMarkdown(hText) + "</h" + level + ">\n";
+          inlineMarkdown(hText, pg) + "</h" + level + ">\n";
         continue;
       }
 
@@ -374,7 +504,7 @@
       if (bqMatch) {
         closePara(); closeList();
         html += "<blockquote><p>" +
-          inlineMarkdown(bqMatch[1]) + "</p></blockquote>\n";
+          inlineMarkdown(bqMatch[1], pg) + "</p></blockquote>\n";
         continue;
       }
 
@@ -386,7 +516,7 @@
           closeList();
           html += "<ul>\n"; inList = true; listTag = "ul";
         }
-        html += "<li>" + inlineMarkdown(ulMatch[1]) + "</li>\n";
+        html += "<li>" + inlineMarkdown(ulMatch[1], pg) + "</li>\n";
         continue;
       }
 
@@ -398,14 +528,14 @@
           closeList();
           html += "<ol>\n"; inList = true; listTag = "ol";
         }
-        html += "<li>" + inlineMarkdown(olMatch[1]) + "</li>\n";
+        html += "<li>" + inlineMarkdown(olMatch[1], pg) + "</li>\n";
         continue;
       }
 
       // ── Paragraph ──────────────────────────────────────────────────
       closeList();
       if (!inPara) { html += "<p>"; inPara = true; } else { html += " "; }
-      html += inlineMarkdown(line);
+      html += inlineMarkdown(line, pg);
     }
     closePara(); closeList(); flushTable();
     return html;
@@ -430,9 +560,25 @@
 
   function injectArticle(page) {
     if (!mainEl || !page) return;
-    var bodyHtml = renderMarkdown(String(page.body || ""));
+    var pagePath = String(page.path || WIKI_PATH || "").trim();
+    // Home content is wiki path "home"
+    if (!pagePath && MODE === "home") pagePath = "home";
+    var bodyHtml = renderMarkdown(
+      String(page.body || ""),
+      pagePath,
+    );
     var title = String(page.title || page.path || "").trim();
     if (!bodyHtml.trim() && !title) return;
+    // Per-page bg only in wiki mode; home uses site settings
+    if (MODE === "wiki") {
+      pageBgImage = page.bgImage === true;
+      // Re-apply hero + chrome now that flag is known
+      if (siteConfig && Object.keys(siteConfig).length) {
+        applyConfig(siteConfig);
+      } else {
+        applyShellChrome();
+      }
+    }
     setDocumentTitle(title);
     var inner = "<section class=\"site-section\">";
     if (title) {
@@ -450,6 +596,14 @@
   function injectWikiListing(opts) {
     if (!mainEl) return;
     opts = opts || {};
+    pageBgImage = false;
+    if (MODE === "wiki") {
+      if (siteConfig && Object.keys(siteConfig).length) {
+        applyConfig(siteConfig);
+      } else {
+        applyShellChrome();
+      }
+    }
     var title = String(opts.title || "Wiki").trim();
     var items = Array.isArray(opts.items) ? opts.items : [];
     setDocumentTitle(title);
@@ -487,16 +641,21 @@
 
   function injectLoadingState(title) {
     if (!mainEl) return;
-    var t = String(title || "Loading…").trim();
+    var t = String(title || "Loading").trim();
     setDocumentTitle(t);
+    // Theme-neutral skeleton: widths only (colors from CSS tokens)
     mainEl.innerHTML =
-      "<section class=\"site-section site-section--loading\">" +
+      "<section class=\"site-section site-section--loading\" " +
+      "aria-busy=\"true\" aria-live=\"polite\">" +
       "<h2 class=\"site-section__title\">" + esc(t) + "</h2>" +
       "<div class=\"site-rule site-rule--image\" role=\"presentation\"></div>" +
-      "<div class=\"site-section__body site-loading-skeleton\">" +
-      "<div class=\"site-skeleton-line\" style=\"width:70%;\"></div>" +
-      "<div class=\"site-skeleton-line\" style=\"width:90%;\"></div>" +
-      "<div class=\"site-skeleton-line\" style=\"width:45%;\"></div>" +
+      "<div class=\"site-section__body site-loading-skeleton\" " +
+      "role=\"status\">" +
+      "<span class=\"site-sr-only\">Loading content…</span>" +
+      "<div class=\"site-skeleton-line\" style=\"width:72%\"></div>" +
+      "<div class=\"site-skeleton-line\" style=\"width:94%\"></div>" +
+      "<div class=\"site-skeleton-line\" style=\"width:58%\"></div>" +
+      "<div class=\"site-skeleton-line\" style=\"width:81%\"></div>" +
       "</div></section>" +
       articleFooterHtml();
   }
@@ -535,14 +694,12 @@
   var rightAside = document.getElementById("right");
 
   function updateSidebarAndBannerVisibility() {
-    // Hide site hero on wiki/login/profile — page title is in main
-    var noHero = MODE === "login" || MODE === "profile" ||
-      MODE === "wiki";
+    // Layout chrome (bg height) is applyShellChrome; this is asides + banner
+    var wikiBg = MODE === "wiki" && pageBgImage === true;
     if (MODE === "login") {
       if (leftAside) leftAside.style.display = "none";
       if (rightAside) rightAside.style.display = "none";
       if (banner) banner.style.display = "none";
-      if (shell) shell.classList.add("is-mode-no-hero");
       if (mainEl) {
         mainEl.style.margin = "0 auto";
         mainEl.style.maxWidth = "440px";
@@ -552,11 +709,11 @@
         mainEl.style.justifyContent = "center";
         mainEl.style.alignItems = "center";
       }
+      applyShellChrome();
     } else if (MODE === "profile") {
       if (leftAside) leftAside.style.display = "none";
       if (rightAside) rightAside.style.display = "none";
       if (banner) banner.style.display = "none";
-      if (shell) shell.classList.add("is-mode-no-hero");
       if (mainEl) {
         mainEl.style.margin = "0 auto";
         mainEl.style.maxWidth = "600px";
@@ -566,14 +723,12 @@
         mainEl.style.justifyContent = "";
         mainEl.style.alignItems = "";
       }
+      applyShellChrome();
     } else if (MODE === "wiki") {
       if (leftAside) leftAside.style.display = "";
       if (rightAside) rightAside.style.display = "";
-      if (banner) banner.style.display = "none";
-      if (shell) {
-        shell.classList.add("is-mode-no-hero");
-        shell.classList.add("is-compact");
-      }
+      // bgImage pages keep empty banner for home-height spacer
+      if (banner) banner.style.display = wikiBg ? "" : "none";
       if (mainEl) {
         mainEl.style.margin = "";
         mainEl.style.maxWidth = "";
@@ -583,11 +738,25 @@
         mainEl.style.justifyContent = "";
         mainEl.style.alignItems = "";
       }
+      applyShellChrome();
+    } else if (MODE === "help") {
+      if (leftAside) leftAside.style.display = "";
+      if (rightAside) rightAside.style.display = "";
+      if (banner) banner.style.display = "none";
+      if (mainEl) {
+        mainEl.style.margin = "";
+        mainEl.style.maxWidth = "";
+        mainEl.style.minHeight = "";
+        mainEl.style.display = "";
+        mainEl.style.flexDirection = "";
+        mainEl.style.justifyContent = "";
+        mainEl.style.alignItems = "";
+      }
+      applyShellChrome();
     } else {
       if (leftAside) leftAside.style.display = "";
       if (rightAside) rightAside.style.display = "";
-      if (banner) banner.style.display = noHero ? "none" : "";
-      if (shell) shell.classList.remove("is-mode-no-hero");
+      if (banner) banner.style.display = "";
       if (mainEl) {
         mainEl.style.margin = "";
         mainEl.style.maxWidth = "";
@@ -597,6 +766,7 @@
         mainEl.style.justifyContent = "";
         mainEl.style.alignItems = "";
       }
+      applyShellChrome();
     }
   }
 
@@ -727,6 +897,13 @@
 
   function renderLeft(pages) {
     if (!leftPanels || MODE === "login" || MODE === "profile") return;
+
+    // Help mode owns the left rail (sections + topics)
+    if (MODE === "help") {
+      renderHelpLeft();
+      return;
+    }
+
     var featured = pages.filter(function (p) {
       return p.featured && !p.draft;
     });
@@ -760,20 +937,17 @@
       return;
     }
 
-    // Fallback when no template (should be rare)
+    // Fallback when no template (should be rare) — Figma order
     var html = "";
-    if (MODE === "wiki" && siblings.length) {
+    if (featured.length) {
+      html += menuSection("Featured", featured);
+    }
+    if (MODE === "wiki" && (siblings.length || wikiIndex[WIKI_PATH])) {
       var currentPg = wikiIndex[WIKI_PATH];
       var secItems = currentPg
         ? [currentPg].concat(siblings)
         : siblings;
-      var sectionName = (WIKI_PATH || "").split("/")[0] || "Section";
-      var label = sectionName.charAt(0).toUpperCase() +
-        sectionName.slice(1);
-      html += menuSection(label, secItems);
-    }
-    if (featured.length) {
-      html += menuSection("Featured", featured);
+      html += menuSection("Related", secItems);
     }
     leftPanels.innerHTML = html || "";
   }
@@ -821,6 +995,7 @@
           id: me.id,
           name: me.name || me.moniker || "Player",
           moniker: me.moniker || "",
+          monikerHtml: me.monikerHtml || "",
           flags: flags,
           location: me.location || "",
           avatar: me.avatar || "",
@@ -881,7 +1056,12 @@
 
       var nameSpan = document.createElement("span");
       nameSpan.className = "site-nav-username";
-      nameSpan.textContent = user.name;
+      // Prefer server-built moniker HTML (web-safe colors); else plain name
+      if (user.monikerHtml) {
+        nameSpan.innerHTML = user.monikerHtml;
+      } else {
+        nameSpan.textContent = user.moniker || user.name;
+      }
       btn.appendChild(nameSpan);
 
       var menu = document.createElement("div");
@@ -999,10 +1179,12 @@
   }
 
   function renderRight(user) {
-    if (!rightPanels || MODE === "login" || MODE === "profile") return;
+    if (!rightPanels || MODE === "login" || MODE === "profile") {
+      return;
+    }
     var html = "";
 
-    // TOC
+    // TOC (wiki + help topics)
     var toc = buildToc();
     if (toc.length) {
       html += "<section class=\"site-menu menu\">" +
@@ -1025,16 +1207,6 @@
         "<ul class=\"site-menu__list\">" +
         "<li><a href=\"" + esc(editUrl) + "\">Edit this page</a></li>" +
         "<li><a href=\"" + esc(histUrl) + "\">Page history</a></li>" +
-        "</ul></section>";
-    }
-
-    // Connect panel
-    var telnet = String((siteConfig && siteConfig.telnet) || "").trim();
-    if (telnet) {
-      html += "<section class=\"site-menu menu\">" +
-        "<h2 class=\"site-menu__title\">Connect</h2>" +
-        "<ul class=\"site-menu__list\">" +
-        "<li><a href=\"telnet://" + esc(telnet) + "\">" + esc(telnet) + "</a></li>" +
         "</ul></section>";
     }
 
@@ -1200,7 +1372,68 @@
     for (var h = 0; h < heads.length; h++) obs.observe(heads[h].el);
   }
 
+
+  // ── Mobile hamburger nav ─────────────────────────────────────────────────
+
+  function setNavOpen(open) {
+    if (!siteNav) return;
+    siteNav.classList.toggle("is-open", !!open);
+    if (navToggle) {
+      navToggle.setAttribute("aria-expanded", open ? "true" : "false");
+      navToggle.setAttribute(
+        "aria-label",
+        open ? "Close menu" : "Open menu",
+      );
+    }
+    document.body.classList.toggle("site-nav-open", !!open);
+  }
+
+  function isNavOpen() {
+    return !!(siteNav && siteNav.classList.contains("is-open"));
+  }
+
+  function wireNavMenu() {
+    if (!siteNav || !navToggle) return;
+
+    navToggle.addEventListener("click", function (e) {
+      e.preventDefault();
+      e.stopPropagation();
+      setNavOpen(!isNavOpen());
+    });
+
+    // Close when a nav link is chosen (SPA + full load)
+    if (navList) {
+      navList.addEventListener("click", function (e) {
+        var a = e.target && e.target.closest
+          ? e.target.closest("a")
+          : null;
+        if (!a) return;
+        // Keep open for account toggle inside drawer
+        if (a.classList.contains("site-nav-account-toggle")) return;
+        setNavOpen(false);
+      });
+    }
+
+    document.addEventListener("keydown", function (e) {
+      if (e.key === "Escape" && isNavOpen()) setNavOpen(false);
+    });
+
+    // Tap dimmed backdrop (shell::after is not clickable — use body)
+    document.addEventListener("click", function (e) {
+      if (!isNavOpen()) return;
+      var t = e.target;
+      if (siteNav.contains(t)) return;
+      setNavOpen(false);
+    });
+
+    window.addEventListener("resize", function () {
+      if (window.innerWidth > 720 && isNavOpen()) setNavOpen(false);
+    });
+  }
+
   // ── Boot sequence ──────────────────────────────────────────────────────────
+
+  wireNavMenu();
 
   var cfgUrl = root.getAttribute("data-site-config") || "/site/config.json";
 
@@ -1244,14 +1477,431 @@
   // 3. Auth probe
   var authPromise = probeAuth();
 
+  // ── Public help browser (/help, /help/<topic>) ───────────────────────────
+
+  function fetchHelpIndex() {
+    if (helpIndex) return Promise.resolve(helpIndex);
+    if (helpIndexPromise) return helpIndexPromise;
+    helpIndexPromise = fetch("/api/v1/help", {
+      credentials: "same-origin",
+    })
+      .then(function (r) {
+        return r.ok ? r.json() : { sections: [], topics: [] };
+      })
+      .then(function (data) {
+        helpIndex = {
+          sections: Array.isArray(data.sections) ? data.sections : [],
+          topics: Array.isArray(data.topics) ? data.topics : [],
+        };
+        return helpIndex;
+      })
+      .catch(function () {
+        helpIndex = { sections: [], topics: [] };
+        return helpIndex;
+      });
+    return helpIndexPromise;
+  }
+
+  function stripMushCodes(s) {
+    return String(s || "")
+      .replace(/%c[hn]/gi, "")
+      .replace(/%c[a-z]/gi, "")
+      .replace(/%x[0-9a-fA-F]{6}/g, "")
+      .replace(/%[rR]/g, "\n")
+      .replace(/%t/gi, "  ")
+      .replace(/%b/gi, " ")
+      .replace(/%[a-zA-Z]/g, "");
+  }
+
+  /** Prepare help body for the shared markdown renderer. */
+  function helpBodyToMarkdown(raw) {
+    var t = stripMushCodes(raw).replace(/\r\n/g, "\n").trim();
+    if (!t) return "";
+    // ALL-CAPS section labels → ### headings (SYNTAX, SWITCHES, …)
+    t = t.replace(
+      /^([A-Z][A-Z0-9 /+._-]{1,48})\s*$/gm,
+      function (_m, label) {
+        // Skip lines that look like code samples
+        if (/[@+#]/.test(label)) return label;
+        return "### " + label;
+      },
+    );
+    // Bare first-line +TOPIC titles → drop if already shown as H2
+    t = t.replace(/^\+[A-Z0-9][A-Z0-9 /._-]{0,60}\s*\n+/, "");
+    return t;
+  }
+
+  function helpTopicByName(name) {
+    if (!helpIndex || !helpIndex.topics) return null;
+    var want = String(name || "").toLowerCase();
+    for (var i = 0; i < helpIndex.topics.length; i++) {
+      var t = helpIndex.topics[i];
+      if (String(t.name || "").toLowerCase() === want) return t;
+    }
+    // tag / alias match
+    for (var j = 0; j < helpIndex.topics.length; j++) {
+      var e = helpIndex.topics[j];
+      var tags = Array.isArray(e.tags) ? e.tags : [];
+      for (var k = 0; k < tags.length; k++) {
+        if (String(tags[k]).toLowerCase() === want) return e;
+      }
+    }
+    return null;
+  }
+
+  function helpTopicsInSection(section) {
+    if (!helpIndex || !helpIndex.topics) return [];
+    var sec = String(section || "").toLowerCase();
+    return helpIndex.topics.filter(function (t) {
+      return String(t.section || "").toLowerCase() === sec;
+    }).sort(function (a, b) {
+      return String(a.name).localeCompare(String(b.name));
+    });
+  }
+
+  function helpActiveSection() {
+    if (!HELP_PATH) return "";
+    var topic = helpTopicByName(HELP_PATH);
+    if (topic) return String(topic.section || "");
+    // path is a section name
+    if (helpIndex && helpIndex.sections) {
+      var low = HELP_PATH.toLowerCase();
+      for (var i = 0; i < helpIndex.sections.length; i++) {
+        if (String(helpIndex.sections[i]).toLowerCase() === low) {
+          return helpIndex.sections[i];
+        }
+      }
+    }
+    // nested topic prefix (mail/send → mail section if unknown)
+    if (HELP_PATH.indexOf("/") !== -1) {
+      return HELP_PATH.split("/")[0];
+    }
+    return "";
+  }
+
+  function renderHelpLeft() {
+    if (!leftPanels) return;
+    var q = "";
+    var searchEl = document.getElementById("help-side-search");
+    if (searchEl) q = String(searchEl.value || "").trim().toLowerCase();
+
+    var activeSec = helpActiveSection();
+    var sections = (helpIndex && helpIndex.sections) || [];
+    var html = "";
+
+    html += "<section class=\"site-menu menu site-help-search\">" +
+      "<h2 class=\"site-menu__title\">Search help</h2>" +
+      "<label class=\"site-sr-only\" for=\"help-side-search\">" +
+      "Search topics</label>" +
+      "<input type=\"search\" id=\"help-side-search\" " +
+      "class=\"site-help-search__input\" " +
+      "placeholder=\"Topic or keyword…\" " +
+      "value=\"" + esc(q) + "\" autocomplete=\"off\" />" +
+      "</section>";
+
+    if (q) {
+      var hits = ((helpIndex && helpIndex.topics) || []).filter(
+        function (t) {
+          var name = String(t.name || "").toLowerCase();
+          var body = String(t.content || "").toLowerCase();
+          var sec = String(t.section || "").toLowerCase();
+          return name.indexOf(q) !== -1 ||
+            body.indexOf(q) !== -1 ||
+            sec.indexOf(q) !== -1;
+        },
+      ).slice(0, 40);
+      html += "<section class=\"site-menu menu\">" +
+        "<h2 class=\"site-menu__title\">Matches</h2>" +
+        "<ul class=\"site-menu__list\">";
+      if (!hits.length) {
+        html += "<li class=\"site-help-empty\">No matches.</li>";
+      } else {
+        for (var h = 0; h < hits.length; h++) {
+          var hit = hits[h];
+          var cur = hit.name === HELP_PATH ? " class=\"is-current\"" : "";
+          html += "<li" + cur + "><a href=\"" +
+            helpHref(hit.name) + "\">" + esc(hit.name) +
+            "</a></li>";
+        }
+      }
+      html += "</ul></section>";
+    } else {
+      html += "<section class=\"site-menu menu\">" +
+        "<h2 class=\"site-menu__title\">Sections</h2>" +
+        "<ul class=\"site-menu__list\">";
+      html += "<li" + (!HELP_PATH ? " class=\"is-current\"" : "") +
+        "><a href=\"" + helpHref("") + "\">All sections</a></li>";
+      for (var s = 0; s < sections.length; s++) {
+        var secName = sections[s];
+        var isCur = String(secName).toLowerCase() ===
+          String(activeSec).toLowerCase() &&
+          !helpTopicByName(HELP_PATH);
+        // Also highlight section when viewing a topic in it
+        if (helpTopicByName(HELP_PATH) &&
+          String(activeSec).toLowerCase() ===
+            String(secName).toLowerCase()) {
+          isCur = true;
+        }
+        var n = helpTopicsInSection(secName).length;
+        html += "<li" + (isCur ? " class=\"is-current\"" : "") +
+          "><a href=\"" + helpHref(secName) + "\">" +
+          esc(secName) +
+          " <span class=\"site-help-count\">" + n +
+          "</span></a></li>";
+      }
+      html += "</ul></section>";
+
+      if (activeSec) {
+        var topics = helpTopicsInSection(activeSec);
+        html += "<section class=\"site-menu menu\">" +
+          "<h2 class=\"site-menu__title\">" +
+          esc(activeSec) + "</h2>" +
+          "<ul class=\"site-menu__list\">";
+        for (var t = 0; t < topics.length; t++) {
+          var top = topics[t];
+          var on = top.name === HELP_PATH ? " class=\"is-current\"" : "";
+          html += "<li" + on + "><a href=\"" +
+            helpHref(top.name) + "\">" +
+            esc(top.name) + "</a></li>";
+        }
+        html += "</ul></section>";
+      }
+    }
+
+    leftPanels.innerHTML = html;
+    var inp = document.getElementById("help-side-search");
+    if (inp) {
+      var timer = null;
+      inp.addEventListener("input", function () {
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          renderHelpLeft();
+          var again = document.getElementById("help-side-search");
+          if (again) {
+            again.focus();
+            var len = again.value.length;
+            try { again.setSelectionRange(len, len); } catch (_) {}
+          }
+        }, 120);
+      });
+    }
+  }
+
+  function injectHelpIndex() {
+    if (!mainEl || !helpIndex) return;
+    setDocumentTitle("Help");
+    var sections = helpIndex.sections || [];
+    var body = "<div class=\"site-help-index\">";
+    body += "<p class=\"site-help-lead\">Browse command and " +
+      "system help by section, or search in the left rail.</p>";
+    if (!sections.length) {
+      body += "<p>No help topics are available yet.</p>";
+    } else {
+      body += "<ul class=\"site-help-sections\">";
+      for (var i = 0; i < sections.length; i++) {
+        var sec = sections[i];
+        var topics = helpTopicsInSection(sec);
+        body += "<li class=\"site-help-sections__item\">" +
+          "<a class=\"site-help-sections__link\" href=\"" +
+          helpHref(sec) + "\">" +
+          "<span class=\"site-help-sections__name\">" +
+          esc(sec) + "</span>" +
+          "<span class=\"site-help-count\">" + topics.length +
+          "</span></a>";
+        // Preview first few topics
+        var preview = topics.slice(0, 6);
+        if (preview.length) {
+          body += "<ul class=\"site-help-sections__preview\">";
+          for (var p = 0; p < preview.length; p++) {
+            body += "<li><a href=\"" +
+              helpHref(preview[p].name) + "\">" +
+              esc(preview[p].name) + "</a></li>";
+          }
+          if (topics.length > preview.length) {
+            body += "<li class=\"site-help-more\">+" +
+              (topics.length - preview.length) + " more</li>";
+          }
+          body += "</ul>";
+        }
+        body += "</li>";
+      }
+      body += "</ul>";
+    }
+    body += "</div>";
+    mainEl.innerHTML =
+      "<section class=\"site-section\">" +
+      "<h2 class=\"site-section__title\">Help</h2>" +
+      "<div class=\"site-rule site-rule--image\" " +
+      "role=\"presentation\"></div>" +
+      "<div class=\"site-section__body\">" + body +
+      "</div></section>" + articleFooterHtml();
+    if (rightPanels) rightPanels.innerHTML = "";
+  }
+
+  function injectHelpSection(section) {
+    if (!mainEl) return;
+    var topics = helpTopicsInSection(section);
+    setDocumentTitle(section + " · Help");
+    var body = "";
+    if (!topics.length) {
+      body = "<p>No topics in this section.</p>";
+    } else {
+      body = "<ul class=\"site-help-topic-list\">";
+      for (var i = 0; i < topics.length; i++) {
+        var t = topics[i];
+        var blurb = stripMushCodes(t.content || "")
+          .replace(/\s+/g, " ")
+          .trim()
+          .slice(0, 120);
+        body += "<li><a href=\"" + helpHref(t.name) + "\">" +
+          "<strong>" + esc(t.name) + "</strong>" +
+          (blurb ? "<span class=\"site-help-blurb\">" +
+            esc(blurb) + (blurb.length >= 120 ? "…" : "") +
+            "</span>" : "") +
+          "</a></li>";
+      }
+      body += "</ul>";
+    }
+    mainEl.innerHTML =
+      "<section class=\"site-section\">" +
+      "<p class=\"site-help-crumb\"><a href=\"" +
+      helpHref("") + "\">Help</a> / " + esc(section) +
+      "</p>" +
+      "<h2 class=\"site-section__title\">" + esc(section) +
+      "</h2>" +
+      "<div class=\"site-rule site-rule--image\" " +
+      "role=\"presentation\"></div>" +
+      "<div class=\"site-section__body\">" + body +
+      "</div></section>" + articleFooterHtml();
+    if (rightPanels) rightPanels.innerHTML = "";
+  }
+
+  function injectHelpTopic(entry) {
+    if (!mainEl || !entry) return;
+    var title = String(entry.name || HELP_PATH || "Help");
+    setDocumentTitle(title + " · Help");
+    var md = helpBodyToMarkdown(entry.content || "");
+    var bodyHtml = renderMarkdown(md, "");
+    if (!bodyHtml.trim()) {
+      bodyHtml = "<p><em>No detailed help for this topic.</em></p>";
+    }
+    var sec = String(entry.section || "");
+    var crumb = "<p class=\"site-help-crumb\">" +
+      "<a href=\"" + helpHref("") + "\">Help</a>";
+    if (sec) {
+      crumb += " / <a href=\"" + helpHref(sec) + "\">" +
+        esc(sec) + "</a>";
+    }
+    crumb += " / " + esc(title) + "</p>";
+    var meta = "";
+    if (entry.source) {
+      meta = "<p class=\"site-help-meta muted\">Source: " +
+        esc(entry.source) + "</p>";
+    }
+    mainEl.innerHTML =
+      "<section class=\"site-section\">" + crumb +
+      "<h2 class=\"site-section__title\">" + esc(title) +
+      "</h2>" +
+      "<div class=\"site-rule site-rule--image\" " +
+      "role=\"presentation\"></div>" +
+      "<div class=\"site-section__body site-help-body\">" +
+      meta + bodyHtml +
+      "</div></section>" + articleFooterHtml();
+    // TOC into right rail
+    if (rightPanels) {
+      var toc = buildToc();
+      var rh = "";
+      if (toc.length) {
+        rh += "<section class=\"site-menu menu\">" +
+          "<h2 class=\"site-menu__title\">On this page</h2>" +
+          "<ul class=\"site-menu__list\">";
+        for (var i = 0; i < toc.length; i++) {
+          var cls = toc[i].level === "H3" ? " class=\"toc-sub\"" : "";
+          rh += "<li" + cls + "><a href=\"#" +
+            esc(toc[i].id) + "\">" +
+            esc(toc[i].text) + "</a></li>";
+        }
+        rh += "</ul></section>";
+      }
+      rightPanels.innerHTML = rh;
+    }
+  }
+
+  function injectHelpNotFound(path) {
+    injectArticle({
+      title: "Help not found",
+      body: "No help topic at `" + String(path || "") + "`.\n\n" +
+        "[Browse all help](" + helpHref("") + ").",
+    });
+    if (rightPanels) rightPanels.innerHTML = "";
+  }
+
+  function loadHelpRoute() {
+    injectLoadingState(HELP_PATH || "Help");
+    return fetchHelpIndex().then(function () {
+      if (!HELP_PATH) {
+        injectHelpIndex();
+        return null;
+      }
+      var topic = helpTopicByName(HELP_PATH);
+      if (topic) {
+        // Prefer fresh API body when available
+        return fetch(
+          "/api/v1/help/" +
+            encodeURIComponent(HELP_PATH).replace(/%2F/gi, "/"),
+          { credentials: "same-origin" },
+        )
+          .then(function (r) {
+            return r.ok ? r.json() : null;
+          })
+          .then(function (data) {
+            var entry = (data && data.entry) ? data.entry : topic;
+            injectHelpTopic(entry);
+            return entry;
+          })
+          .catch(function () {
+            injectHelpTopic(topic);
+            return topic;
+          });
+      }
+      // Section listing?
+      var secMatch = null;
+      var sections = (helpIndex && helpIndex.sections) || [];
+      for (var i = 0; i < sections.length; i++) {
+        if (String(sections[i]).toLowerCase() ===
+          HELP_PATH.toLowerCase()) {
+          secMatch = sections[i];
+          break;
+        }
+      }
+      if (secMatch) {
+        injectHelpSection(secMatch);
+        return null;
+      }
+      injectHelpNotFound(HELP_PATH);
+      return null;
+    });
+  }
+
   // 4. Route loader & SPA navigation
   function loadCurrentRoute() {
+    setNavOpen(false);
+    refreshPathname();
+    refreshPub();
     WIKI_PATH = wikiPathFromUrl();
+    HELP_PATH = helpPathFromUrl();
     MODE = modeFromUrl();
+    // Default compact until wiki article with bgImage loads
+    pageBgImage = false;
+    if (siteConfig && Object.keys(siteConfig).length) {
+      applyConfig(siteConfig);
+    }
     updateSidebarAndBannerVisibility();
 
     var articlePromise;
-    if (MODE === "wiki" && WIKI_PATH) {
+    if (MODE === "help") {
+      articlePromise = loadHelpRoute();
+    } else if (MODE === "wiki" && WIKI_PATH) {
       var slug = WIKI_PATH.split("/").pop().replace(/[-_]/g, " ");
       var loadTitle = slug ? (slug.charAt(0).toUpperCase() + slug.slice(1)) : "Wiki";
       injectLoadingState(loadTitle);
@@ -1294,16 +1944,13 @@
         return { title: "Wiki", items: items };
       });
     } else if (MODE === "home") {
+      // Home main column = wiki path "home" only.
+      // featured:true pages are left-menu links, not the homepage body.
       injectLoadingState("Home");
-      articlePromise = fetch("/api/v1/wiki/featured", {
+      articlePromise = fetch("/api/v1/wiki/home", {
         credentials: "same-origin",
       })
         .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (page) {
-          if (page && page.body) return page;
-          return fetch("/api/v1/wiki/home", { credentials: "same-origin" })
-            .then(function (r2) { return r2.ok ? r2.json() : null; });
-        })
         .then(function (page) {
           if (page && page.body) {
             injectArticle(page);
@@ -1312,9 +1959,10 @@
           if (mainEl) {
             injectArticle({
               title: "Welcome",
-              body: "Welcome to the game wiki.\n\n" +
-                "Browse **Wiki** in the nav, or ask staff to mark a page " +
-                "`featured: true` for the home article.",
+              body: "Welcome to the game.\n\n" +
+                "Edit the wiki page **home** for this content, or browse " +
+                "**Wiki** in the nav. Mark pages **Featured** to list them " +
+                "in the left menu (separate from home).",
             });
           }
           return null;
@@ -1362,9 +2010,22 @@
     if (targetUrl.origin !== window.location.origin) return;
 
     var p = targetUrl.pathname;
-    if (p.startsWith("/wiki") || p.startsWith("/site/wiki") || p === "/site/" || p === "/site") {
+    if (
+      p.startsWith("/wiki") ||
+      p.startsWith("/site/wiki") ||
+      p.startsWith("/help") ||
+      p.startsWith("/site/help") ||
+      p === "/site/" ||
+      p === "/site" ||
+      p === "/"
+    ) {
       e.preventDefault();
-      if (window.location.pathname + window.location.search === targetUrl.pathname + targetUrl.search) return;
+      if (
+        window.location.pathname + window.location.search ===
+          targetUrl.pathname + targetUrl.search
+      ) {
+        return;
+      }
       window.history.pushState({}, "", targetUrl.href);
       loadCurrentRoute();
     }

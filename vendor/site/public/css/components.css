@@ -11,7 +11,14 @@
   align-items: stretch;
   gap: 0.75rem;
   margin-top: 1rem;
+  /* Space before left panels (bare lists have no title margin) */
+  margin-bottom: var(--site-search-below, 1.5rem);
   width: 100%;
+}
+
+/* Left rail panels sit under search — keep first block from kissing it */
+[data-site-left-panels] > .site-menu:first-child > .site-menu__title:first-child {
+  margin-top: 0;
 }
 
 .site-search__input {
@@ -78,6 +85,11 @@
 /* Hide glyph when a real icon URL is provided (skins override fully) */
 .site-search__btn-icon[data-has-icon="1"]::before {
   content: none;
+}
+
+/* Banner connect line (see layout.css for base; skins may restyle) */
+.site-banner__connect {
+  color: var(--site-accent);
 }
 
 /* ── Menu blocks ─────────────────────────────────────────────────── */
@@ -154,25 +166,52 @@
   margin: 0;
 }
 
-/* ── Loading Skeleton ────────────────────────────────────────────── */
+/* ── Loading Skeleton (theme-token based — works on all skins) ─── */
 
 @keyframes site-skeleton-pulse {
-  0% { opacity: 0.35; }
-  50% { opacity: 0.75; }
-  100% { opacity: 0.35; }
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+.site-section--loading .site-section__title {
+  color: var(--site-text-muted, var(--site-text-secondary, inherit));
+  letter-spacing: 0.02em;
 }
 
 .site-loading-skeleton {
-  padding: 0.5rem 0 1rem;
+  padding: 0.75rem 0 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 36rem;
 }
 
 .site-skeleton-line {
-  height: 0.85rem;
-  background: currentColor;
-  opacity: 0.15;
-  border-radius: 4px;
-  margin-bottom: 0.85rem;
-  animation: site-skeleton-pulse 1.4s infinite ease-in-out;
+  display: block;
+  height: 0.75rem;
+  /* Prefer muted surface tokens so pulse reads on light and dark skins */
+  background: color-mix(
+    in srgb,
+    var(--site-text-muted, var(--site-text, #888)) 28%,
+    var(--site-bg-surface, var(--site-bg, transparent)) 72%
+  );
+  border-radius: 0.25rem;
+  animation: site-skeleton-pulse 1.35s ease-in-out infinite;
+}
+
+.site-skeleton-line:nth-child(2) {
+  animation-delay: 0.12s;
+}
+
+.site-skeleton-line:nth-child(3) {
+  animation-delay: 0.24s;
+}
+
+/* Fallback when color-mix unavailable */
+@supports not (background: color-mix(in srgb, #000 50%, #fff)) {
+  .site-skeleton-line {
+    background: var(--site-border-subtle, var(--site-border, rgba(128, 128, 128, 0.35)));
+  }
 }
 
 
@@ -213,6 +252,16 @@
   padding: 0.55rem 0;
   color: var(--site-text-secondary);
   line-height: 1.55;
+}
+
+/* ── Images (wiki markdown ![alt](url)) ───────────────────────────── */
+
+.site-section__body img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  margin: 0.75rem 0 1rem;
+  border-radius: var(--site-radius-sm, 4px);
 }
 
 /* ── Links ────────────────────────────────────────────────────────── */
@@ -363,6 +412,168 @@
 
 .site-section__body td code {
   font-size: 0.8125em;
+}
+
+/* ── Public help browser ─────────────────────────────────────────── */
+
+.site-help-lead {
+  margin: 0 0 1rem;
+  color: var(--site-text-secondary);
+}
+
+.site-help-crumb {
+  margin: 0 0 0.5rem;
+  font-size: 0.875rem;
+  color: var(--site-text-muted);
+}
+
+.site-help-crumb a {
+  color: var(--site-accent);
+  text-decoration: none;
+}
+
+.site-help-crumb a:hover {
+  text-decoration: underline;
+}
+
+.site-help-meta {
+  margin: 0 0 0.75rem;
+  font-size: 0.8125rem;
+  color: var(--site-text-muted);
+}
+
+.site-help-count {
+  display: inline-block;
+  margin-left: 0.35rem;
+  padding: 0.05rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--site-text-muted);
+  background: var(--site-bg-surface-2, rgba(255, 255, 255, 0.06));
+}
+
+.site-help-search__input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 0.35rem 0 0;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid var(--site-border, #2a2640);
+  border-radius: 4px;
+  background: var(--site-bg, #0b0a12);
+  color: var(--site-text);
+  font: inherit;
+  font-size: 0.9rem;
+}
+
+.site-help-search__input:focus {
+  outline: 2px solid var(--site-accent);
+  outline-offset: 1px;
+}
+
+.site-help-sections {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr));
+  gap: 0.85rem 1rem;
+}
+
+.site-help-sections__item {
+  margin: 0;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--site-border, #2a2640);
+  border-radius: 6px;
+  background: var(--site-bg-surface, rgba(255, 255, 255, 0.03));
+}
+
+.site-help-sections__link {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem;
+  color: var(--site-text);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.site-help-sections__link:hover {
+  color: var(--site-accent);
+}
+
+.site-help-sections__preview {
+  list-style: none;
+  margin: 0.55rem 0 0;
+  padding: 0;
+  font-size: 0.875rem;
+}
+
+.site-help-sections__preview li {
+  margin: 0.2rem 0;
+}
+
+.site-help-sections__preview a {
+  color: var(--site-text-secondary);
+  text-decoration: none;
+}
+
+.site-help-sections__preview a:hover {
+  color: var(--site-accent);
+  text-decoration: underline;
+}
+
+.site-help-more {
+  color: var(--site-text-muted);
+  font-size: 0.8125rem;
+}
+
+.site-help-topic-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.site-help-topic-list li {
+  margin: 0;
+  border-bottom: 1px solid var(--site-border-subtle, #1f1c30);
+}
+
+.site-help-topic-list a {
+  display: block;
+  padding: 0.65rem 0.15rem;
+  color: inherit;
+  text-decoration: none;
+}
+
+.site-help-topic-list a:hover {
+  color: var(--site-accent);
+}
+
+.site-help-topic-list strong {
+  display: block;
+  font-weight: 600;
+  color: var(--site-text);
+}
+
+.site-help-blurb {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.875rem;
+  color: var(--site-text-muted);
+  line-height: 1.4;
+}
+
+.site-help-body pre,
+.site-help-body code {
+  font-family: var(--site-font-mono, ui-monospace, monospace);
+}
+
+.site-help-empty {
+  color: var(--site-text-muted);
+  font-size: 0.875rem;
+  list-style: none;
 }
 
 /* ── Utilities ───────────────────────────────────────────────────── */
@@ -560,7 +771,8 @@
 .site-nav__list .site-nav-login-link {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  /* Room between avatar and moniker */
+  gap: 0.75rem;
   /* Inherit family/size/color/border from .site-nav__list a */
   color: inherit;
   font-family: inherit;
@@ -650,8 +862,10 @@
 }
 
 .site-nav-avatar {
-  width: 1.5rem;
-  height: 1.5rem;
+  flex: 0 0 auto;
+  width: 1.65rem;
+  height: 1.65rem;
+  margin-right: 0.15rem;
   border-radius: 50%;
   object-fit: cover;
   border: 1px solid var(--site-accent-border);
@@ -659,11 +873,13 @@
 }
 
 .site-nav-avatar-initial {
+  flex: 0 0 auto;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.5rem;
-  height: 1.5rem;
+  width: 1.65rem;
+  height: 1.65rem;
+  margin-right: 0.15rem;
   border-radius: 50%;
   background: var(--site-btn-bg);
   color: var(--site-btn-fg);
@@ -671,6 +887,16 @@
   font-weight: 700;
   text-transform: uppercase;
   vertical-align: middle;
+}
+
+/* Colored moniker from API monikerHtml (nested spans OK) */
+.site-nav-username {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  min-width: 0;
+  max-width: 12rem;
+  line-height: 1.2;
 }
 
 /* ── Standalone Auth Card ────────────────────────────────────────── */

@@ -72,24 +72,28 @@ drop-in familiarity with court-template CSS ports.
 
 ---
 
-## 4. Shipping a Changeling / Court skin
+## 4. Shipping a brand theme (Court example)
+
+Court of Miracles is an **installable theme**, not a builtin skin.
+Only `default` ships inside `@ursamu/site`.
 
 1. Keep layout + components as shipped.
-2. Load `css/skins/changeling.css` (`"skin": "changeling"`).
-   Legacy alias: `"skin": "court"` still resolves.
-3. Assets under `/site/skins/changeling/` (fonts + imgs).
-4. Minimal config:
+2. Pack `examples/themes/court/` (`deno task pack-theme`).
+3. Install via Admin theme zip, or copy to
+   `theme/installed/court/` with `themeDir: "theme"`.
+4. Config after install:
 
 ```json
 "plugins": {
   "site": {
-    "skin": "changeling"
+    "skin": "court",
+    "skinCss": "/site/theme/installed/court/site.css",
+    "themeDir": "theme",
+    "bannerImage": "/site/theme/installed/court/imgs/header.png",
+    "title": "Court of Miracles"
   }
 }
 ```
-
-Defaults fill title, header banner, and demo nav. Override any field
-explicitly when needed.
 
 ---
 

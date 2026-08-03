@@ -1,9 +1,12 @@
 /**
- * Court of Miracles — example installable FE theme.
- * Packaged as theme.zip with theme.json (see examples/themes/court/).
+ * Court of Miracles — installable FE theme (not a builtin skin).
  *
- * Install via Admin → Settings → Public site → Upload theme zip,
- * or copy to theme/installed/court/ with plugins.site.themeDir = "theme".
+ * Pack:  deno task pack-theme examples/themes/court
+ * Install: Admin → Settings → Public site → Upload theme zip
+ *   or copy to theme/installed/court/ with themeDir = "theme".
+ *
+ * Asset URLs are relative to this CSS file
+ * (/site/theme/installed/court/site.css).
  */
 
 @import url("https://fonts.googleapis.com/css2?family=Smythe&display=swap");
@@ -40,26 +43,30 @@
   --site-banner-offset: 200px;
   --site-sticky-top: 120px;
   --site-gutter: 40px;
-  /* Figma Main page (1728): left ~331, main ~885, right ~331 */
+  /* Figma Main/Wiki (1728): left 331 | gap ~50 | main 885 | gap ~50 | right 331
+   * Gaps: (1728 - 2*40 gutter - 331 - 885 - 331) / 2 = 50.5px
+   * (was clamp max ~2.75rem / 2vw ≈ 35px — rails felt glued to search) */
   --site-max-w: 1728px;
   --site-main-max: 885px;
   --site-aside-width: 331px;
   --site-aside-min: 280px;
   --site-aside-max: 353px;
-  --site-col-gap: clamp(1.25rem, 2vw, 2.75rem);
-  --site-main-pad-inline: clamp(1.25rem, 2vw, 3.125rem);
+  --site-col-gap: clamp(1.5rem, 2.95vw, 3.25rem);
+  /* Figma: ~44px between search bottom and first left item */
+  --site-search-below: 2.5rem;
+  --site-main-pad-inline: 0;
 
-  --site-bg-image-top: url("imgs/background.png");
-  --site-bg-image-bottom: url("imgs/footer.png");
-  --site-rule-image: url("imgs/hr.svg");
-  --site-search-icon: url("imgs/search.png");
+  --site-bg-image-top: url("/site/theme/installed/court/imgs/background.png");
+  --site-bg-image-bottom: url("/site/theme/installed/court/imgs/footer.png");
+  --site-rule-image: url("/site/theme/installed/court/imgs/hr.svg");
+  --site-search-icon: url("/site/theme/installed/court/imgs/search.png");
 }
 
 @font-face {
   font-family: "Smythe";
   src:
-    url("fonts/smythe-regular.woff2") format("woff2"),
-    url("fonts/smythe-regular.woff") format("woff");
+    url("/site/theme/installed/court/fonts/smythe-regular.woff2") format("woff2"),
+    url("/site/theme/installed/court/fonts/smythe-regular.woff") format("woff");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -68,9 +75,9 @@
 @font-face {
   font-family: "royal majesty";
   src:
-    url("fonts/your_royal_majesty_fancy.woff2")
+    url("/site/theme/installed/court/fonts/your_royal_majesty_fancy.woff2")
       format("woff2"),
-    url("fonts/your_royal_majesty_fancy.woff")
+    url("/site/theme/installed/court/fonts/your_royal_majesty_fancy.woff")
       format("woff");
   font-weight: normal;
   font-style: normal;
@@ -191,6 +198,23 @@
   display: none;
 }
 
+/* Telnet under brand (title or banner art) */
+.site-banner__connect {
+  margin-top: 1rem;
+  font-family: var(--site-font-ui);
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--site-accent);
+  text-decoration: none;
+}
+
+.site-banner__connect:hover {
+  color: var(--site-accent-hover);
+  text-decoration: none;
+  opacity: 0.9;
+}
+
 .site-banner__img {
   max-width: none;
   width: auto;
@@ -219,6 +243,8 @@
 
 .site-search {
   margin-top: 0;
+  /* Figma Main: ~44px search bottom → first menu title */
+  margin-bottom: var(--site-search-below, 2.5rem);
   gap: 12px;
 }
 
@@ -297,25 +323,6 @@
 .site-section {
   margin: 0 0 2rem;
 }
-
-@keyframes site-skeleton-pulse {
-  0% { opacity: 0.2; }
-  50% { opacity: 0.6; }
-  100% { opacity: 0.2; }
-}
-
-.site-loading-skeleton {
-  padding: 0.5rem 0 1rem;
-}
-
-.site-skeleton-line {
-  height: 14px;
-  background: var(--site-accent, #e5c07b);
-  border-radius: 3px;
-  margin-bottom: 1rem;
-  animation: site-skeleton-pulse 1.4s infinite ease-in-out;
-}
-
 
 /* Page title (H1) — Smythe 40 gold */
 .site-section__title {
@@ -594,20 +601,36 @@
   }
 
   .site-nav {
-    height: auto;
-    max-height: none;
+    height: var(--site-nav-h);
+    max-height: var(--site-nav-h);
     min-height: var(--site-nav-h);
-    padding: 0.5rem 1.15rem;
+    padding: 0 1.15rem;
   }
 
   .site-nav__brand {
     font-size: 1.5rem;
   }
 
+  .site-nav__toggle {
+    border-color: color-mix(in srgb, #f7e4dd 50%, transparent);
+    color: var(--site-text);
+  }
+
+  .site-nav__toggle:hover,
+  .site-nav__toggle:focus-visible {
+    border-color: var(--site-accent);
+  }
+
   .site-nav__list {
-    font-size: 1rem;
-    flex-wrap: wrap;
-    gap: 0.5rem 1rem;
+    font-size: 1.1rem;
+    /* drawer layout from layout.css — no wrap row */
+    flex-wrap: nowrap;
+  }
+
+  .site-nav__list a::after,
+  .site-nav__list .site-nav-login-link::after,
+  .site-nav__list .site-nav-user-link::after {
+    display: none;
   }
 
   .site-body {

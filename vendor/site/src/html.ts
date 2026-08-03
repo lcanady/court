@@ -4,7 +4,12 @@
  */
 
 import type { SitePluginConfig, SiteNavItem } from "./config.ts";
-import { markNavActive, resolveSkinHref } from "./config.ts";
+import {
+  markNavActive,
+  normalizeMount,
+  resolveSkinHref,
+  SITE_ASSET_V,
+} from "./config.ts";
 
 function esc(s: string): string {
   return s
@@ -71,6 +76,13 @@ export function injectSiteHtml(
 
   let out = html;
 
+  // Keep every /site/…?v=… cache-bust in sync with SITE_ASSET_V
+  // (index.html may ship a stale literal between publishes).
+  out = out.replace(
+    /(\/site\/[^"'?\s]+)\?v=[^"'&\s]*/g,
+    `$1?v=${SITE_ASSET_V}`,
+  );
+
   // <html data-skin="…">
   out = out.replace(
     /<html\b([^>]*)>/i,
@@ -104,10 +116,24 @@ export function injectSiteHtml(
     `$1${escAttr(skinHref)}$2`,
   );
 
-  // Nav brand (always has a label)
+  // Nav brand → public home (/ when serveRoot, else mount)
+  const brandHref = cfg.serveRoot === true
+    ? "/"
+    : `${normalizeMount(cfg.mount)}/`;
   out = out.replace(
-    /(<a\b[^>]*\bdata-site-brand\b[^>]*>)[^<]*(<\/a>)/i,
-    `$1${esc(brandTitle)}$2`,
+    /(<a\b[^>]*\bdata-site-brand\b)([^>]*)(>)[^<]*(<\/a>)/i,
+    (_m, open: string, mid: string, gt: string, close: string) => {
+      let m = String(mid);
+      if (/\bhref\s*=/.test(m)) {
+        m = m.replace(
+          /\bhref\s*=\s*"[^"]*"/i,
+          `href="${escAttr(brandHref)}"`,
+        );
+      } else {
+        m += ` href="${escAttr(brandHref)}"`;
+      }
+      return `${open}${m}${gt}${esc(brandTitle)}${close}`;
+    },
   );
 
   // Hero H1 — only when title is set (image-only banners hide via CSS)
@@ -152,6 +178,33 @@ export function injectSiteHtml(
       (_m, open: string, mid: string, close: string) => {
         const m = ensureClass(String(mid), "has-image");
         return `${open}${m}${close}`;
+      },
+    );
+  }
+
+  // Connect host under hero when title + telnet (no right-rail panel)
+  const telnet = (cfg.telnet ?? "").trim();
+  if (heroTitle && telnet) {
+    const href = `telnet://${escAttr(telnet)}`;
+    out = out.replace(
+      /(<a\b[^>]*\bdata-site-banner-connect\b)([^>]*)(>)[\s\S]*?(<\/a>)/i,
+      (_m, open: string, mid: string, gt: string, close: string) => {
+        let m = String(mid).replace(/\s*\bhidden\b/gi, "");
+        if (/\bhref\s*=/.test(m)) {
+          m = m.replace(/\bhref\s*=\s*"[^"]*"/i, `href="${href}"`);
+        } else {
+          m += ` href="${href}"`;
+        }
+        return `${open}${m}${gt}${esc(telnet)}${close}`;
+      },
+    );
+  } else {
+    out = out.replace(
+      /(<a\b[^>]*\bdata-site-banner-connect\b)([^>]*)(>)[\s\S]*?(<\/a>)/i,
+      (_m, open: string, mid: string, gt: string, close: string) => {
+        let m = String(mid);
+        if (!/\bhidden\b/i.test(m)) m += " hidden";
+        return `${open}${m}${gt}${close}`;
       },
     );
   }

@@ -23,7 +23,7 @@ UrsaMU engine (`jsr:@ursamu/mush` — **JSR only**, no vendor override).
 | Layer | Tech |
 |-------|------|
 | Engine | `jsr:@ursamu/mush@1.0.10` |
-| Public FE | `jsr:@ursamu/site@0.1.24` |
+| Public FE | `./vendor/site` (help FE; re-pin JSR when 0.1.24 publishes) |
 | Staff console | `jsr:@ursamu/web@0.2.51` |
 | Runtime | Deno |
 | DB | PGlite / TypeGraph (`data/typegraph.db`) |

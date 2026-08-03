@@ -1,5 +1,109 @@
 # Changelog
 
+## 0.1.24
+
+- Public **Help** browser at `/help/` (and `/site/help/`):
+  section index, section listings, topic pages, left-rail
+  search. Uses `GET /api/v1/help` from `@ursamu/help`.
+- Default nav: Home / Wiki / Help (Help no longer `#`).
+- Strips MUSH color codes; ALL-CAPS labels → headings.
+
+## 0.1.23
+
+- Sync plugin.version with package version (was stuck at 0.1.19).
+
+## 0.1.22
+
+- Short wiki image refs: `![crest](crest.png)` expands to the
+  current page’s `/api/v1/wiki/<page>/_assets/crest.png`.
+
+## 0.1.21
+
+- Markdown images: `![alt](url)` renders as `<img>` (lazy).
+  Use on-server wiki assets:
+  `/api/v1/wiki/<page>/_assets/<file>`.
+- Body images are responsive (`max-width: 100%`).
+
+## 0.1.20
+
+- Wiki pages honor frontmatter `bgImage` (default false):
+  - **on** — theme top background + home-height spacer
+  - **off** — compact under nav (no title height)
+- Home chrome still follows site `plainBg` / hero settings only.
+
+## 0.1.19
+
+- Left menu Figma order: **Featured**, then **Related**
+  (section siblings). Was section-first without a Related title.
+
+## 0.1.18
+
+- Home main content loads wiki path **home** only (not featured).
+- Featured pages stay left-menu links only.
+- Brand/logo href is public home (`/` when serveRoot).
+
+## 0.1.17
+
+- Nav account: more space between avatar and name; show moniker
+  colors via `/api/v1/me` `monikerHtml` (web-safe palette).
+
+## 0.1.16
+
+- Fix mobile hamburger: call `wireNavMenu()` on boot.
+
+## 0.1.15
+
+- Mobile hamburger nav (≤720px): brand + toggle; links open in a
+  slide-down drawer. Escape / outside tap / link / resize close it.
+
+## 0.1.14
+
+- Theme install rewrites relative `url(...)` in CSS to absolute
+  `/site/theme/installed/<id>/…` paths (CSS vars resolve against
+  layout.css under `/site/css/`, which broke Court backgrounds).
+- Court example theme uses absolute asset URLs; `plainBg` default
+  false so the background art shows.
+
+## 0.1.13
+
+- Drop right-rail **Connect** menu. When `title` and `telnet` are
+  both set, show the host under the hero title (`.site-banner__connect`).
+
+## 0.1.12
+
+- **Court is installable, not builtin.** Removed `changeling` /
+  `court` named skins and `public/skins/{changeling,court}` assets
+  from the package. Only `default` ships as a builtin skin.
+- Court of Miracles lives at `examples/themes/court/` — pack with
+  `deno task pack-theme` and install via Admin theme zip (or
+  `theme/installed/court/`).
+- `applySkinDefaults` no longer injects Court title/banner for a
+  bare `skin: "court"` name.
+
+## 0.1.11
+
+- Spacing under search: left menu no longer sits flush on the
+  search box (Figma ~44px). `--site-search-below` + bare-list fix
+  when the first panel has no section title
+
+## 0.1.10
+
+- injectSiteHtml rewrites all `/site/…?v=` to current `SITE_ASSET_V`
+  (base CSS links no longer stick on a stale literal in index.html)
+
+## 0.1.9
+
+- `plugin.version` matches package version (was stuck at 0.1.7,
+  which made court safe-update report a false mismatch)
+
+## 0.1.8
+
+- Column gaps match Figma Main/Wiki (1728): `--site-col-gap` ≈ 50px
+  between search rail and main, and main and right menu (was ~35px
+  from a too-tight `clamp` max / `2vw`)
+- Document gap math in `docs/figma-court-main.md`
+- Cache-bust `SITE_ASSET_V` → `20260803d`
+
 ## 0.1.7
 
 - Fix flashing home/Welcome page content during wiki page navigation:
