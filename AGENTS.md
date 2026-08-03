@@ -191,7 +191,7 @@ production without git when the change belongs in the repo.
 ### Engine / FE pins (JSR only)
 
 - Production imports **`jsr:@ursamu/mush@1.0.9`**,
-  **`jsr:@ursamu/site@0.1.15`**, **`jsr:@ursamu/web@0.2.41`**.
+  **`jsr:@ursamu/site@0.1.16`**, **`jsr:@ursamu/web@0.2.41`**.
 - Court brand is **`theme/installed/court/`** (not a builtin site
   skin). Config: `skinCss` + `themeDir: "theme"`.
 - Bump by publishing packages from the ursamu monorepo to JSR, then
