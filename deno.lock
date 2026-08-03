@@ -15,9 +15,9 @@
     "jsr:@ursamu/mush@1.0.10": "1.0.10",
     "jsr:@ursamu/mush@^1.0.4": "1.0.10",
     "jsr:@ursamu/mushcode@0.7": "0.7.0",
-    "jsr:@ursamu/site@0.1.22": "0.1.22",
-    "jsr:@ursamu/site@~0.1.5": "0.1.22",
-    "jsr:@ursamu/web@0.2.49": "0.2.49",
+    "jsr:@ursamu/site@0.1.23": "0.1.23",
+    "jsr:@ursamu/site@~0.1.5": "0.1.23",
+    "jsr:@ursamu/web@0.2.50": "0.2.50",
     "jsr:@ursamu/wiki@0.2.7": "0.2.7",
     "jsr:@ursamu/wiki@~0.2.7": "0.2.7",
     "jsr:@zaubrik/djwt@^3.0.2": "3.0.2",
@@ -109,16 +109,16 @@
     "@ursamu/mushcode@0.7.0": {
       "integrity": "bf68b211b4448f0dcb79f66b9ef5b032661af293f771a732e191e77353a028da"
     },
-    "@ursamu/site@0.1.22": {
-      "integrity": "ac30d3a2b660fc14f821992d6e39ab71ed1d1a31d3d01c1b963806b08935f0ce",
+    "@ursamu/site@0.1.23": {
+      "integrity": "cf4783a963857b87ea15f5d3cba5b19bb6b052db6e7783b0a74de536216bd671",
       "dependencies": [
         "jsr:@std/path",
         "jsr:@ursamu/mush@^1.0.4",
         "npm:fflate"
       ]
     },
-    "@ursamu/web@0.2.49": {
-      "integrity": "5369842ba804d493629e68aedcf152d691cf68b3804b060519a661b54cd8ff11",
+    "@ursamu/web@0.2.50": {
+      "integrity": "a02658f46f37c0ff31e97adc15fc2c3783cad124206378251f1ff64aef5bcb3e",
       "dependencies": [
         "jsr:@std/path",
         "jsr:@ursamu/jobs",
@@ -532,8 +532,8 @@
       "jsr:@ursamu/mail@^2.6.0",
       "jsr:@ursamu/mush@1.0.10",
       "jsr:@ursamu/mushcode@0.7.0",
-      "jsr:@ursamu/site@0.1.22",
-      "jsr:@ursamu/web@0.2.49",
+      "jsr:@ursamu/site@0.1.23",
+      "jsr:@ursamu/web@0.2.50",
       "jsr:@ursamu/wiki@0.2.7",
       "jsr:@ursamu/wiki@~0.2.7",
       "jsr:@zaubrik/djwt@^3.0.2",
