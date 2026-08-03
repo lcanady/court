@@ -241,8 +241,8 @@ from pathlib import Path
 imp = json.loads(Path("deno.json").read_text()).get("imports") or {}
 need = {
     "@ursamu/mush": "1.0.10",
-    "@ursamu/site": "0.1.19",
-    "@ursamu/web": "0.2.46",
+    "@ursamu/site": "0.1.22",
+    "@ursamu/web": "0.2.49",
 }
 bad = []
 for key, ver in need.items():
