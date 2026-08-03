@@ -24,7 +24,7 @@ UrsaMU engine (`jsr:@ursamu/mush` — **JSR only**, no vendor override).
 |-------|------|
 | Engine | `jsr:@ursamu/mush@1.0.10` |
 | Public FE | `jsr:@ursamu/site@0.1.23` |
-| Staff console | `jsr:@ursamu/web@0.2.50` |
+| Staff console | `jsr:@ursamu/web@0.2.51` |
 | Runtime | Deno |
 | DB | PGlite / TypeGraph (`data/typegraph.db`) |
 | Game system | `@ursamu/cofd-plugin` (CtL / CofD 2e) |
@@ -191,7 +191,7 @@ production without git when the change belongs in the repo.
 ### Engine / FE pins (JSR only)
 
 - Production imports **`jsr:@ursamu/mush@1.0.10`**,
-  **`jsr:@ursamu/site@0.1.23`**, **`jsr:@ursamu/web@0.2.50`**.
+  **`jsr:@ursamu/site@0.1.23`**, **`jsr:@ursamu/web@0.2.51`**.
 - Court brand is **`theme/installed/court/`** (not a builtin site
   skin). Config: `skinCss` + `themeDir: "theme"`.
 - Bump by publishing packages from the ursamu monorepo to JSR, then
