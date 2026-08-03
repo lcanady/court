@@ -36,8 +36,8 @@ export async function execPcreate(u: IUrsamuSDK): Promise<void> {
     return;
   }
 
-  const existing = await u.db.search(name);
-  if (existing.some((o) => o.flags.has("player"))) {
+  const { isPlayerNameTaken } = await import("../main_utils.ts");
+  if (await isPlayerNameTaken(name)) {
     u.send("That name is already taken.");
     return;
   }

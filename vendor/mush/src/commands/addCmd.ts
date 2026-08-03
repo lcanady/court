@@ -132,7 +132,9 @@ export async function loadDefaultCommands(): Promise<void> {
 
   await import("../verbs/look.ts");
   await import("../verbs/say.ts");
+  await import("../verbs/ooc.ts");
   await import("../verbs/home.ts");
+  await import("../verbs/enter-leave.ts");
   await import("../verbs/social.ts");
   await import("../verbs/manipulation.ts");
   await import("../verbs/admin-reload.ts");

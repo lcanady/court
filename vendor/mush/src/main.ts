@@ -15,7 +15,7 @@ try {
 } catch {
   /* no .env — fine for tests and fresh installs */
 }
-import { handleRequest } from "./app.ts";
+import { handleRequest, setupRoutes } from "./app.ts";
 import "./reboot.ts";
 import { plugins, loadTxtDir, setFlags, loadPlugins, txtFiles } from "./main_utils.ts";
 import {
@@ -152,14 +152,10 @@ export const initializeEngine = async (
       updateParserSubs(substitutions);
   }
 
-  // Load layout mushcode templates (header / divider / footer)
+  // Load layout mushcode templates (header / divider / footer / markdown.*)
   const { applyLayoutFromConfig } = await import("./format/handlers.ts");
   applyLayoutFromConfig(
-    getConfig<{
-      header?: string;
-      divider?: string;
-      footer?: string;
-    }>("game.layout"),
+    getConfig<import("./format/handlers.ts").LayoutTemplates>("game.layout"),
   );
 
   // Determine the project root and current directory context
@@ -290,37 +286,14 @@ export const initializeEngine = async (
   setConfig("server.wsPort",      wsPort);
   setConfig("server.port",        httpPort);
   setConfig("server.telnetPort",  tnPort);
+  setConfig("server.telnet",      tnPort);
 
-  // Register app.ts handleRequest as the HTTP fallback for all REST routes.
+  // Wire REST routes (login/register/me/…) then fallback for the rest.
+  setupRoutes();
   registerFallback(handleRequest);
 
-  const server = createServer();
-  server.addTransport(websocketTransport);
-  server.addTransport(httpTransport);
-  if (getConfig<boolean>("server.standaloneTelnet") !== true && tnPort > 0) {
-    server.addTransport(telnetTransport);
-  }
-  await server.start();
-
-  // Initialize all registered plugins
-  await initializePlugins();
-
-  if (autoCreateDefaultRooms) {
-    await initializeDefaultRooms();
-  }
-
-  if (autoCreateDefaultChannels) {
-    await initializeDefaultChannels();
-  }
-
-  await initializeDefaultTexts();
-
-  console.log(`Server started — WS:${wsPort}  HTTP:${httpPort}  Telnet:${tnPort}`);
-  
-  // Initialize Queue
-  queue.init();
-
-  // Configure outgoing message formatter
+  // Wire session hooks BEFORE accepting connections so soft-reboot
+  // reauth never races an empty handler set.
   setFormatter((socketId, msg) => {
     const session = sessions.get(socketId);
     const clientType = (session?.meta?.clientType as string) || "telnet";
@@ -366,11 +339,38 @@ export const initializeEngine = async (
     }
   });
 
+  // Initialize all registered plugins BEFORE opening ports so
+  // JWT reauth and commands hit a fully-wired engine.
+  await initializePlugins();
+
+  if (autoCreateDefaultRooms) {
+    await initializeDefaultRooms();
+  }
+
+  if (autoCreateDefaultChannels) {
+    await initializeDefaultChannels();
+  }
+
+  await initializeDefaultTexts();
+
+  // Initialize Queue
+  queue.init();
+
   // Initialize in-game clock (load persisted time, then tick every real minute)
   const { gameClock } = await import("./world/game-clock.ts");
   await gameClock.load();
   setInterval(() => gameClock.tick(60_000), 60_000);
   console.log(`[GameClock] Loaded. Current game time: ${gameClock.format()}`);
+
+  const server = createServer();
+  server.addTransport(websocketTransport);
+  server.addTransport(httpTransport);
+  if (getConfig<boolean>("server.standaloneTelnet") !== true && tnPort > 0) {
+    server.addTransport(telnetTransport);
+  }
+  await server.start();
+
+  console.log(`Server started — WS:${wsPort}  HTTP:${httpPort}  Telnet:${tnPort}`);
 
   // Fire STARTUP attributes on all objects that have one (fire-and-forget)
   // engine:ready fires regardless of whether runStartupAttrs succeeds — it

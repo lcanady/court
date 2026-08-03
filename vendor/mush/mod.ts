@@ -1,14 +1,14 @@
 /**
  * @module @ursamu/mush
  *
- * MUSH world layer built on @ursamu/core.
+ * MUSH world layer built on @ursamu/core (stable 1.0).
  *
  * Provides: IDBObj world model, flag/lock system, TinyMUX softcode
  * engine, addCmd/IUrsamuSDK command API, format pipeline, configurable
  * layout chrome (game.layout.*), and essential MUSH verbs.
  *
  * Re-exports everything from @ursamu/core so game code only needs one
- * import.
+ * import. Stable vs evolving surface: docs/STABLE.md.
  */
 
 export * from "@ursamu/core";
@@ -16,7 +16,13 @@ export * from "@ursamu/core";
 // World model
 export type { IDBObj, IDBOBJ, IAttribute, IGameTime } from "./src/world/types.ts";
 export { dbojs, counters, chans, texts, scenes, chanHistory, Obj, createObj, userFuncs, serverTags, playerTags, zoneMemberships } from "./src/world/dbobjs.ts";
-export { flags, flagCodes, dbrefWithFlags } from "./src/world/flags.ts";
+export {
+  flags,
+  flagCodes,
+  dbrefWithFlags,
+  parseFlagExpr,
+  unknownFlagNames,
+} from "./src/world/flags.ts";
 export { evaluateLock, validateLock, registerLockFunc, registerLockEvaluator, callLockFunc } from "./src/world/locks.ts";
 export type { LockFunc } from "./src/world/locks.ts";
 export {
@@ -44,7 +50,7 @@ export { findDollarPattern, matchGlob }      from "./src/world/dollar-patterns.t
 export type { DollarMatch }                  from "./src/world/dollar-patterns.ts";
 export type { Intent, InterceptorCandidate } from "./src/world/interceptor-service.ts";
 export type {
-  SayEvent, PoseEvent, PageEvent, MoveEvent, SessionEvent,
+  SayEvent, PoseEvent, OocEvent, PageEvent, MoveEvent, SessionEvent,
   ChannelMessageEvent, ObjectEvent, ObjectMovedEvent,
   ObjectCreatedEvent, ObjectDestroyedEvent, ObjectModifiedEvent,
   SceneCreatedEvent, ScenePoseEvent, SceneSetEvent, SceneTitleEvent,
@@ -113,11 +119,13 @@ export {
   applyLayoutFromConfig,
   expandLayoutTemplate,
   hasLayoutTemplate,
+  markdownToAnsi,
 } from "./src/format/handlers.ts";
 export type {
   FormatHandler,
   LayoutFn,
   LayoutTemplates,
+  MarkdownTemplates,
 } from "./src/format/handlers.ts";
 
 // Re-export GameHookMap augmentation so consumers get mush event types
@@ -158,6 +166,15 @@ export {
 } from "./src/verbs/manipulation.ts";
 export { execLook, defaultConformatHandler }                       from "./src/verbs/look.ts";
 export { execHome, execInventory }                                 from "./src/verbs/home.ts";
+export {
+  enterObject,
+  leaveObject,
+} from "./src/verbs/enter-leave.ts";
+export {
+  canEnterObject,
+  canAccessContainer,
+  passesEnterLock,
+} from "./src/verbs/container-access.ts";
 export { execSay, execPose, execThink, execPage, execWhisper }     from "./src/verbs/say.ts";
 export { execWho, execScore, execDoing, execPoll, execAway, execLast } from "./src/verbs/social.ts";
 export { execEmit, execLemit, execPemit, execRemit, execWall, execCemit, execFsay } from "./src/verbs/emit-exec.ts";
@@ -187,7 +204,13 @@ export type { IState as IRenderState }                             from "./src/r
 export { hooks }                                                   from "./src/events/hooks.ts";
 
 // Utilities
-export { target, getAttribute, isNameTaken }                          from "./src/main_utils.ts";
+export {
+  target,
+  getAttribute,
+  isNameTaken,
+  isPlayerNameTaken,
+  primaryName,
+} from "./src/main_utils.ts";
 
 // Backwards-compat shim — plugins that imported `wsService` before the monorepo split
 import { sessions } from "@ursamu/core";

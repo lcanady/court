@@ -63,8 +63,13 @@ export function rewriteStatePaths(data: unknown): unknown {
   return out;
 }
 
+/** Strip MUSH %c codes, truecolor <#rrggbb>, and raw ANSI. */
 const stripSubs = (s: string) =>
-  s.replace(/%c[a-zA-Z]/gi, "").replace(/%[nrtbR]/gi, "").replace(/\x1b\[[0-9;]*m/g, "");
+  s
+    .replace(/%c[a-zA-Z]/gi, "")
+    .replace(/%[nrtbR]/gi, "")
+    .replace(/<#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})>/g, "")
+    .replace(/\x1b\[[0-9;]*m/g, "");
 
 async function resolveActor(actorId: string): Promise<IDBObj> {
   if (!actorId || actorId === "#-1") {
@@ -523,8 +528,27 @@ export async function createNativeSDK(
         }
         await Promise.resolve();
       },
-      reboot: async () => {
+      reboot: async (opts?: { update?: boolean; branch?: string }) => {
+        const { runCodebaseUpdate } = await import(
+          "../sys/codebase-update.ts"
+        );
+        const withUpdate = opts?.update !== false;
+        if (withUpdate) {
+          const result = await runCodebaseUpdate({
+            branch: opts?.branch ?? "",
+          });
+          // Only soft-reboot when cache is warm — leave game up
+          // on pull/bump/cache failure.
+          if (!result.ok || !result.cached) {
+            throw new Error(
+              "codebase update failed (game left running)",
+            );
+          }
+        }
         // Close PGlite before exit so the next process can open the DB.
+        // Exit 75 → main-loop soft reboot; telnet sidecar stays up.
+        const { markSoftReboot } = await import("../sys/reboot-flag.ts");
+        markSoftReboot();
         setTimeout(async () => {
           try {
             await DBO.close();
@@ -543,7 +567,27 @@ export async function createNativeSDK(
         await Promise.resolve();
       },
       uptime: () => Promise.resolve(performance.now()),
-      update: (_branch?: string) => Promise.resolve(),
+      update: async (branch?: string) => {
+        const { runCodebaseUpdate } = await import(
+          "../sys/codebase-update.ts"
+        );
+        const result = await runCodebaseUpdate({
+          branch: branch ?? "",
+        });
+        if (!result.ok || !result.cached) {
+          throw new Error(
+            "codebase update failed (game left running)",
+          );
+        }
+        const { markSoftReboot } = await import("../sys/reboot-flag.ts");
+        markSoftReboot();
+        setTimeout(async () => {
+          try {
+            await DBO.close();
+          } catch { /* best-effort */ }
+          Deno.exit(75);
+        }, 500);
+      },
       gameTime: async () => gameClock.now(),
       setGameTime: async (t: IGameTime) => { gameClock.set(t); },
     },
@@ -906,10 +950,31 @@ gameHooks.on("session:auth", async (e) => {
       "$set",
       { flags: fstr.tags } as Partial<IDBOBJ>,
     );
+    // Ensure reconnect marker for presence hooks + index actorId.
+    sessions.setActorId(e.socketId, userId);
+    const sess = sessions.get(e.socketId) as
+      | { meta?: Record<string, unknown> }
+      | undefined;
+    if (sess) {
+      sess.meta = { ...(sess.meta ?? {}), reconnect: true, reauth: true };
+    }
+    // Mint a fresh long-lived token so the next soft-reboot still reauths.
+    let tokenOut: string | undefined;
+    try {
+      const { createToken } = await import("@ursamu/core");
+      tokenOut = await createToken({ id: userId });
+    } catch {
+      /* keep old token */
+    }
     // Tell the client who they are so telnet can restore cid + look.
-    sendPayload(e.socketId, "", { cid: userId, auth: true });
+    sendPayload(e.socketId, "", {
+      cid: userId,
+      auth: true,
+      ...(tokenOut ? { token: tokenOut } : {}),
+    });
     const { hooks } = await import("../events/hooks.ts");
-    await hooks.aconnect(player, e.socketId);
+    // JWT restore after soft-reboot — not a fresh connect.
+    await hooks.aconnect(player, e.socketId, { reauth: true });
   } catch (err) {
     await failReauth(e.socketId, String(err));
   }

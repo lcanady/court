@@ -233,6 +233,18 @@ PY
 )"
 log "expected plugin versions: ${EXPECTED_JSON}"
 
+
+# --- verify vendored mush has apex FE fix ---------------------------------
+if ! grep -q 'normalizePluginPrefix' vendor/mush/src/routes/plugin.ts 2>/dev/null; then
+  log "ERROR: vendor/mush missing apex FE fix (normalizePluginPrefix)"
+  exit 6
+fi
+if ! grep -q 'siteHome' vendor/mush/src/routes/index.ts 2>/dev/null; then
+  log "ERROR: vendor/mush missing / → /site/ fallback"
+  exit 6
+fi
+log "vendor mush apex FE fix: ok"
+
 # --- pre-warm Deno cache while old main still runs -------------------------
 log "caching packages (game still up)..."
 # Drop lock + node_modules so reboot cannot reuse a stale graph.
