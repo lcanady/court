@@ -601,20 +601,36 @@
   }
 
   .site-nav {
-    height: auto;
-    max-height: none;
+    height: var(--site-nav-h);
+    max-height: var(--site-nav-h);
     min-height: var(--site-nav-h);
-    padding: 0.5rem 1.15rem;
+    padding: 0 1.15rem;
   }
 
   .site-nav__brand {
     font-size: 1.5rem;
   }
 
+  .site-nav__toggle {
+    border-color: color-mix(in srgb, #f7e4dd 50%, transparent);
+    color: var(--site-text);
+  }
+
+  .site-nav__toggle:hover,
+  .site-nav__toggle:focus-visible {
+    border-color: var(--site-accent);
+  }
+
   .site-nav__list {
-    font-size: 1rem;
-    flex-wrap: wrap;
-    gap: 0.5rem 1rem;
+    font-size: 1.1rem;
+    /* drawer layout from layout.css — no wrap row */
+    flex-wrap: nowrap;
+  }
+
+  .site-nav__list a::after,
+  .site-nav__list .site-nav-login-link::after,
+  .site-nav__list .site-nav-user-link::after {
+    display: none;
   }
 
   .site-body {
