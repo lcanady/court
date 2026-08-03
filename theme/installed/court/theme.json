@@ -6,5 +6,5 @@
   "css": "site.css",
   "bannerImage": "imgs/header.png",
   "title": "Court of Miracles",
-  "plainBg": true
+  "plainBg": false
 }

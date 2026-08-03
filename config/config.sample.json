@@ -67,7 +67,7 @@
       ],
       "skinCss": "/site/theme/installed/court/site.css",
       "themeDir": "theme",
-      "plainBg": true
+      "plainBg": false
     },
     "channels": {
       "defaults": [
