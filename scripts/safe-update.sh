@@ -248,6 +248,8 @@ bad = []
 for key, ver in need.items():
     raw = str(imp.get(key) or "")
     if "vendor" in raw:
+        if key == "@ursamu/site":
+            continue
         bad.append(f"{key} still points at vendor: {raw}")
         continue
     m = re.search(r"@(\d+\.\d+\.\d+)", raw)
@@ -271,7 +273,7 @@ rm -rf node_modules
 # Explicitly pull critical packages first (clearer errors).
 if ! deno cache --reload --minimum-dependency-age=0 \
   jsr:@ursamu/web@0.2.40 \
-  jsr:@ursamu/site@0.1.7 \
+  vendor/site/mod.ts \
   jsr:@ursamu/mush@1.0.9 \
   jsr:@ursamu/map-plugin \
   src/main.ts src/telnet.ts; then
