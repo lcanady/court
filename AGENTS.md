@@ -24,7 +24,7 @@ UrsaMU engine (`jsr:@ursamu/mush` — **JSR only**, no vendor override).
 |-------|------|
 | Engine | `jsr:@ursamu/mush@1.0.9` |
 | Public FE | `jsr:@ursamu/site@0.1.5` |
-| Staff console | `jsr:@ursamu/web@0.2.39` |
+| Staff console | `jsr:@ursamu/web@0.2.40` |
 | Runtime | Deno |
 | DB | PGlite / TypeGraph (`data/typegraph.db`) |
 | Game system | `@ursamu/cofd-plugin` (CtL / CofD 2e) |
@@ -191,7 +191,7 @@ production without git when the change belongs in the repo.
 ### Engine / FE pins (JSR only)
 
 - Production imports **`jsr:@ursamu/mush@1.0.9`**,
-  **`jsr:@ursamu/site@0.1.5`**, **`jsr:@ursamu/web@0.2.39`**.
+  **`jsr:@ursamu/site@0.1.5`**, **`jsr:@ursamu/web@0.2.40`**.
 - Bump by publishing packages from the ursamu monorepo to JSR, then
   editing `deno.json` pins here, commit, push, deploy.
 - Do **not** reintroduce `vendor/mush`, `vendor/site`, or
