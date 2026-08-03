@@ -40,9 +40,9 @@
   },
   "plugins": {
     "site": {
-      "skin": "changeling",
+      "skin": "court",
       "title": "Court of Miracles",
-      "bannerImage": "/site/skins/changeling/imgs/header.png",
+      "bannerImage": "/site/theme/installed/court/imgs/header.png",
       "serveRoot": true,
       "telnet": "court.ursamu.io:4201",
       "nav": [
@@ -64,7 +64,10 @@
           "href": "#",
           "order": 30
         }
-      ]
+      ],
+      "skinCss": "/site/theme/installed/court/site.css",
+      "themeDir": "theme",
+      "plainBg": true
     },
     "channels": {
       "defaults": [
