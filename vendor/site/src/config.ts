@@ -3,9 +3,13 @@
  */
 
 export type SiteNavItem = {
+  /** Stable id for merge with registerSiteNav (optional in config). */
+  id?: string;
   label: string;
   href: string;
   active?: boolean;
+  /** Sort key; lower first. Default 50 (config) / 100 (plugins). */
+  order?: number;
 };
 
 export type SitePluginConfig = {
@@ -36,6 +40,11 @@ export type SitePluginConfig = {
    */
   themeDir?: string;
   nav?: SiteNavItem[];
+  /**
+   * Left-menu template (markdown-ish). See menu.ts.
+   * Macros: [[featured]], [[section]], plugin [[name]].
+   */
+  leftMenu?: string;
   /** Telnet address shown in the connect panel (e.g. "host:4201") */
   telnet?: string;
 };
@@ -47,8 +56,49 @@ export function normalizeMount(raw: unknown): string {
   return m;
 }
 
+/** Normalize a URL path for nav active matching. */
+export function normalizeNavPath(raw: string): string {
+  let p = String(raw ?? "").split("?")[0].split("#")[0].trim();
+  if (!p || p === "#") return "";
+  if (p.endsWith("/index.html")) {
+    p = p.slice(0, -"/index.html".length) || "/";
+  }
+  if (p.length > 1 && p.endsWith("/")) p = p.slice(0, -1);
+  return p || "/";
+}
+
+/**
+ * True when a nav href should show as active for the current path.
+ * Home (`/site`) only matches home — not login/wiki/etc.
+ * Prefix match only for multi-segment hrefs (`/site/wiki` → lore).
+ */
+export function navHrefIsActive(
+  href: string,
+  path: string,
+): boolean {
+  const h = normalizeNavPath(href);
+  const p = normalizeNavPath(path);
+  if (!h || h === "#") return false;
+  if (h === p) return true;
+  // Bare roots (/ or /site) must not match every child path
+  const depth = h.split("/").filter(Boolean).length;
+  if (depth >= 2 && p.startsWith(`${h}/`)) return true;
+  return false;
+}
+
+/** Apply path-based active flags (ignores static active:true). */
+export function markNavActive(
+  items: SiteNavItem[],
+  path: string,
+): SiteNavItem[] {
+  return items.map((item) => ({
+    ...item,
+    active: navHrefIsActive(item.href, path),
+  }));
+}
+
 /** Cache-bust query for shipped site CSS (bump when layout/tokens change). */
-export const SITE_ASSET_V = "20260802d";
+export const SITE_ASSET_V = "20260802k";
 
 /** Resolve stylesheet href for the active skin. */
 export function resolveSkinHref(cfg: SitePluginConfig): string {
@@ -69,24 +119,33 @@ export function resolveSkinHref(cfg: SitePluginConfig): string {
 
 /**
  * Brand defaults when skin is "changeling" or legacy "court"
- * and fields are left unset.
+ * and fields are left unset. Installed themes fill gaps via
+ * registerSiteTheme / themeToSiteConfig.
  */
 export function applySkinDefaults(
   cfg: SitePluginConfig,
 ): SitePluginConfig {
+  const out = { ...cfg };
   const skin = (cfg.skinCss ? "" : (cfg.skin ?? "default")).trim()
     .toLowerCase();
-  if (skin !== "changeling" && skin !== "court") return cfg;
-  const asset = skin === "court" ? "court" : "changeling";
-  const out = { ...cfg };
-  if (!out.bannerImage) {
-    out.bannerImage =
-      `/site/skins/${asset}/imgs/header.png`;
+
+  // Builtin Court family — only fill fields that were never set.
+  // Empty string from admin means "explicitly hide" (do not restore).
+  if (skin === "changeling" || skin === "court") {
+    const asset = skin === "court" ? "court" : "changeling";
+    if (out.bannerImage === undefined) {
+      out.bannerImage =
+        `/site/skins/${asset}/imgs/header.png`;
+    }
+    if (out.title === undefined) {
+      out.title = "Court of Miracles";
+    }
   }
-  if (!out.title) out.title = "Court of Miracles";
+
+  // Installed / registered theme may already set skinCss
   if (!out.nav) {
     out.nav = [
-      { label: "Home", href: "/site/", active: true },
+      { label: "Home", href: "/site/" },
       { label: "Characters", href: "#" },
       { label: "Help", href: "#" },
       { label: "Wiki", href: "#" },
@@ -118,15 +177,27 @@ export function readSiteConfig(
   if (typeof o.telnet === "string") {
     out.telnet = o.telnet.trim();
   }
+  if (typeof o.leftMenu === "string") {
+    out.leftMenu = o.leftMenu;
+  }
   if (Array.isArray(o.nav)) {
     out.nav = o.nav
       .filter((x) => x && typeof x === "object")
       .map((x) => {
         const r = x as Record<string, unknown>;
+        const order = typeof r.order === "number" &&
+            Number.isFinite(r.order)
+          ? r.order
+          : undefined;
+        const id = typeof r.id === "string" && r.id.trim()
+          ? r.id.trim()
+          : undefined;
         return {
+          id,
           label: String(r.label ?? "Link"),
           href: String(r.href ?? "#"),
           active: r.active === true,
+          order,
         };
       });
   }

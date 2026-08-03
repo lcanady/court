@@ -1,7 +1,8 @@
 #!/bin/bash
 export PATH="$HOME/.deno/bin:$PATH"
 # Restart loop for game main server (src/main.ts).
-# 75 = @reboot; 0 = clean stop; other = stop loop.
+# 75 = @reboot; 0 = clean stop; other = stop loop
+# (unless PGlite hard-kill recovery succeeds once).
 cd "$(dirname "$0")/.." || exit 1
 
 LOG_DIR="logs"
@@ -13,10 +14,12 @@ RESTART_DELAY=1
 MAX_DELAY=60
 FAST_EXIT_SECS=5
 MAIN_ENTRY="src/main.ts"
+# Only one automatic pg_resetwal per loop lifetime
+PGLITE_RECOVERED=0
 
 mkdir -p "$LOG_DIR"
 
-clear_pglite_lock() {
+resolve_db_dir() {
   local db_dir="data/typegraph.db"
   if [ -f config/config.json ]; then
     local cfg
@@ -26,12 +29,50 @@ clear_pglite_lock() {
     [ -n "$cfg" ] && db_dir="$cfg"
   fi
   [ -n "${URSAMU_TYPEGRAPH_DB:-}" ] && db_dir="$URSAMU_TYPEGRAPH_DB"
+  printf '%s' "$db_dir"
+}
+
+clear_pglite_lock() {
+  local db_dir
+  db_dir=$(resolve_db_dir)
   if [ "$db_dir" != "memory://" ] && \
      [ -f "$db_dir/postmaster.pid" ]; then
     rm -f "$db_dir/postmaster.pid"
     echo "[$(date '+%Y-%m-%d %H:%M:%S')] Cleared stale postmaster.pid" \
       >> "$MAIN_LOG"
   fi
+}
+
+# After hard kill, PGlite may abort on WAL. Reset once if tools exist.
+try_pglite_recover() {
+  local db_dir
+  db_dir=$(resolve_db_dir)
+  if [ "$db_dir" = "memory://" ] || [ ! -d "$db_dir" ]; then
+    return 1
+  fi
+  if ! tail -n 40 "$MAIN_LOG" 2>/dev/null | \
+    grep -qE 'RuntimeError: Aborted|pglite|TypeGraphAdapter'; then
+    return 1
+  fi
+  if [ "$PGLITE_RECOVERED" -ne 0 ]; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] PGlite already recovered once — stop." \
+      >> "$MAIN_LOG"
+    return 1
+  fi
+  rm -f "$db_dir/postmaster.pid"
+  if command -v pg_resetwal >/dev/null 2>&1; then
+    echo "[$(date '+%Y-%m-%d %H:%M:%S')] Attempting pg_resetwal -f on $db_dir" \
+      >> "$MAIN_LOG"
+    if pg_resetwal -f "$db_dir" >> "$MAIN_LOG" 2>&1; then
+      PGLITE_RECOVERED=1
+      echo "[$(date '+%Y-%m-%d %H:%M:%S')] pg_resetwal ok — will retry start" \
+        >> "$MAIN_LOG"
+      return 0
+    fi
+  fi
+  echo "[$(date '+%Y-%m-%d %H:%M:%S')] PGlite recover failed (install postgres pg_resetwal or restore backup)." \
+    >> "$MAIN_LOG"
+  return 1
 }
 
 _deno_pid=""
@@ -78,8 +119,15 @@ while true; do
     echo "[$TS] Clean shutdown (0) — loop stopped." >> "$MAIN_LOG"
     break
   else
-    echo "[$TS] Unexpected exit ($EXIT_CODE) — loop stopped." \
-      >> "$MAIN_LOG"
+    echo "[$TS] Unexpected exit ($EXIT_CODE)." >> "$MAIN_LOG"
+    if try_pglite_recover; then
+      RESTART_DELAY=2
+      echo "[$TS] Retrying after PGlite recovery in ${RESTART_DELAY}s" \
+        >> "$MAIN_LOG"
+      sleep $RESTART_DELAY
+      continue
+    fi
+    echo "[$TS] Loop stopped." >> "$MAIN_LOG"
     break
   fi
 done

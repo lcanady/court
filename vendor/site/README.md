@@ -39,6 +39,42 @@ Open **`/site/`** after start.
 | `court` | Court of Miracles template (cream / gold / art) |
 | `skinCss` URL | Your file — full re-skin |
 
+### Install a theme zip (admin)
+
+Staff can upload a Court-style package in
+**Admin → Settings → Public site**:
+
+1. Build a folder with `theme.json` + `site.css` (+ `imgs/`, `fonts/`).
+2. Pack it:
+
+```bash
+cd path/to/@ursamu/site
+deno task pack-theme examples/themes/court
+# → examples/themes/court/court.zip
+```
+
+3. Upload the zip in the admin UI (or
+   `POST /api/v1/admin/site/theme` multipart `file=`).
+
+Install writes `theme/installed/<id>/` under the game root, sets
+`plugins.site.themeDir` / `skinCss` / banner, and hot-reloads
+`/site/` when activated.
+
+**theme.json** (required):
+
+```json
+{
+  "id": "court",
+  "label": "Court of Miracles",
+  "version": "1.0.0",
+  "css": "site.css",
+  "bannerImage": "imgs/header.png",
+  "title": "Court of Miracles"
+}
+```
+
+Reference package: `examples/themes/court/`.
+
 ### Court-identical
 
 ```json
@@ -122,7 +158,69 @@ See [design.md](./design.md) for the full contract.
 | `mount` | string | `"/site"` | URL prefix |
 | `serveRoot` | boolean | `false` | Also serve index at `/` |
 | `themeDir` | string | — | Game dir → `/site/theme/` |
-| `nav` | array | demo | `{ label, href, active? }` |
+| `nav` | array | demo | `{ id?, label, href, order? }` |
+| `leftMenu` | string | featured+section | Markdown-ish left rail template |
+| `telnet` | string | — | Connect panel address |
+
+### Left menu template
+
+```text
+[[section]]
+
+## Featured
+[[featured]]
+
+## More
+[[my-plugin-block]]
+- [Home](/site/)
+```
+
+- `## Heading` then a block or bullet list.
+- `[[name]]` / `[[name:arg]]` — built-ins `featured`, `section`;
+  plugins add more via `registerSiteMenuBlock`.
+- Empty blocks drop their heading (no blank sections).
+
+## Plugin contributions
+
+Other plugins can extend the public FE **without forking site**.
+Soft-import so the game still runs if `@ursamu/site` is absent.
+
+```ts
+// in your plugin init / engine:ready
+try {
+  const site = await import("@ursamu/site");
+
+  site.registerSiteNav?.({
+    id: "events",
+    label: "Events",
+    href: "/site/p/events/",
+    order: 40,
+  });
+
+  site.registerSiteStatic?.({
+    id: "events",
+    root: new URL("./public/", import.meta.url),
+  });
+  // → files at /site/p/events/
+
+  site.registerSiteMenuBlock?.("events-links", () => ({
+    items: [
+      { label: "Calendar", href: "/site/p/events/" },
+    ],
+  }));
+} catch {
+  /* site optional */
+}
+```
+
+| API | Effect |
+|-----|--------|
+| `registerSiteNav` | Top nav link (config `nav` wins on same `id`) |
+| `registerSiteMenuBlock` | `[[name]]` macro for `leftMenu` |
+| `registerSiteStatic` | Static tree at `/site/p/<id>/` |
+
+Unregister mirrors: `unregisterSiteNav`, `unregisterSiteMenuBlock`,
+`unregisterSiteStatic`. Call them from `plugin.remove()`.
 
 ## Dev
 

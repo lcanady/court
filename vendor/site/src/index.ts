@@ -11,6 +11,7 @@ import {
   readSiteConfig,
 } from "./config.ts";
 import { setSiteRuntime, siteStaticHandler } from "./static.ts";
+import { scanInstalledThemes } from "./themes.ts";
 
 async function loadGameConfig(): Promise<unknown> {
   try {
@@ -38,16 +39,20 @@ export const plugin: IPlugin = {
     const game = await loadGameConfig();
     let cfg = readSiteConfig(game);
 
-    // Default title from game name when unset
-    if (!cfg.title) {
-      const g = game as { game?: { name?: string } };
-      if (g?.game?.name) cfg.title = String(g.game.name);
-    }
+    // Do not force plugins.site.title from game.name — empty title
+    // + no bannerImage means compact layout (content under nav).
+    // Nav brand falls back in injectSiteHtml / site.js.
     if (!cfg.skin && !cfg.skinCss) {
       cfg.skin = "default";
     }
 
     cfg = applySkinDefaults(cfg);
+    // Load zip-installed themes from theme/installed/
+    try {
+      await scanInstalledThemes(Deno.cwd());
+    } catch {
+      /* optional */
+    }
     setSiteRuntime(cfg);
 
     const mount = (cfg.mount ?? "/site").replace(/\/$/, "") ||

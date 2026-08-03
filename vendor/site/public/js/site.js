@@ -72,15 +72,47 @@
     skinLink.setAttribute("href", href);
   }
 
+  /** Match nav href to current path (Home ≠ login). */
+  function normalizeNavPath(raw) {
+    var p = String(raw || "").split("?")[0].split("#")[0].trim();
+    if (!p || p === "#") return "";
+    if (p.slice(-11) === "/index.html") {
+      p = p.slice(0, -11) || "/";
+    }
+    if (p.length > 1 && p.charAt(p.length - 1) === "/") {
+      p = p.slice(0, -1);
+    }
+    return p || "/";
+  }
+
+  function navHrefIsActive(href) {
+    var h = normalizeNavPath(href);
+    var p = pathname;
+    if (!h || h === "#") return false;
+    if (h === p) return true;
+    // Bare /site must not match /site/login — only deeper roots
+    var depth = h.split("/").filter(Boolean).length;
+    if (depth >= 2 && p.indexOf(h + "/") === 0) return true;
+    return false;
+  }
+
   function applyConfig(cfg) {
     if (!cfg || typeof cfg !== "object") return;
     siteConfig = cfg;
 
-    var title = String(cfg.title || "").trim();
-    if (title) {
-      document.title = title;
-      if (brand) brand.textContent = title;
-      if (bannerTitle) bannerTitle.textContent = title;
+    var heroTitle = String(cfg.title || "").trim();
+    var brandTitle = heroTitle || "UrsaMU";
+    document.title = brandTitle;
+    if (brand) brand.textContent = brandTitle;
+    if (bannerTitle) {
+      if (heroTitle) {
+        bannerTitle.textContent = heroTitle;
+        bannerTitle.hidden = false;
+        bannerTitle.removeAttribute("hidden");
+      } else {
+        bannerTitle.textContent = "";
+        bannerTitle.hidden = true;
+      }
     }
 
     var href  = String(cfg.skinHref || cfg.skinCss || "").trim();
@@ -112,8 +144,12 @@
       }
     }
 
-    if (cfg.plainBg && shell) {
-      shell.classList.add("is-plain");
+    // Compact: no banner image + no hero title → content under nav
+    if (shell) {
+      if (cfg.plainBg) shell.classList.add("is-plain");
+      else shell.classList.remove("is-plain");
+      if (!bannerSrc && !heroTitle) shell.classList.add("is-compact");
+      else shell.classList.remove("is-compact");
     }
 
     if (Array.isArray(cfg.nav) && navList) {
@@ -124,7 +160,8 @@
         var a  = document.createElement("a");
         a.href = String(item.href || "#");
         a.textContent = String(item.label || "Link");
-        if (item.active) a.classList.add("is-active");
+        // Path wins over static active:true from config
+        if (navHrefIsActive(item.href)) a.classList.add("is-active");
         li.appendChild(a);
         navList.appendChild(li);
       }
@@ -370,6 +407,7 @@
       if (leftAside) leftAside.style.display = "none";
       if (rightAside) rightAside.style.display = "none";
       if (banner) banner.style.display = "none";
+      if (shell) shell.classList.add("is-mode-no-hero");
       if (mainEl) {
         mainEl.style.margin = "0 auto";
         mainEl.style.maxWidth = "440px";
@@ -383,6 +421,7 @@
       if (leftAside) leftAside.style.display = "none";
       if (rightAside) rightAside.style.display = "none";
       if (banner) banner.style.display = "none";
+      if (shell) shell.classList.add("is-mode-no-hero");
       if (mainEl) {
         mainEl.style.margin = "0 auto";
         mainEl.style.maxWidth = "600px";
@@ -396,6 +435,7 @@
       if (leftAside) leftAside.style.display = "";
       if (rightAside) rightAside.style.display = "";
       if (banner) banner.style.display = "";
+      if (shell) shell.classList.remove("is-mode-no-hero");
       if (mainEl) {
         mainEl.style.margin = "";
         mainEl.style.maxWidth = "";
@@ -409,6 +449,129 @@
   }
 
   // ── Left sidebar ───────────────────────────────────────────────────────────
+
+  /** Expand leftMenu template (parity with packages/site menu.ts). */
+  function expandLeftMenu(template, blocks) {
+    var BLOCK_LINE = /^\s*\[\[([a-z][a-z0-9_-]*)(?::([^\]]*))?\]\]\s*$/i;
+    var HEADING = /^\s*##\s+(.+?)\s*$/;
+    var UL_ITEM = /^\s*[-*+]\s+(.+?)\s*$/;
+    var MD_LINK = /^\[([^\]]+)\]\(([^)]+)\)\s*$/;
+    var lines = String(template || "").split(/\r?\n/);
+    var html = "";
+    var pendingTitle = null;
+    var staticItems = [];
+
+    function renderItems(items) {
+      if (!items || !items.length) return "";
+      var out = "<ul class=\"site-menu__list\">";
+      for (var i = 0; i < items.length; i++) {
+        var it = items[i];
+        var cur = it.current ? " class=\"is-current\"" : "";
+        var aria = it.current ? " aria-current=\"page\"" : "";
+        var href = it.href || (it.path ? "/site/wiki/" + it.path : "#");
+        var label = it.label || it.title || it.path || "Link";
+        out += "<li" + cur + "><a href=\"" + esc(href) + "\"" + aria + ">" +
+          esc(label) + "</a></li>";
+      }
+      out += "</ul>";
+      return out;
+    }
+
+    function renderSection(title, bodyHtml) {
+      if (!bodyHtml || !String(bodyHtml).trim()) return "";
+      return "<section class=\"site-menu menu\">" +
+        "<h2 class=\"site-menu__title\">" + esc(title) + "</h2>" +
+        bodyHtml + "</section>";
+    }
+
+    function flushStatic() {
+      if (!staticItems.length) return;
+      var body = renderItems(staticItems);
+      if (pendingTitle) {
+        html += renderSection(pendingTitle, body);
+        pendingTitle = null;
+      } else {
+        html += "<section class=\"site-menu menu\">" + body +
+          "</section>";
+      }
+      staticItems = [];
+    }
+
+    function emitBlock(name, arg) {
+      var key = String(name).toLowerCase();
+      var keyed = (arg != null && arg !== "")
+        ? (blocks[key + ":" + arg] || blocks[key])
+        : blocks[key];
+      if (!keyed) {
+        pendingTitle = null;
+        return;
+      }
+      var body = "";
+      if (keyed.html && String(keyed.html).trim()) {
+        body = keyed.html;
+      } else if (keyed.items && keyed.items.length) {
+        body = renderItems(keyed.items);
+      }
+      if (!String(body).trim()) {
+        pendingTitle = null;
+        return;
+      }
+      if (pendingTitle) {
+        html += renderSection(pendingTitle, body);
+        pendingTitle = null;
+      } else if (/^\s*<section\b/i.test(body)) {
+        html += body;
+      } else {
+        html += "<section class=\"site-menu menu\">" + body +
+          "</section>";
+      }
+    }
+
+    for (var li = 0; li < lines.length; li++) {
+      var line = lines[li];
+      var bm = line.match(BLOCK_LINE);
+      if (bm) {
+        flushStatic();
+        emitBlock(bm[1], bm[2] ? bm[2].trim() : undefined);
+        continue;
+      }
+      var hm = line.match(HEADING);
+      if (hm) {
+        flushStatic();
+        pendingTitle = hm[1].trim();
+        continue;
+      }
+      var um = line.match(UL_ITEM);
+      if (um) {
+        var content = um[1].trim();
+        var lm = content.match(MD_LINK);
+        if (lm) {
+          staticItems.push({ label: lm[1], href: lm[2] });
+        } else {
+          staticItems.push({ label: content, href: "#" });
+        }
+        continue;
+      }
+      if (!line.trim()) {
+        flushStatic();
+      }
+    }
+    flushStatic();
+    return html;
+  }
+
+  function pagesToMenuItems(list) {
+    var items = [];
+    for (var i = 0; i < list.length; i++) {
+      var p = list[i];
+      items.push({
+        label: p.title || p.path,
+        href: "/site/wiki/" + p.path,
+        current: p.path === WIKI_PATH,
+      });
+    }
+    return items;
+  }
 
   function renderLeft(pages) {
     if (!leftPanels || MODE === "login" || MODE === "profile") return;
@@ -426,20 +589,40 @@
       });
     }
 
+    // Built-in blocks + plugin menuBlocks from config
+    var blocks = Object.assign({}, siteConfig.menuBlocks || {});
+    if (featured.length) {
+      blocks.featured = { items: pagesToMenuItems(featured) };
+    }
+    if (MODE === "wiki" && (siblings.length || wikiIndex[WIKI_PATH])) {
+      var current = wikiIndex[WIKI_PATH];
+      var sectionItems = current
+        ? [current].concat(siblings)
+        : siblings;
+      blocks.section = { items: pagesToMenuItems(sectionItems) };
+    }
+
+    var template = siteConfig.leftMenu;
+    if (template && String(template).trim()) {
+      leftPanels.innerHTML = expandLeftMenu(template, blocks) || "";
+      return;
+    }
+
+    // Fallback when no template (should be rare)
     var html = "";
     if (MODE === "wiki" && siblings.length) {
-      // Current page first, then siblings
-      var current = wikiIndex[WIKI_PATH];
-      var sectionItems = current ? [current].concat(siblings) : siblings;
-      var sectionName = WIKI_PATH.split("/")[0];
-      // Capitalise first letter
-      var label = sectionName.charAt(0).toUpperCase() + sectionName.slice(1);
-      html += menuSection(label, sectionItems);
+      var currentPg = wikiIndex[WIKI_PATH];
+      var secItems = currentPg
+        ? [currentPg].concat(siblings)
+        : siblings;
+      var sectionName = (WIKI_PATH || "").split("/")[0] || "Section";
+      var label = sectionName.charAt(0).toUpperCase() +
+        sectionName.slice(1);
+      html += menuSection(label, secItems);
     }
     if (featured.length) {
       html += menuSection("Featured", featured);
     }
-
     leftPanels.innerHTML = html || "";
   }
 
@@ -495,6 +678,21 @@
       .catch(function () { return null; });
   }
 
+  function doSignOut() {
+    try { sessionStorage.removeItem("ursamu.webAdmin.token"); } catch (_) {}
+    try { localStorage.removeItem("ursamu.webAdmin.token"); } catch (_) {}
+    window.location.href = "/site/";
+  }
+
+  function safeNextPath(raw) {
+    var n = String(raw || "").trim();
+    if (!n || n.charAt(0) !== "/" || n.indexOf("//") === 0) return "/site/";
+    if (n.indexOf("/site") !== 0 && n.indexOf("/admin") !== 0) {
+      return "/site/";
+    }
+    return n;
+  }
+
   function updateNavUser(user) {
     var existingNavUser = document.getElementById("nav-user-item");
     if (existingNavUser) existingNavUser.remove();
@@ -505,32 +703,86 @@
     li.className = "site-nav-user-item";
 
     if (user) {
-      var a = document.createElement("a");
-      a.href = "/site/profile";
-      a.className = "site-nav-user-link" + (MODE === "profile" ? " is-active" : "");
+      // Compact account control — no full profile page
+      var wrap = document.createElement("div");
+      wrap.className = "site-nav-account";
+
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "site-nav-user-link site-nav-account-toggle";
+      btn.setAttribute("aria-haspopup", "true");
+      btn.setAttribute("aria-expanded", "false");
+      btn.setAttribute("aria-controls", "site-nav-account-menu");
 
       if (user.avatar) {
         var img = document.createElement("img");
         img.src = user.avatar;
         img.className = "site-nav-avatar";
-        img.alt = user.name;
-        a.appendChild(img);
+        img.alt = "";
+        btn.appendChild(img);
       } else {
         var init = document.createElement("span");
         init.className = "site-nav-avatar-initial";
         init.textContent = user.name.charAt(0).toUpperCase();
-        a.appendChild(init);
+        btn.appendChild(init);
       }
 
       var nameSpan = document.createElement("span");
       nameSpan.className = "site-nav-username";
       nameSpan.textContent = user.name;
-      a.appendChild(nameSpan);
-      li.appendChild(a);
+      btn.appendChild(nameSpan);
+
+      var menu = document.createElement("div");
+      menu.id = "site-nav-account-menu";
+      menu.className = "site-nav-account-menu";
+      menu.hidden = true;
+      menu.setAttribute("role", "menu");
+
+      if (user.isStaff) {
+        var staffA = document.createElement("a");
+        staffA.href = "/admin/";
+        staffA.className = "site-nav-account-item";
+        staffA.setAttribute("role", "menuitem");
+        staffA.textContent = "Staff console";
+        menu.appendChild(staffA);
+      }
+
+      var outBtn = document.createElement("button");
+      outBtn.type = "button";
+      outBtn.className = "site-nav-account-item site-nav-account-signout";
+      outBtn.setAttribute("role", "menuitem");
+      outBtn.textContent = "Sign out";
+      outBtn.addEventListener("click", function () {
+        doSignOut();
+      });
+      menu.appendChild(outBtn);
+
+      function setOpen(open) {
+        menu.hidden = !open;
+        btn.setAttribute("aria-expanded", open ? "true" : "false");
+        wrap.classList.toggle("is-open", open);
+      }
+
+      btn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        setOpen(menu.hidden);
+      });
+
+      document.addEventListener("click", function () {
+        setOpen(false);
+      });
+      menu.addEventListener("click", function (e) {
+        e.stopPropagation();
+      });
+
+      wrap.appendChild(btn);
+      wrap.appendChild(menu);
+      li.appendChild(wrap);
     } else {
       var loginA = document.createElement("a");
       loginA.href = "/site/login";
-      loginA.className = "site-nav-login-link" + (MODE === "login" ? " is-active" : "");
+      loginA.className = "site-nav-login-link" +
+        (MODE === "login" ? " is-active" : "");
       loginA.textContent = "Sign in";
       li.appendChild(loginA);
     }
@@ -548,8 +800,16 @@
         "<div class=\"site-section__body\" style=\"width:100%;display:flex;justify-content:center;\">";
 
       if (user) {
-        innerHtml += "<div style=\"text-align:center;padding:1.5rem 0;\"><p>You are signed in as <strong>" + esc(user.name) + "</strong>.</p>" +
-          "<p><a href=\"/site/profile\">View Profile</a> | <a href=\"#\" id=\"page-logout-link\">Sign Out</a></p></div>";
+        // Already signed in — no profile page; useful actions only
+        innerHtml += "<div class=\"site-auth-card\" style=\"text-align:center;\">" +
+          "<p>Signed in as <strong>" + esc(user.name) + "</strong>.</p>" +
+          "<div class=\"site-profile-actions\" style=\"justify-content:center;margin-top:1rem;\">" +
+          "<a href=\"/site/\" class=\"site-auth-submit\" style=\"display:inline-flex;align-items:center;justify-content:center;text-decoration:none;padding:0 1.25rem;width:auto;\">Continue to site</a>";
+        if (user.isStaff) {
+          innerHtml += "<a href=\"/admin/\" class=\"site-auth-logout\" style=\"display:inline-flex;align-items:center;justify-content:center;text-decoration:none;\">Staff console</a>";
+        }
+        innerHtml += "<button type=\"button\" class=\"site-auth-logout\" id=\"page-logout-link\">Sign out</button>" +
+          "</div></div>";
       } else {
         var isReg = (currentAuthMode === "register");
         innerHtml += "<div class=\"site-auth-card\" style=\"width:100%;margin:0.5rem 0 0;\">" +
@@ -580,57 +840,9 @@
       mainEl.innerHTML = innerHtml;
       wireAuthEvents(user);
     } else if (MODE === "profile") {
-      var profileHtml = "<section class=\"site-section\">" +
-        "<h2 class=\"site-section__title\">Player Profile</h2>" +
-        "<div class=\"site-rule site-rule--image\" role=\"presentation\"></div>" +
-        "<div class=\"site-section__body\">";
-
-      if (user) {
-        profileHtml += "<div class=\"site-profile-card\">" +
-          "<div class=\"site-profile-header\">" +
-          "<div class=\"site-profile-avatar\">";
-        if (user.avatar) {
-          profileHtml += "<img src=\"" + esc(user.avatar) + "\" alt=\"" + esc(user.name) + "\" />";
-        } else {
-          profileHtml += "<div class=\"site-profile-avatar-fallback\">" + esc(user.name.charAt(0).toUpperCase()) + "</div>";
-        }
-        profileHtml += "</div>" +
-          "<div class=\"site-profile-info\">" +
-          "<h3 class=\"site-profile-name\">" + esc(user.name) + "</h3>";
-        if (user.moniker) {
-          profileHtml += "<div class=\"site-profile-moniker\">" + esc(user.moniker) + "</div>";
-        }
-        if (user.flags && user.flags.length) {
-          profileHtml += "<div class=\"site-user-badges\">";
-          for (var f = 0; f < user.flags.length; f++) {
-            profileHtml += "<span class=\"site-badge\">" + esc(user.flags[f]) + "</span>";
-          }
-          profileHtml += "</div>";
-        }
-        profileHtml += "</div></div>" +
-          "<div class=\"site-profile-details\">" +
-          "<div class=\"site-profile-row\"><span class=\"site-profile-label\">Player ID:</span><code class=\"site-profile-value\">#" + esc(user.id) + "</code></div>";
-        if (user.location) {
-          profileHtml += "<div class=\"site-profile-row\"><span class=\"site-profile-label\">Location:</span><span class=\"site-profile-value\">" + esc(user.location) + "</span></div>";
-        }
-        profileHtml += "</div>" +
-          "<div class=\"site-profile-actions\">";
-        if (user.isStaff) {
-          profileHtml += "<a href=\"/admin/\" class=\"site-auth-submit\" style=\"display:inline-flex;align-items:center;justify-content:center;text-decoration:none;padding:0 1.25rem;width:auto;\">Staff Console</a>";
-        }
-        profileHtml += "<button type=\"button\" class=\"site-auth-logout\" id=\"profile-logout-btn\">Sign Out</button>" +
-          "</div></div>";
-      } else {
-        profileHtml += "<p>You are not signed in. <a href=\"/site/login\">Sign in</a> to view your profile.</p>";
-      }
-
-      profileHtml += "</div></section>" +
-        "<footer class=\"site-footer\" id=\"footer\">" +
-        "<div class=\"site-rule site-rule--image\" role=\"presentation\"></div>" +
-        "<p>Powered by <a href=\"https://github.com/UrsaMU/ursamu\" target=\"_blank\" rel=\"noopener\">UrsaMU</a></p></footer>";
-
-      mainEl.innerHTML = profileHtml;
-      wireAuthEvents(user);
+      // Legacy /site/profile — redirect home (account lives in nav menu)
+      window.location.replace("/site/");
+      return;
     }
   }
 
@@ -678,20 +890,12 @@
   }
 
   function wireAuthEvents(user) {
-    var logoutBtn = document.getElementById("profile-logout-btn") || document.getElementById("page-logout-link");
+    var logoutBtn = document.getElementById("profile-logout-btn") ||
+      document.getElementById("page-logout-link");
     if (logoutBtn) {
       logoutBtn.addEventListener("click", function (e) {
         e.preventDefault();
-        try {
-          sessionStorage.removeItem("ursamu.webAdmin.token");
-        } catch (_) {}
-        probeAuth().then(function (u) {
-          updateNavUser(u);
-          if (MODE === "login" || MODE === "profile") {
-            injectSpecialPage(u);
-          }
-          renderRight(u);
-        });
+        doSignOut();
       });
     }
 
@@ -761,7 +965,9 @@
             } catch (_) {}
             probeAuth().then(function (u) {
               updateNavUser(u);
-              window.location.href = "/site/profile";
+              var params = new URLSearchParams(window.location.search);
+              var next = safeNextPath(params.get("next") || "/site/");
+              window.location.href = next;
             });
           })
           .catch(function () {
