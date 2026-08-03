@@ -11,8 +11,8 @@
     "jsr:@ursamu/help@^1.0.2": "1.0.2",
     "jsr:@ursamu/jobs@^1.1.3": "1.1.3",
     "jsr:@ursamu/mail@^2.6.0": "2.6.0",
-    "jsr:@ursamu/mush@1.0.7": "1.0.7",
-    "jsr:@ursamu/mush@^1.0.4": "1.0.7",
+    "jsr:@ursamu/mush@1.0.8": "1.0.8",
+    "jsr:@ursamu/mush@^1.0.4": "1.0.8",
     "jsr:@ursamu/mushcode@0.7": "0.7.0",
     "jsr:@ursamu/site@0.1.3": "0.1.3",
     "jsr:@ursamu/web@0.2.37": "0.2.37",
@@ -70,7 +70,7 @@
     "@ursamu/help@1.0.2": {
       "integrity": "53d424783ae6c35de028005860981e9c94747cb6d2eb13bc0a6b53e0c957a677",
       "dependencies": [
-        "jsr:@ursamu/mush@1.0.7"
+        "jsr:@ursamu/mush@1.0.8"
       ]
     },
     "@ursamu/jobs@1.1.3": {
@@ -78,18 +78,18 @@
       "dependencies": [
         "jsr:@ursamu/help",
         "jsr:@ursamu/mail",
-        "jsr:@ursamu/mush@1.0.7"
+        "jsr:@ursamu/mush@1.0.8"
       ]
     },
     "@ursamu/mail@2.6.0": {
       "integrity": "8f7d3ee8b252bb88e0098e6fe59f44e0b50faf9ef1b9b889e6555743d6f393f1",
       "dependencies": [
         "jsr:@ursamu/help",
-        "jsr:@ursamu/mush@1.0.7"
+        "jsr:@ursamu/mush@1.0.8"
       ]
     },
-    "@ursamu/mush@1.0.7": {
-      "integrity": "c8548644db6cddb7ab3ecb8bbdbfbb7296180d43eb37b52b9f01f8bc7ebe3029",
+    "@ursamu/mush@1.0.8": {
+      "integrity": "3a838f72e7ceef56b3338b8cffbf9d08736dca1c577273fd742a49322a1350cb",
       "dependencies": [
         "jsr:@std/dotenv",
         "jsr:@std/fs",
@@ -119,7 +119,7 @@
       "dependencies": [
         "jsr:@std/path",
         "jsr:@ursamu/jobs",
-        "jsr:@ursamu/mush@1.0.7",
+        "jsr:@ursamu/mush@1.0.8",
         "jsr:@ursamu/wiki"
       ]
     },
@@ -129,7 +129,7 @@
         "jsr:@std/fs",
         "jsr:@std/path",
         "jsr:@ursamu/help",
-        "jsr:@ursamu/mush@1.0.7"
+        "jsr:@ursamu/mush@1.0.8"
       ]
     },
     "@zaubrik/djwt@3.0.2": {
@@ -527,8 +527,7 @@
       "jsr:@ursamu/lang-plugin@3.1.1",
       "jsr:@ursamu/mail@2.6.0",
       "jsr:@ursamu/mail@^2.6.0",
-      "jsr:@ursamu/mush@1.0.6",
-      "jsr:@ursamu/mush@1.0.7",
+      "jsr:@ursamu/mush@1.0.8",
       "jsr:@ursamu/mushcode@0.7.0",
       "jsr:@ursamu/site@0.1.3",
       "jsr:@ursamu/web@0.2.37",
