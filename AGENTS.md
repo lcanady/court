@@ -9,19 +9,22 @@ GEMINI.md. Those files should point here.
 ## What this is
 
 **Court of Miracles** is a *Changeling: The Lost* freehold game on the
-UrsaMU engine (vendored `@ursamu/mush` under `vendor/`).
+UrsaMU engine (`jsr:@ursamu/mush` — **JSR only**, no vendor override).
 
 - **Tone:** Victorian literary fiction, not modern chat or RPG boxed text
 - **Setting:** A fog-bound, slightly wrong city of gaslight, iron, and
   bargains: the freehold's London-that-never-quite-was. Prefer atmosphere
   over naming the real city repeatedly.
-- **This repo:** game code, config samples, help, softcode, vendored
-  packages, and ops scripts. Engine source of truth lives in the ursamu
-  monorepo; production runs the **vendor** tree.
+- **This repo:** game code, config samples, help, softcode, and ops
+  scripts. Engine and first-party plugins load from JSR pins in
+  `deno.json`. Source of truth for packages is the ursamu monorepo;
+  production never vendors mush/site/web.
 
 | Layer | Tech |
 |-------|------|
-| Engine | `vendor/mush` (`@ursamu/mush`) |
+| Engine | `jsr:@ursamu/mush@1.0.9` |
+| Public FE | `jsr:@ursamu/site@0.1.5` |
+| Staff console | `jsr:@ursamu/web@0.2.38` |
 | Runtime | Deno |
 | DB | PGlite / TypeGraph (`data/typegraph.db`) |
 | Game system | `@ursamu/cofd-plugin` (CtL / CofD 2e) |
@@ -171,27 +174,28 @@ descs, flags, locks, soft attributes, and most world work:
 Write offline scripts **only** when bulk migration or code-only work
 cannot be done in-game, and always stop the daemon first, then restart.
 
-### Deploy (code / vendor)
+### Deploy (code / JSR pins)
 
 From the **local** court checkout:
 
 ```bash
-# after updating vendor/mush or game files
+# after bumping deno.json JSR pins or game files
 git add -A && git commit -m "..." && git push origin main
 ssh court.ursamu.io 'bash ./court-update.sh'
 ```
 
 `court-update.sh` hard-resets to `origin/main`, merges live config
-safely, restarts daemon. Do **not** hand-edit production without git
-when the change belongs in the repo.
+safely, reloads JSR cache, restarts daemon. Do **not** hand-edit
+production without git when the change belongs in the repo.
 
-### Engine vendor
+### Engine / FE pins (JSR only)
 
-- Production imports **`./vendor/mush`**, not JSR latest by default.
-- Bump engine by rsyncing from ursamu monorepo `packages/mush` to
-  `vendor/mush` (exclude `tests/`, `data/`), commit, push, deploy.
-- Other vendored packages: `vendor/builder`, `channels`, `help`,
-  `discord`, etc.
+- Production imports **`jsr:@ursamu/mush@1.0.9`**,
+  **`jsr:@ursamu/site@0.1.5`**, **`jsr:@ursamu/web@0.2.38`**.
+- Bump by publishing packages from the ursamu monorepo to JSR, then
+  editing `deno.json` pins here, commit, push, deploy.
+- Do **not** reintroduce `vendor/mush`, `vendor/site`, or
+  `vendor/web`.
 
 ---
 
@@ -201,7 +205,7 @@ when the change belongs in the repo.
 court/
 ├── AGENTS.md           <- you are here (agent source of truth)
 ├── CLAUDE.md           <- thin pointer to AGENTS.md
-├── deno.json           <- tasks + import map (vendor pins)
+├── deno.json           <- tasks + import map (JSR pins)
 ├── config/
 │   ├── config.sample.json
 │   └── config.json     <- gitignored live config
@@ -213,7 +217,7 @@ court/
 ├── system/scripts/     <- softcode overrides
 ├── help/               <- in-game help (.md)
 ├── text/               <- connect screen, etc.
-├── vendor/             <- mush + first-party plugins (committed)
+├── vendor/             <- optional local extras only (not engine)
 ├── data/               <- DB (gitignored runtime)
 └── logs/               <- gitignored
 ```

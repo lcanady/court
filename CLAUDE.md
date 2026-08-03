@@ -2,7 +2,7 @@
 
 **Read [AGENTS.md](./AGENTS.md) first.** It is the authoritative guide for
 this game: Victorian literary voice, no em-dashes, live ops (Builder /
-telnet), vendor deploy, IC/OOC rules, and code conventions.
+telnet), JSR pin deploy, IC/OOC rules, and code conventions.
 
 This file exists so Claude Code auto-loads project context. Do not
 duplicate long policy here. Update **AGENTS.md** instead.
@@ -10,8 +10,8 @@ duplicate long policy here. Update **AGENTS.md** instead.
 ## Load order
 
 1. `AGENTS.md` (voice, world, ops, architecture)
-2. Engine skill `/ursamu-dev` when editing UrsaMU plugins or vendor mush
-3. Package docs under `vendor/*/README.md` as needed
+2. Engine skill `/ursamu-dev` when editing UrsaMU plugins or JSR engine packages
+3. Package docs on jsr.io/@ursamu as needed
 
 ## Hard rules (summary)
 

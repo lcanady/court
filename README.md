@@ -162,7 +162,6 @@ so **https://court.ursamu.io/** serves the public FE (not `/admin/`).
 | `https://court.ursamu.io/admin/` | Staff console |
 | `https://court.ursamu.io/site/` | Same FE (asset mount) |
 
-Pins: `@ursamu/site@0.1.3`, `@ursamu/web@0.2.37`, `@ursamu/mush@1.0.8 (vendored)`.
-
-
-Engine/FE are vendored under `vendor/mush`, `vendor/site`, `vendor/web` so production does not depend on JSR cache for the apex `/` fix.
+Pins (JSR only): `@ursamu/site@0.1.5`, `@ursamu/web@0.2.38`,
+`@ursamu/mush@1.0.9`. Engine and public FE load from
+[jsr.io/@ursamu](https://jsr.io/@ursamu) — no local vendor override.

@@ -234,16 +234,33 @@ PY
 log "expected plugin versions: ${EXPECTED_JSON}"
 
 
-# --- verify vendored mush has apex FE fix ---------------------------------
-if ! grep -q 'normalizePluginPrefix' vendor/mush/src/routes/plugin.ts 2>/dev/null; then
-  log "ERROR: vendor/mush missing apex FE fix (normalizePluginPrefix)"
-  exit 6
-fi
-if ! grep -q 'siteHome' vendor/mush/src/routes/index.ts 2>/dev/null; then
-  log "ERROR: vendor/mush missing / → /site/ fallback"
-  exit 6
-fi
-log "vendor mush apex FE fix: ok"
+# --- verify JSR pins resolve to expected engine/FE versions --------------
+python3 - <<'PY' || exit 6
+import json, re, sys
+from pathlib import Path
+imp = json.loads(Path("deno.json").read_text()).get("imports") or {}
+need = {
+    "@ursamu/mush": "1.0.9",
+    "@ursamu/site": "0.1.5",
+    "@ursamu/web": "0.2.38",
+}
+bad = []
+for key, ver in need.items():
+    raw = str(imp.get(key) or "")
+    if "vendor" in raw:
+        bad.append(f"{key} still points at vendor: {raw}")
+        continue
+    m = re.search(r"@(\d+\.\d+\.\d+)", raw)
+    if not m or m.group(1) != ver:
+        bad.append(f"{key} want jsr …@{ver}, got {raw!r}")
+if bad:
+    print("[safe-update] ERROR: JSR pin check failed:", file=sys.stderr)
+    for b in bad:
+        print(" ", b, file=sys.stderr)
+    sys.exit(6)
+print("[safe-update] JSR pins ok:",
+      ", ".join(f"{k}@{v}" for k, v in need.items()))
+PY
 
 # --- pre-warm Deno cache while old main still runs -------------------------
 log "caching packages (game still up)..."
@@ -253,9 +270,9 @@ rm -f deno.lock
 rm -rf node_modules
 # Explicitly pull critical packages first (clearer errors).
 if ! deno cache --reload --minimum-dependency-age=0 \
-  jsr:@ursamu/web \
-  jsr:@ursamu/site \
-  jsr:@ursamu/mush \
+  jsr:@ursamu/web@0.2.38 \
+  jsr:@ursamu/site@0.1.5 \
+  jsr:@ursamu/mush@1.0.9 \
   jsr:@ursamu/map-plugin \
   src/main.ts src/telnet.ts; then
   log "ERROR: deno cache failed — aborting reboot."

@@ -11,4 +11,4 @@ into this file.
 - Victorian literary prose for all narrative descriptions
 - **No em-dashes** (and no en-dash substitutes)
 - Prefer in-game Builder edits over offline DB scripts
-- Engine lives in `vendor/`; deploy via git + `court-update.sh`
+- Engine/FE from JSR pins in deno.json; deploy via git + court-update.sh
