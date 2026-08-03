@@ -240,8 +240,8 @@ import json, re, sys
 from pathlib import Path
 imp = json.loads(Path("deno.json").read_text()).get("imports") or {}
 need = {
-    "@ursamu/mush": "1.0.9",
-    "@ursamu/site": "0.1.16",
+    "@ursamu/mush": "1.0.10",
+    "@ursamu/site": "0.1.17",
     "@ursamu/web": "0.2.42",
 }
 bad = []
@@ -273,8 +273,8 @@ rm -rf node_modules
 # Explicitly pull critical packages first (clearer errors).
 if ! deno cache --reload --minimum-dependency-age=0 \
   jsr:@ursamu/web@0.2.42 \
-  jsr:@ursamu/site@0.1.16 \
-  jsr:@ursamu/mush@1.0.9 \
+  jsr:@ursamu/site@0.1.17 \
+  jsr:@ursamu/mush@1.0.10 \
   jsr:@ursamu/map-plugin \
   src/main.ts src/telnet.ts; then
   log "ERROR: deno cache failed — aborting reboot."

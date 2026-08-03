@@ -22,7 +22,7 @@ UrsaMU engine (`jsr:@ursamu/mush` — **JSR only**, no vendor override).
 
 | Layer | Tech |
 |-------|------|
-| Engine | `jsr:@ursamu/mush@1.0.9` |
+| Engine | `jsr:@ursamu/mush@1.0.10` |
 | Public FE | `jsr:@ursamu/site@0.1.11` |
 | Staff console | `jsr:@ursamu/web@0.2.42` |
 | Runtime | Deno |
@@ -190,8 +190,8 @@ production without git when the change belongs in the repo.
 
 ### Engine / FE pins (JSR only)
 
-- Production imports **`jsr:@ursamu/mush@1.0.9`**,
-  **`jsr:@ursamu/site@0.1.16`**, **`jsr:@ursamu/web@0.2.42`**.
+- Production imports **`jsr:@ursamu/mush@1.0.10`**,
+  **`jsr:@ursamu/site@0.1.17`**, **`jsr:@ursamu/web@0.2.42`**.
 - Court brand is **`theme/installed/court/`** (not a builtin site
   skin). Config: `skinCss` + `themeDir: "theme"`.
 - Bump by publishing packages from the ursamu monorepo to JSR, then
