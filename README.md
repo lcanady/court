@@ -149,3 +149,17 @@ deno run -A jsr:@ursamu/ursamu/cli create plugin my-feature
 ## License
 
 MIT
+
+## Public front-end
+
+The player site is `@ursamu/site` with `plugins.site.serveRoot: true`,
+so **https://court.ursamu.io/** serves the public FE (not `/admin/`).
+
+| URL | App |
+|-----|-----|
+| `https://court.ursamu.io/` | Public site |
+| `https://court.ursamu.io/wiki/` | Wiki reader |
+| `https://court.ursamu.io/admin/` | Staff console |
+| `https://court.ursamu.io/site/` | Same FE (asset mount) |
+
+Pins: `@ursamu/site@0.1.3`, `@ursamu/web@0.2.37`, `@ursamu/mush@1.0.7`.

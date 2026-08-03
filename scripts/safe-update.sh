@@ -195,6 +195,7 @@ imp = d.get("imports") or {}
 want = {}
 for key in (
     "@ursamu/web",
+    "@ursamu/site",
     "@ursamu/map-plugin",
     "@ursamu/map",
     "@ursamu/mush",
@@ -222,6 +223,7 @@ for key in (
 # plugin load name overrides
 out = {
     "web": want.get("web"),
+    "site": want.get("site"),
     "map": want.get("map") or want.get("map-plugin"),
     "wiki": want.get("wiki"),
     "builder": want.get("builder"),
@@ -240,6 +242,8 @@ rm -rf node_modules
 # Explicitly pull critical packages first (clearer errors).
 if ! deno cache --reload --minimum-dependency-age=0 \
   jsr:@ursamu/web \
+  jsr:@ursamu/site \
+  jsr:@ursamu/mush \
   jsr:@ursamu/map-plugin \
   src/main.ts src/telnet.ts; then
   log "ERROR: deno cache failed — aborting reboot."

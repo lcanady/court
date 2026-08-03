@@ -43,25 +43,26 @@
       "skin": "changeling",
       "title": "Court of Miracles",
       "bannerImage": "/site/skins/changeling/imgs/header.png",
-      "serveRoot": false,
+      "serveRoot": true,
       "telnet": "court.ursamu.io:4201",
       "nav": [
         {
+          "id": "home",
           "label": "Home",
-          "href": "/site/",
-          "active": true
+          "href": "/",
+          "order": 10
         },
         {
-          "label": "Characters",
-          "href": "#"
-        },
-        {
-          "label": "Help",
-          "href": "#"
-        },
-        {
+          "id": "wiki",
           "label": "Wiki",
-          "href": "#"
+          "href": "/wiki/",
+          "order": 20
+        },
+        {
+          "id": "help",
+          "label": "Help",
+          "href": "#",
+          "order": 30
         }
       ]
     },
