@@ -239,29 +239,36 @@ python3 - <<'PY' || exit 6
 import json, re, sys
 from pathlib import Path
 imp = json.loads(Path("deno.json").read_text()).get("imports") or {}
-need = {
-    "@ursamu/mush": "1.0.10",
-    "@ursamu/site": "0.1.22",
-    "@ursamu/web": "0.2.49",
-}
+# Sanity: pins must be jsr:@ursamu/*@x.y.z (not vendor paths).
+# Versions are whatever deno.json says — no hardcoded expect list.
+keys = (
+    "@ursamu/mush",
+    "@ursamu/site",
+    "@ursamu/web",
+    "@ursamu/wiki",
+)
 bad = []
-for key, ver in need.items():
+ok = []
+for key in keys:
     raw = str(imp.get(key) or "")
+    if not raw:
+        continue
     if "vendor" in raw:
         if key == "@ursamu/site":
             continue
         bad.append(f"{key} still points at vendor: {raw}")
         continue
-    m = re.search(r"@(\d+\.\d+\.\d+)", raw)
-    if not m or m.group(1) != ver:
-        bad.append(f"{key} want jsr …@{ver}, got {raw!r}")
+    m = re.search(r"jsr:@ursamu/[^@]+@(\d+\.\d+\.\d+)", raw)
+    if not m:
+        bad.append(f"{key} not a pinned jsr URL: {raw!r}")
+        continue
+    ok.append(f"{key}@{m.group(1)}")
 if bad:
     print("[safe-update] ERROR: JSR pin check failed:", file=sys.stderr)
     for b in bad:
         print(" ", b, file=sys.stderr)
     sys.exit(6)
-print("[safe-update] JSR pins ok:",
-      ", ".join(f"{k}@{v}" for k, v in need.items()))
+print("[safe-update] JSR pins ok:", ", ".join(ok))
 PY
 
 # --- pre-warm Deno cache while old main still runs -------------------------
@@ -270,12 +277,37 @@ log "caching packages (game still up)..."
 # (deno.lock is regenerated from deno.json pins.)
 rm -f deno.lock
 rm -rf node_modules
-# Explicitly pull critical packages first (clearer errors).
+# Pull critical pins from deno.json (never hardcode versions here).
+CACHE_SPECS="$(python3 - <<'PY'
+import json, re
+from pathlib import Path
+imp = json.loads(Path("deno.json").read_text()).get("imports") or {}
+specs = []
+for key in (
+    "@ursamu/web",
+    "@ursamu/site",
+    "@ursamu/wiki",
+    "@ursamu/mush",
+    "ursamu",
+):
+    raw = str(imp.get(key) or "").strip()
+    if raw.startswith("jsr:"):
+        specs.append(raw)
+# de-dupe preserving order
+seen = set()
+out = []
+for s in specs:
+    if s in seen:
+        continue
+    seen.add(s)
+    out.append(s)
+print(" ".join(out))
+PY
+)"
+log "cache specs: ${CACHE_SPECS}"
+# shellcheck disable=SC2086
 if ! deno cache --reload --minimum-dependency-age=0 \
-  jsr:@ursamu/web@0.2.46 \
-  jsr:@ursamu/site@0.1.19 \
-  jsr:@ursamu/mush@1.0.10 \
-  jsr:@ursamu/map-plugin \
+  ${CACHE_SPECS} \
   src/main.ts src/telnet.ts; then
   log "ERROR: deno cache failed — aborting reboot."
   log "Game left running on previous code."
