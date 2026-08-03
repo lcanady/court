@@ -61,7 +61,7 @@
         {
           "id": "help",
           "label": "Help",
-          "href": "#",
+          "href": "/help/",
           "order": 30
         }
       ],

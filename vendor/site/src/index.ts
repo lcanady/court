@@ -73,6 +73,7 @@ export const plugin: IPlugin = {
       registerPluginRoute("/login", siteStaticHandler);
       registerPluginRoute("/profile", siteStaticHandler);
       registerPluginRoute("/wiki", siteStaticHandler);
+      registerPluginRoute("/help", siteStaticHandler);
     }
 
     const skinLabel = cfg.skinCss ?? cfg.skin ?? "default";
