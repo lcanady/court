@@ -242,7 +242,7 @@ imp = json.loads(Path("deno.json").read_text()).get("imports") or {}
 need = {
     "@ursamu/mush": "1.0.10",
     "@ursamu/site": "0.1.17",
-    "@ursamu/web": "0.2.44",
+    "@ursamu/web": "0.2.45",
 }
 bad = []
 for key, ver in need.items():
@@ -272,7 +272,7 @@ rm -f deno.lock
 rm -rf node_modules
 # Explicitly pull critical packages first (clearer errors).
 if ! deno cache --reload --minimum-dependency-age=0 \
-  jsr:@ursamu/web@0.2.44 \
+  jsr:@ursamu/web@0.2.45 \
   jsr:@ursamu/site@0.1.17 \
   jsr:@ursamu/mush@1.0.10 \
   jsr:@ursamu/map-plugin \
