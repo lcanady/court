@@ -198,6 +198,23 @@
   display: none;
 }
 
+/* Telnet under brand (title or banner art) */
+.site-banner__connect {
+  margin-top: 1rem;
+  font-family: var(--site-font-ui);
+  font-size: 18px;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--site-accent);
+  text-decoration: none;
+}
+
+.site-banner__connect:hover {
+  color: var(--site-accent-hover);
+  text-decoration: none;
+  opacity: 0.9;
+}
+
 .site-banner__img {
   max-width: none;
   width: auto;
