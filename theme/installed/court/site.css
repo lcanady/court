@@ -56,17 +56,17 @@
   --site-search-below: 2.5rem;
   --site-main-pad-inline: 0;
 
-  --site-bg-image-top: url("imgs/background.png");
-  --site-bg-image-bottom: url("imgs/footer.png");
-  --site-rule-image: url("imgs/hr.svg");
-  --site-search-icon: url("imgs/search.png");
+  --site-bg-image-top: url("/site/theme/installed/court/imgs/background.png");
+  --site-bg-image-bottom: url("/site/theme/installed/court/imgs/footer.png");
+  --site-rule-image: url("/site/theme/installed/court/imgs/hr.svg");
+  --site-search-icon: url("/site/theme/installed/court/imgs/search.png");
 }
 
 @font-face {
   font-family: "Smythe";
   src:
-    url("fonts/smythe-regular.woff2") format("woff2"),
-    url("fonts/smythe-regular.woff") format("woff");
+    url("/site/theme/installed/court/fonts/smythe-regular.woff2") format("woff2"),
+    url("/site/theme/installed/court/fonts/smythe-regular.woff") format("woff");
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -75,9 +75,9 @@
 @font-face {
   font-family: "royal majesty";
   src:
-    url("fonts/your_royal_majesty_fancy.woff2")
+    url("/site/theme/installed/court/fonts/your_royal_majesty_fancy.woff2")
       format("woff2"),
-    url("fonts/your_royal_majesty_fancy.woff")
+    url("/site/theme/installed/court/fonts/your_royal_majesty_fancy.woff")
       format("woff");
   font-weight: normal;
   font-style: normal;
