@@ -241,7 +241,7 @@ from pathlib import Path
 imp = json.loads(Path("deno.json").read_text()).get("imports") or {}
 need = {
     "@ursamu/mush": "1.0.9",
-    "@ursamu/site": "0.1.7",
+    "@ursamu/site": "0.1.8",
     "@ursamu/web": "0.2.40",
 }
 bad = []
@@ -273,7 +273,7 @@ rm -rf node_modules
 # Explicitly pull critical packages first (clearer errors).
 if ! deno cache --reload --minimum-dependency-age=0 \
   jsr:@ursamu/web@0.2.40 \
-  vendor/site/mod.ts \
+  jsr:@ursamu/site@0.1.8 \
   jsr:@ursamu/mush@1.0.9 \
   jsr:@ursamu/map-plugin \
   src/main.ts src/telnet.ts; then
