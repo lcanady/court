@@ -37,6 +37,7 @@ import {
   contractStageProgress,
 } from "./contracts.ts";
 import { eligibleMerits } from "./list_eligible.ts";
+import { submitCgDraft } from "./submit.ts";
 
 const STAFF = new Set([
   "superuser",
@@ -337,18 +338,79 @@ export async function stepChargen(
 
   const max = maxStageFor(cg.sheet.template);
   if (cg.stage >= max) {
-    // Mark ready-to-submit; full job submit stays in-game for now
-    // or via /submit.
-    return json({
-      ok: true,
-      readyToSubmit: true,
-      ...publicState(cg),
-    });
+    // Finish button → same as +cg/submit on final stage.
+    return await submitChargen(userId);
   }
 
   cg = { ...cg, stage: cg.stage + 1 };
   await saveCg(userId, cg);
   return json({ ok: true, ...publicState(cg) });
+}
+
+/**
+ * POST /api/v1/cofd/chargen/submit
+ * Validate final stage and open/refresh CGEN job.
+ */
+export async function submitChargen(
+  userId: string,
+): Promise<Response> {
+  const actor = await loadActor(userId);
+  if (!actor) return json({ error: "Forbidden" }, 403);
+  if (isApproved(actor) && !isStaff(flagsOf(actor.flags))) {
+    return json({ error: "Chargen closed." }, 403);
+  }
+
+  let cg = readCg(actor);
+  if (!cg) return json({ error: "Start chargen first." }, 400);
+
+  const max = maxStageFor(cg.sheet.template);
+  if (cg.stage < max) {
+    return json({
+      error:
+        `Finish the last stage first (on stage ${cg.stage} ` +
+        `of ${max}).`,
+      ...publicState(cg),
+    }, 400);
+  }
+
+  const val = validateCurrentStage(cg);
+  if (!val.valid) {
+    return json({
+      error: val.error ?? "Stage incomplete",
+      ...publicState(cg),
+    }, 400);
+  }
+
+  const name = String(
+    actor.name ||
+      (playerBag(actor).name as string) ||
+      "Unknown",
+  );
+
+  const result = await submitCgDraft({
+    actorId: actor.id,
+    actorName: name,
+    cg,
+  });
+
+  if (!result.ok) {
+    return json({
+      error: result.error,
+      alreadyPending: !!result.alreadyPending,
+      submittedJob: result.jobNumber ?? null,
+      ...publicState(cg),
+    }, result.alreadyPending ? 409 : 400);
+  }
+
+  cg = result.cg;
+  await saveCg(userId, cg);
+  return json({
+    ok: true,
+    submitted: true,
+    resubmit: result.resubmit,
+    jobNumber: result.jobNumber,
+    ...publicState(cg),
+  });
 }
 
 /** POST /api/v1/cofd/chargen/contract — add/remove CtL contract. */

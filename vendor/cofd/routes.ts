@@ -11,6 +11,7 @@
  *   POST /api/v1/cofd/chargen/set
  *   POST /api/v1/cofd/chargen/next
  *   POST /api/v1/cofd/chargen/back
+ *   POST /api/v1/cofd/chargen/submit  -> finish (CGEN job)
  *   POST /api/v1/cofd/chargen/contract
  *   GET  /api/v1/cofd/chargen/options -> catalog (public)
  *   POST /api/v1/cofd/themes          -> staff spawn themes
@@ -24,6 +25,7 @@ import {
   stepChargen,
   contractChargen,
   chargenOptions,
+  submitChargen,
   chargenSheetForUser,
 } from "./src/chargen/http.ts";
 
@@ -145,6 +147,12 @@ export async function routeHandler(
         path === "/api/v1/cofd/chargen/back"
       ) {
         return await stepChargen(userId, "back");
+      }
+      if (
+        method === "POST" &&
+        path === "/api/v1/cofd/chargen/submit"
+      ) {
+        return await submitChargen(userId);
       }
       if (
         method === "POST" &&

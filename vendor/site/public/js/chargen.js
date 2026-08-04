@@ -329,7 +329,52 @@
           }),
         );
       }
-      if (state.stage < state.maxStage) state.stage += 1;
+      if (state.stage < state.maxStage) {
+        state.stage += 1;
+        demoRefresh();
+        return Promise.resolve(state);
+      }
+      // Final stage Finish → same as /submit
+      return demoApi("POST", "/submit", body);
+    }
+    if (path === "/submit") {
+      demoRefresh();
+      if (state.stage < state.maxStage) {
+        return Promise.reject(
+          Object.assign(
+            new Error(
+              "Finish the last stage first (on stage " +
+                state.stage + " of " + state.maxStage + ").",
+            ),
+            { status: 400, data: state },
+          ),
+        );
+      }
+      if (!state.canAdvance) {
+        return Promise.reject(
+          Object.assign(new Error(state.validationError), {
+            status: 400,
+            data: state,
+          }),
+        );
+      }
+      if (state.isSubmitted) {
+        return Promise.reject(
+          Object.assign(
+            new Error(
+              "Already pending staff review" +
+                (state.submittedJob
+                  ? " (CGEN #" + state.submittedJob + ")"
+                  : "") + ".",
+            ),
+            { status: 409, data: state },
+          ),
+        );
+      }
+      state.isSubmitted = true;
+      state.submittedJob = state.submittedJob || 9001;
+      state.submitted = true;
+      state.jobNumber = state.submittedJob;
       demoRefresh();
       return Promise.resolve(state);
     }
@@ -979,6 +1024,33 @@
       return;
     }
 
+    if (st.isSubmitted && !st.needAuth) {
+      var jobN = st.jobNumber || st.submittedJob;
+      main.innerHTML =
+        '<section class="site-section cg-root" data-cg-root>' +
+        '<div class="cg-gate cg-gate--ok">' +
+        '<h2 class="cg-header__title">Submitted for review</h2>' +
+        "<p>Your character <strong>" +
+        esc((st.sheet && st.sheet.concept) || "draft") +
+        "</strong> is with staff" +
+        (jobN ? " as CGEN job <strong>#" + esc(jobN) +
+          "</strong>" : "") +
+        ".</p>" +
+        "<p class=\"muted\">They will review the sheet, then " +
+        "approve or return it with notes. You can still check " +
+        "status in-game with <code>+cg</code>.</p>" +
+        '<a class="cg-btn cg-btn--primary" href="/">Home</a>' +
+        "</div></section>";
+      var rightSub = qs("[data-site-right-panels]");
+      if (rightSub) {
+        rightSub.innerHTML =
+          '<section class="site-menu menu">' +
+          '<h2 class="site-menu__title">Draft sheet</h2>' +
+          renderSheetSummary(st) + "</section>";
+      }
+      return;
+    }
+
     if (st.needAuth) {
       main.innerHTML =
         '<section class="site-section cg-root">' +
@@ -1378,15 +1450,15 @@
         if (busy) return;
         busy = true;
         try {
-          state = await api("POST", "/next", {});
-          if (state.readyToSubmit) {
-            setMsg(
-              qs("[data-cg-ok]"),
-              "Sheet ready. Submit in-game with +cg/submit " +
-                "for staff review, or continue editing.",
-              false,
-            );
-          }
+          var atEnd = state &&
+            state.stage >= state.maxStage;
+          // Finish → /submit; earlier stages → /next
+          // (server /next also submits on final stage).
+          state = await api(
+            "POST",
+            atEnd ? "/submit" : "/next",
+            {},
+          );
           renderMain(state);
         } catch (e) {
           if (e.data) {
@@ -1463,7 +1535,7 @@
     if (!qs('link[data-cg-css]')) {
       var link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "/site/css/chargen.css?v=20260804meritac";
+      link.href = "/site/css/chargen.css?v=20260804finish";
       link.setAttribute("data-cg-css", "1");
       document.head.appendChild(link);
     }
