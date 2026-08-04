@@ -122,6 +122,9 @@ function publicState(cg: CofdCgState) {
   const max = maxStageFor(cg.sheet.template);
   const val = validateCurrentStage(cg);
   return {
+    // FE gate: missing `started` was treated as "Begin chargen"
+    // after every /set /next /back — looked like a full restart.
+    started: true,
     stage: cg.stage,
     maxStage: max,
     stageName: getStageName(cg.stage),

@@ -1,7 +1,7 @@
 ## 1.2.2
 
 - REST chargen API for public /chargen FE
-- GET options catalog (virtues, templates, attrs…)
+- GET `/api/v1/cofd/chargen/options` catalog
 
 # Changelog
 

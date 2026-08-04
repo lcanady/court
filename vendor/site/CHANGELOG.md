@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.35
+
+- Chargen: keep session after Next/Back/Set (`started` flag + FE normalize)
+
 ## 0.1.34
 
 - Register `/chargen` SPA route under serveRoot

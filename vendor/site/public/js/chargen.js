@@ -49,6 +49,20 @@
       });
   }
 
+  /**
+   * Normalize API payloads. Older servers omitted `started` on
+   * /set /next /back, which made the UI jump back to "Begin".
+   */
+  function normalizeState(raw) {
+    if (!raw || typeof raw !== "object") return raw;
+    var st = Object.assign({}, raw);
+    if (st.closed || st.needAuth) return st;
+    if (st.sheet || st.stage != null) {
+      st.started = true;
+    }
+    return st;
+  }
+
   // ── Demo store (Playwright / offline) ──────────────────────────
 
   function demoInit() {
@@ -201,6 +215,7 @@
     try {
       data = await res.json();
     } catch (_) { /* empty */ }
+    data = normalizeState(data);
     if (!res.ok) {
       var err = new Error(data.error || ("HTTP " + res.status));
       err.status = res.status;
@@ -772,7 +787,10 @@
       return;
     }
 
-    if (!st.started) {
+    // Active session if started flag OR sheet/stage present
+    var active = st.started === true ||
+      !!(st.sheet && st.stage != null);
+    if (!active) {
       main.innerHTML =
         '<section class="site-section cg-root">' +
         '<div class="cg-gate">' +
@@ -785,6 +803,7 @@
         "</div></section>";
       return;
     }
+    st.started = true;
 
     var stages = st.stages || [];
     var html = '<section class="site-section cg-root" data-cg-root>' +
@@ -1050,16 +1069,23 @@
     if (!qs('link[data-cg-css]')) {
       var link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "/site/css/chargen.css?v=20260804cg1";
+      link.href = "/site/css/chargen.css?v=20260804cg3";
       link.setAttribute("data-cg-css", "1");
       document.head.appendChild(link);
     }
 
-    renderMain(null);
+    // Keep in-progress draft if boot re-runs (SPA re-entry)
+    var hadProgress = !!(state && state.started && state.sheet &&
+      state.stage > 1);
+
+    if (!hadProgress) renderMain(null);
     await loadOptions();
 
     if (demo) {
-      state = demoInit();
+      // Do not wipe demo progress on accidental re-boot
+      if (!state || !state.started) {
+        state = demoInit();
+      }
       demoRefresh();
       renderMain(state);
       return;
