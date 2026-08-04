@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.58
+
+- Host staff UIs: Mail (`MailView`) and Channels (`ChannelsView`)
+- Admin WS RPC allowlist: `/api/v1/mail`, `/api/v1/channels`
+- Routes: `/admin/mail`, `/admin/mail/:id`, `/admin/channels`,
+  `/admin/channels/:id`
+
 ## 0.2.57
 
 - Fix empty Mail/Channels/Help top tabs: never pass unresolved

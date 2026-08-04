@@ -1,0 +1,2 @@
+function e(e){if(!e)return`—`;try{return new Date(e).toLocaleString(void 0,{month:`short`,day:`numeric`,hour:`2-digit`,minute:`2-digit`})}catch{return`—`}}function t(e){return String(e??``).replace(/^#/,``).trim()}function n(e){let n=t(e);return n?`#${n}`:``}export{t as n,e as r,n as t};
+//# sourceMappingURL=mail-C74LkqWW.js.map
