@@ -1659,74 +1659,44 @@
       "value=\"" + esc(q) + "\" autocomplete=\"off\" />" +
       "</section>";
 
-    if (q) {
-      var hits = ((helpIndex && helpIndex.topics) || []).filter(
-        function (t) {
-          var name = String(t.name || "").toLowerCase();
-          var body = String(t.content || "").toLowerCase();
-          var sec = String(t.section || "").toLowerCase();
-          return name.indexOf(q) !== -1 ||
-            body.indexOf(q) !== -1 ||
-            sec.indexOf(q) !== -1;
-        },
-      ).slice(0, 40);
-      html += "<section class=\"site-menu menu\">" +
-        "<h2 class=\"site-menu__title\">Matches</h2>" +
-        "<ul class=\"site-menu__list\">";
-      if (!hits.length) {
-        html += "<li class=\"site-help-empty\">No matches.</li>";
-      } else {
-        for (var h = 0; h < hits.length; h++) {
-          var hit = hits[h];
-          var cur = hit.name === HELP_PATH ? " class=\"is-current\"" : "";
-          html += "<li" + cur + "><a href=\"" +
-            helpHref(hit.name) + "\">" + esc(hit.name) +
-            "</a></li>";
+    // Side rail = search + section filters only (main pane is the list)
+    html += "<section class=\"site-menu menu\">" +
+      "<h2 class=\"site-menu__title\">Sections</h2>" +
+      "<ul class=\"site-menu__list\">";
+    html += "<li" + (!HELP_PATH ? " class=\"is-current\"" : "") +
+      "><a href=\"" + helpHref("") + "\">All topics</a></li>";
+    for (var s = 0; s < sections.length; s++) {
+      var secName = sections[s];
+      var isCur = String(secName).toLowerCase() ===
+        String(activeSec).toLowerCase() &&
+        !helpTopicByName(HELP_PATH);
+      if (helpTopicByName(HELP_PATH) &&
+        String(activeSec).toLowerCase() ===
+          String(secName).toLowerCase()) {
+        isCur = true;
+      }
+      // When searching, still show section filters
+      if (q) {
+        var secHits = helpTopicsInSection(secName).filter(
+          function (t) {
+            var name = String(t.name || "").toLowerCase();
+            var body = String(t.content || "").toLowerCase();
+            return name.indexOf(q) !== -1 ||
+              body.indexOf(q) !== -1;
+          },
+        ).length;
+        if (!secHits && String(secName).toLowerCase().indexOf(q) === -1) {
+          continue;
         }
       }
-      html += "</ul></section>";
-    } else {
-      html += "<section class=\"site-menu menu\">" +
-        "<h2 class=\"site-menu__title\">Sections</h2>" +
-        "<ul class=\"site-menu__list\">";
-      html += "<li" + (!HELP_PATH ? " class=\"is-current\"" : "") +
-        "><a href=\"" + helpHref("") + "\">All sections</a></li>";
-      for (var s = 0; s < sections.length; s++) {
-        var secName = sections[s];
-        var isCur = String(secName).toLowerCase() ===
-          String(activeSec).toLowerCase() &&
-          !helpTopicByName(HELP_PATH);
-        // Also highlight section when viewing a topic in it
-        if (helpTopicByName(HELP_PATH) &&
-          String(activeSec).toLowerCase() ===
-            String(secName).toLowerCase()) {
-          isCur = true;
-        }
-        var n = helpTopicsInSection(secName).length;
-        html += "<li" + (isCur ? " class=\"is-current\"" : "") +
-          "><a href=\"" + helpHref(secName) + "\">" +
-          esc(secName) +
-          " <span class=\"site-help-count\">" + n +
-          "</span></a></li>";
-      }
-      html += "</ul></section>";
-
-      if (activeSec) {
-        var topics = helpTopicsInSection(activeSec);
-        html += "<section class=\"site-menu menu\">" +
-          "<h2 class=\"site-menu__title\">" +
-          esc(activeSec) + "</h2>" +
-          "<ul class=\"site-menu__list\">";
-        for (var t = 0; t < topics.length; t++) {
-          var top = topics[t];
-          var on = top.name === HELP_PATH ? " class=\"is-current\"" : "";
-          html += "<li" + on + "><a href=\"" +
-            helpHref(top.name) + "\">" +
-            esc(top.name) + "</a></li>";
-        }
-        html += "</ul></section>";
-      }
+      var n = helpTopicsInSection(secName).length;
+      html += "<li" + (isCur ? " class=\"is-current\"" : "") +
+        "><a href=\"" + helpHref(secName) + "\">" +
+        esc(secName) +
+        " <span class=\"site-help-count\">" + n +
+        "</span></a></li>";
     }
+    html += "</ul></section>";
 
     leftPanels.innerHTML = html;
     var inp = document.getElementById("help-side-search");
@@ -1747,118 +1717,82 @@
     }
   }
 
-  function helpBlurb(t, maxLen) {
-    var n = maxLen || 100;
-    return stripMushCodes(t.content || "")
-      .replace(/\s+/g, " ")
-      .trim()
-      .slice(0, n);
-  }
-
-  /** Section index — table (not card grid). */
-  function injectHelpIndex() {
-    if (!mainEl || !helpIndex) return;
-    setDocumentTitle("Help");
-    var sections = helpIndex.sections || [];
-    var allTopics = helpIndex.topics || [];
-    var body = "<div class=\"site-help-index\">";
-    body += "<p class=\"site-help-lead\">Browse command and " +
-      "system help by section, or search in the left rail. " +
-      allTopics.length + " topic" +
-      (allTopics.length === 1 ? "" : "s") + ".</p>";
-    if (!sections.length) {
-      body += "<p>No help topics are available yet.</p>";
-    } else {
-      body += "<div class=\"site-help-table-wrap\">" +
-        "<table class=\"site-help-table\">" +
-        "<thead><tr>" +
-        "<th scope=\"col\">Section</th>" +
-        "<th scope=\"col\">Topics</th>" +
-        "<th scope=\"col\">Sample</th>" +
-        "<th scope=\"col\"><span class=\"site-sr-only\">" +
-        "Open</span></th>" +
-        "</tr></thead><tbody>";
-      for (var i = 0; i < sections.length; i++) {
-        var sec = sections[i];
-        var topics = helpTopicsInSection(sec);
-        var sample = topics.slice(0, 4).map(function (t) {
-          return t.name;
-        }).join(", ");
-        if (topics.length > 4) {
-          sample += "…";
-        }
-        body += "<tr>" +
-          "<td><a href=\"" + helpHref(sec) + "\">" +
-          esc(sec) + "</a></td>" +
-          "<td class=\"site-help-num\">" + topics.length +
-          "</td>" +
-          "<td class=\"site-help-sample muted\">" +
-          esc(sample || "—") + "</td>" +
-          "<td class=\"site-help-open\">" +
-          "<a class=\"site-help-open-link\" href=\"" +
-          helpHref(sec) + "\">Open</a></td>" +
-          "</tr>";
-      }
-      body += "</tbody></table></div>";
-    }
-    body += "</div>";
-    mainEl.innerHTML =
-      "<section class=\"site-section\">" +
-      "<h2 class=\"site-section__title\">Help</h2>" +
-      "<div class=\"site-rule site-rule--image\" " +
-      "role=\"presentation\"></div>" +
-      "<div class=\"site-section__body\">" + body +
-      "</div></section>" + articleFooterHtml();
-    if (rightPanels) rightPanels.innerHTML = "";
-  }
-
-  /** Topics in a section — table. */
-  function injectHelpSection(section) {
+  /**
+   * Flat topic list table (same idea as wiki index).
+   * opts: { title, topics, crumb? }
+   */
+  function injectHelpTopicList(opts) {
     if (!mainEl) return;
-    var topics = helpTopicsInSection(section);
-    setDocumentTitle(section + " · Help");
+    opts = opts || {};
+    var title = String(opts.title || "Help").trim();
+    var topics = Array.isArray(opts.topics) ? opts.topics.slice() : [];
+    topics.sort(function (a, b) {
+      return String(a.name || "").localeCompare(String(b.name || ""));
+    });
+    setDocumentTitle(title);
+
     var body = "";
     if (!topics.length) {
-      body = "<p>No topics in this section.</p>";
+      body = "<p>No help topics match.</p>";
     } else {
       body = "<div class=\"site-help-table-wrap\">" +
-        "<table class=\"site-help-table\">" +
+        "<table class=\"site-help-table site-wiki-table\">" +
         "<thead><tr>" +
         "<th scope=\"col\">Topic</th>" +
-        "<th scope=\"col\">Summary</th>" +
+        "<th scope=\"col\">Section</th>" +
         "<th scope=\"col\"><span class=\"site-sr-only\">" +
         "Open</span></th>" +
         "</tr></thead><tbody>";
       for (var i = 0; i < topics.length; i++) {
         var t = topics[i];
-        var blurb = helpBlurb(t, 120);
+        var name = String(t.name || "").trim();
+        if (!name) continue;
+        var sec = String(t.section || "—");
         body += "<tr>" +
-          "<td><a href=\"" + helpHref(t.name) + "\">" +
-          "<code>" + esc(t.name) + "</code></a></td>" +
-          "<td class=\"site-help-sample muted\">" +
-          (blurb
-            ? esc(blurb) + (blurb.length >= 120 ? "…" : "")
-            : "—") +
-          "</td>" +
+          "<td><a href=\"" + helpHref(name) + "\">" +
+          esc(name) + "</a></td>" +
+          "<td class=\"muted\">" + esc(sec) + "</td>" +
           "<td class=\"site-help-open\">" +
           "<a class=\"site-help-open-link\" href=\"" +
-          helpHref(t.name) + "\">Open</a></td>" +
+          helpHref(name) + "\">Open</a></td>" +
           "</tr>";
       }
       body += "</tbody></table></div>";
     }
+
+    var crumb = opts.crumb
+      ? "<p class=\"site-help-crumb\">" + opts.crumb + "</p>"
+      : "";
     mainEl.innerHTML =
-      "<section class=\"site-section\">" +
-      "<p class=\"site-help-crumb\"><a href=\"" +
-      helpHref("") + "\">Help</a> / " + esc(section) +
-      "</p>" +
-      "<h2 class=\"site-section__title\">" + esc(section) +
-      "</h2>" +
+      "<section class=\"site-section\">" + crumb +
+      "<h2 class=\"site-section__title\">" + esc(title) + "</h2>" +
       "<div class=\"site-rule site-rule--image\" " +
       "role=\"presentation\"></div>" +
       "<div class=\"site-section__body\">" + body +
       "</div></section>" + articleFooterHtml();
     if (rightPanels) rightPanels.innerHTML = "";
+  }
+
+  /** /help/ — every visible topic. */
+  function injectHelpIndex() {
+    if (!mainEl || !helpIndex) return;
+    var all = helpIndex.topics || [];
+    injectHelpTopicList({
+      title: "Help",
+      topics: all,
+    });
+  }
+
+  /** /help/<section> — filter list by side-nav section. */
+  function injectHelpSection(section) {
+    if (!mainEl) return;
+    var topics = helpTopicsInSection(section);
+    injectHelpTopicList({
+      title: section,
+      topics: topics,
+      crumb: "<a href=\"" + helpHref("") + "\">Help</a> / " +
+        esc(section),
+    });
   }
 
   function injectHelpTopic(entry) {

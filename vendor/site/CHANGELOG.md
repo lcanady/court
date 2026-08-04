@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.28
+
+- Help index is a flat topic table (Topic / Section / Open),
+  like wiki — not a section directory. Side nav sections filter.
+
 ## 0.1.27
 
 - Help browser sends Bearer token when signed in so staff
