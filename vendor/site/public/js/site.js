@@ -391,47 +391,76 @@
       .join("/") + "/_assets/" + encodeURIComponent(ref);
   }
 
+  /**
+   * Inline markdown. Escape HTML first so help placeholders like
+   * <alias> never become tags; protect rich spans via tokens.
+   */
   function inlineMarkdown(text, pagePath) {
-    // Wikilinks [[target|label]] or [[target]] — resolve to real links
+    text = String(text || "");
+    var pg = pagePath || "";
+    var tokens = [];
+    function hold(html) {
+      tokens.push(html);
+      return "\x00" + (tokens.length - 1) + "\x00";
+    }
+
+    // Wikilinks [[target|label]]
     text = text.replace(
       /\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g,
       function (_, target, label) {
-        var t   = target.trim();
-        var lbl = label ? label.trim() : (wikiIndex[t] ? wikiIndex[t].title : t);
-        return '<a href="' + wikiHref(t) + '">' + esc(lbl) + "</a>";
-      }
+        var t = target.trim();
+        var lbl = label
+          ? label.trim()
+          : (wikiIndex[t] ? wikiIndex[t].title : t);
+        return hold(
+          '<a href="' + wikiHref(t) + '">' + esc(lbl) + "</a>",
+        );
+      },
     );
-    // Bold+italic
-    text = text.replace(/\*\*\*(.+?)\*\*\*/g, function (_, t) {
-      return "<strong><em>" + esc(t) + "</em></strong>";
-    });
-    text = text.replace(/\*\*(.+?)\*\*/g, function (_, t) {
-      return "<strong>" + esc(t) + "</strong>";
-    });
-    text = text.replace(/\*(.+?)\*/g, function (_, t) {
-      return "<em>" + esc(t) + "</em>";
-    });
-    // Inline code
-    text = text.replace(/`([^`]+)`/g, function (_, t) {
-      return "<code>" + esc(t) + "</code>";
-    });
-    // Images ![alt](url|filename) — before links
+    // Images ![alt](url)
     text = text.replace(
       /!\[([^\]]*)\]\(([^)]+)\)/g,
       function (_, alt, url) {
-        var src = resolveImageSrc(url, pagePath);
-        if (!src) return esc(alt || "");
-        return '<img src="' + esc(src) + '" alt="' +
-          esc(alt || "") + '" loading="lazy">';
-      }
+        var src = resolveImageSrc(url, pg);
+        if (!src) return hold(esc(alt || ""));
+        return hold(
+          '<img src="' + esc(src) + '" alt="' +
+            esc(alt || "") + '" loading="lazy">',
+        );
+      },
     );
-    // Markdown links
+    // Markdown links [lbl](url)
     text = text.replace(
       /\[([^\]]+)\]\(([^)]+)\)/g,
       function (_, lbl, url) {
-        return '<a href="' + esc(url) + '">' + esc(lbl) + "</a>";
-      }
+        return hold(
+          '<a href="' + esc(url) + '">' + esc(lbl) + "</a>",
+        );
+      },
     );
+    // Inline code
+    text = text.replace(/`([^`]+)`/g, function (_, t) {
+      return hold("<code>" + esc(t) + "</code>");
+    });
+
+    // Escape the rest (fixes <alias> in help)
+    text = esc(text);
+
+    // Bold / italic on escaped plain text
+    text = text.replace(/\*\*\*(.+?)\*\*\*/g, function (_, t) {
+      return "<strong><em>" + t + "</em></strong>";
+    });
+    text = text.replace(/\*\*(.+?)\*\*/g, function (_, t) {
+      return "<strong>" + t + "</strong>";
+    });
+    text = text.replace(/\*(.+?)\*/g, function (_, t) {
+      return "<em>" + t + "</em>";
+    });
+
+    // Restore held HTML
+    text = text.replace(/\x00(\d+)\x00/g, function (_, n) {
+      return tokens[Number(n)] || "";
+    });
     return text;
   }
 
@@ -484,8 +513,36 @@
       return /^\|[\s\-:|]+\|$/.test(line.replace(/\s/g, ""));
     }
 
+    var inCode = false;
+    var codeBuf = [];
+
+    function flushCode() {
+      if (!inCode) return;
+      html += "<pre><code>" + esc(codeBuf.join("\n")) +
+        "</code></pre>\n";
+      codeBuf = [];
+      inCode = false;
+    }
+
     for (var i = 0; i < lines.length; i++) {
       var line = lines[i];
+
+      // ── Fenced code ────────────────────────────────────────────────
+      if (/^```/.test(line)) {
+        closePara(); closeList();
+        if (inTable) flushTable();
+        if (inCode) {
+          flushCode();
+        } else {
+          inCode = true;
+          codeBuf = [];
+        }
+        continue;
+      }
+      if (inCode) {
+        codeBuf.push(line);
+        continue;
+      }
 
       // ── Table rows ─────────────────────────────────────────────────
       if (/^\|/.test(line)) {
@@ -553,11 +610,18 @@
         continue;
       }
 
-      // ── Paragraph ──────────────────────────────────────────────────
+      // ── Paragraph (each line = own para if prior closed) ──────────
       closeList();
-      if (!inPara) { html += "<p>"; inPara = true; } else { html += " "; }
+      if (!inPara) {
+        html += "<p>";
+        inPara = true;
+      } else {
+        // Soft line-break inside paragraph (help syntax lines)
+        html += "<br>\n";
+      }
       html += inlineMarkdown(line, pg);
     }
+    flushCode();
     closePara(); closeList(); flushTable();
     return html;
   }
@@ -1594,22 +1658,81 @@
       .replace(/%[a-zA-Z]/g, "");
   }
 
-  /** Prepare help body for the shared markdown renderer. */
+  /**
+   * Help text → markdown for renderMarkdown.
+   * Preserves line breaks, SYNTAX labels, indented examples.
+   * Angle brackets stay literal (inlineMarkdown escapes them).
+   */
   function helpBodyToMarkdown(raw) {
-    var t = stripMushCodes(raw).replace(/\r\n/g, "\n").trim();
+    var t = stripMushCodes(String(raw || ""))
+      .replace(/\r\n/g, "\n")
+      .replace(/\r/g, "\n")
+      .replace(/^\uFEFF/, "")
+      .trim();
     if (!t) return "";
-    // ALL-CAPS section labels → ### headings (SYNTAX, SWITCHES, …)
-    t = t.replace(
-      /^([A-Z][A-Z0-9 /+._-]{1,48})\s*$/gm,
-      function (_m, label) {
-        // Skip lines that look like code samples
-        if (/[@+#]/.test(label)) return label;
-        return "### " + label;
-      },
-    );
-    // Bare first-line +TOPIC titles → drop if already shown as H2
-    t = t.replace(/^\+[A-Z0-9][A-Z0-9 /._-]{0,60}\s*\n+/, "");
-    return t;
+
+    // Drop leading +TOPIC title (shown as page H1)
+    t = t.replace(/^\+[^\n]+\n+/, "");
+
+    var lines = t.split("\n");
+    var out = [];
+    var i = 0;
+    while (i < lines.length) {
+      var line = lines[i];
+      var trimmed = line.trim();
+
+      if (!trimmed) {
+        out.push("");
+        i++;
+        continue;
+      }
+
+      // ALL-CAPS section labels → ## headings
+      if (
+        /^[A-Z][A-Z0-9 /+._-]{1,48}$/.test(trimmed) &&
+        !/[@+#`]/.test(trimmed)
+      ) {
+        out.push("");
+        out.push("## " + trimmed);
+        out.push("");
+        i++;
+        continue;
+      }
+
+      // Indented example block → fenced code
+      if (/^(?:  |\t)\S/.test(line)) {
+        var code = [];
+        while (i < lines.length) {
+          var L = lines[i];
+          if (!L.trim()) {
+            if (
+              i + 1 < lines.length &&
+              /^(?:  |\t)\S/.test(lines[i + 1])
+            ) {
+              code.push("");
+              i++;
+              continue;
+            }
+            break;
+          }
+          if (!/^(?:  |\t)/.test(L)) break;
+          code.push(L.replace(/^(?:  |\t)/, ""));
+          i++;
+        }
+        out.push("```");
+        out.push(code.join("\n"));
+        out.push("```");
+        out.push("");
+        continue;
+      }
+
+      out.push(trimmed);
+      // Separate lines so command syntax does not collapse
+      out.push("");
+      i++;
+    }
+
+    return out.join("\n").replace(/\n{3,}/g, "\n\n").trim();
   }
 
   function helpTopicByName(name) {
@@ -1733,8 +1856,8 @@
   }
 
   /**
-   * Flat topic list table (same idea as wiki index).
-   * opts: { title, topics, crumb? }
+   * Flat topic list — Figma/wiki-style data table.
+   * One Topic column only (no Section / Open chrome).
    */
   function injectHelpTopicList(opts) {
     if (!mainEl) return;
@@ -1750,29 +1873,18 @@
     if (!topics.length) {
       body = "<p>No help topics match.</p>";
     } else {
-      body = "<div class=\"site-help-table-wrap\">" +
-        "<table class=\"site-help-table site-wiki-table\">" +
+      body = "<table>" +
         "<thead><tr>" +
         "<th scope=\"col\">Topic</th>" +
-        "<th scope=\"col\">Section</th>" +
-        "<th scope=\"col\"><span class=\"site-sr-only\">" +
-        "Open</span></th>" +
         "</tr></thead><tbody>";
       for (var i = 0; i < topics.length; i++) {
         var t = topics[i];
         var name = String(t.name || "").trim();
         if (!name) continue;
-        var sec = String(t.section || "—");
-        body += "<tr>" +
-          "<td><a href=\"" + helpHref(name) + "\">" +
-          esc(name) + "</a></td>" +
-          "<td class=\"muted\">" + esc(sec) + "</td>" +
-          "<td class=\"site-help-open\">" +
-          "<a class=\"site-help-open-link\" href=\"" +
-          helpHref(name) + "\">Open</a></td>" +
-          "</tr>";
+        body += "<tr><td><a href=\"" + helpHref(name) + "\">" +
+          esc(name) + "</a></td></tr>";
       }
-      body += "</tbody></table></div>";
+      body += "</tbody></table>";
     }
 
     var crumb = opts.crumb
@@ -1798,7 +1910,7 @@
     });
   }
 
-  /** /help/<section> — filter list by side-nav section. */
+  /** Side-nav section filter. */
   function injectHelpSection(section) {
     if (!mainEl) return;
     var topics = helpTopicsInSection(section);
@@ -1823,15 +1935,10 @@
     var crumb = "<p class=\"site-help-crumb\">" +
       "<a href=\"" + helpHref("") + "\">Help</a>";
     if (sec) {
-      crumb += " / <a href=\"" + helpHref(sec) + "\">" +
+      crumb += " / <a href=\"" + helpSectionHref(sec) + "\">" +
         esc(sec) + "</a>";
     }
     crumb += " / " + esc(title) + "</p>";
-    var meta = "";
-    if (entry.source) {
-      meta = "<p class=\"site-help-meta muted\">Source: " +
-        esc(entry.source) + "</p>";
-    }
     mainEl.innerHTML =
       "<section class=\"site-section\">" + crumb +
       "<h2 class=\"site-section__title\">" + esc(title) +
@@ -1839,7 +1946,7 @@
       "<div class=\"site-rule site-rule--image\" " +
       "role=\"presentation\"></div>" +
       "<div class=\"site-section__body site-help-body\">" +
-      meta + bodyHtml +
+      bodyHtml +
       "</div></section>" + articleFooterHtml();
     // TOC into right rail
     if (rightPanels) {
