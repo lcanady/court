@@ -181,13 +181,18 @@ export function mergeSiteNav(
     const order = typeof c.order === "number" && Number.isFinite(c.order)
       ? c.order
       : (i + 1) * 10;
+    const prev = map.get(id);
+    // Config wins label/href; keep plugin require if config omits it
+    const req = (typeof c.require === "string" && c.require.trim())
+      ? c.require.trim()
+      : prev?.require;
     map.set(id, {
       id: c.id ?? id,
       label: c.label,
       href: c.href,
       active: c.active,
       order,
-      require: c.require,
+      require: req,
     });
   }
 
