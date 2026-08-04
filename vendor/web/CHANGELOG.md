@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.2.59
+
+- Host staff UI: Help (`HelpView`) — browse topics, DB overrides
+- Admin WS RPC allowlist: `/api/v1/help`
+- Routes: `/admin/help`, `/admin/help/t/:topic`
+
 ## 0.2.58
 
 - Host staff UIs: Mail (`MailView`) and Channels (`ChannelsView`)

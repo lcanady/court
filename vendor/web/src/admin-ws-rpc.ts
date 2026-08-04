@@ -23,6 +23,7 @@ const ALLOWED_PREFIXES = [
   "/api/v1/map",
   "/api/v1/mail",
   "/api/v1/channels",
+  "/api/v1/help",
 ];
 
 const ALLOWED_METHODS = new Set([

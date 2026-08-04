@@ -1,10 +1,10 @@
 /**
- * routes.ts — REST API for the help system.
+ * REST API for the help system.
  *
- * GET    /api/v1/help              → { sections, topics }   (no auth)
- * GET    /api/v1/help/:topic       → { entry }              (no auth)
- * POST   /api/v1/help/:topic       → { entry }              (admin only)
- * DELETE /api/v1/help/:topic       → 204                    (admin only)
+ * GET    /api/v1/help              → { sections, topics }
+ * GET    /api/v1/help/:topic       → { entry }
+ * POST   /api/v1/help/:topic       → { entry }  (admin)
+ * DELETE /api/v1/help/:topic       → 204        (admin, DB only)
  */
 
 import { registerPluginRoute, dbojs } from "@ursamu/mush";
@@ -12,35 +12,65 @@ import { helpRegistry, slugify } from "./registry.ts";
 import { upsertEntry, deleteEntry } from "./providers/database.ts";
 import { emitHelp } from "./hooks.ts";
 
-/** Resolve whether a userId belongs to an admin or wizard.
- * flags is a space-separated string on the internal IDBOBJ type.
- */
+const STAFF = new Set(["admin", "wizard", "superuser"]);
+
+function flagSet(raw: unknown): Set<string> {
+  if (raw instanceof Set) {
+    return new Set([...raw].map((f) => String(f).toLowerCase()));
+  }
+  if (Array.isArray(raw)) {
+    return new Set(raw.map((f) => String(f).toLowerCase()));
+  }
+  if (typeof raw === "string") {
+    return new Set(
+      raw.split(/[\s,|]+/).map((s) => s.toLowerCase().trim())
+        .filter(Boolean),
+    );
+  }
+  return new Set();
+}
+
 async function isAdmin(userId: string): Promise<boolean> {
   const actor = await dbojs.queryOne({ id: userId });
   if (!actor) return false;
-  // flags is a space-separated string on the internal IDBOBJ type
-  const flagSet = new Set((actor.flags as unknown as string).split(" "));
-  return flagSet.has("admin") || flagSet.has("wizard") || flagSet.has("superuser");
+  const s = flagSet(actor.flags);
+  for (const f of STAFF) if (s.has(f)) return true;
+  return false;
 }
 
 /**
- * Single prefix handler for /api/v1/help and /api/v1/help/<topic>.
- * dispatchPluginRoute matches by startsWith(prefix+"/"), so a separate
- * "/api/v1/help/:topic" registration never receives traffic — the bare
- * "/api/v1/help" handler always wins. Handle both paths here.
+ * Single prefix handler for /api/v1/help and nested topics.
+ * dispatchPluginRoute matches by startsWith — one registration.
  */
 registerPluginRoute("/api/v1/help", async (req, userId) => {
   const url = new URL(req.url);
   const rest = url.pathname
     .replace(/^\/api\/v1\/help\/?/, "")
     .replace(/\/+$/, "");
-  const topic = rest ? slugify(rest) : "";
+  // Keep path slashes; slugify each segment
+  const topic = rest
+    ? rest.split("/").map((p) => slugify(p)).filter(Boolean)
+      .join("/")
+    : "";
 
-  // GET /api/v1/help — index (hide dark/hidden topics from listings)
+  // GET /api/v1/help — index (staff sees hidden/dark topics)
   if (!topic && req.method === "GET") {
-    const sections = await helpRegistry.sections();
-    const topics = (await helpRegistry.all()).filter((e) => !e.hidden);
-    return Response.json({ sections, topics });
+    const staff = userId ? await isAdmin(userId) : false;
+    const all = await helpRegistry.all();
+    const topics = staff
+      ? all
+      : all.filter((e) => !e.hidden);
+    const sections = [
+      ...new Set(
+        topics.map((e) => e.section).filter(Boolean),
+      ),
+    ].sort();
+    return Response.json({
+      sections,
+      topics: topics.sort((a, b) =>
+        a.name.localeCompare(b.name)
+      ),
+    });
   }
 
   if (!topic) {
@@ -70,7 +100,7 @@ registerPluginRoute("/api/v1/help", async (req, userId) => {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  // POST /api/v1/help/<topic>
+  // POST /api/v1/help/<topic> — create/update DB override
   if (req.method === "POST") {
     if (!(await isAdmin(userId))) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
@@ -100,7 +130,9 @@ registerPluginRoute("/api/v1/help", async (req, userId) => {
     const section =
       typeof body.section === "string" && body.section
         ? body.section.toLowerCase()
-        : (topic.includes("/") ? topic.split("/")[0] : "general");
+        : (topic.includes("/")
+          ? topic.split("/")[0]
+          : "general");
 
     const tags =
       Array.isArray(body.tags) &&
@@ -130,7 +162,7 @@ registerPluginRoute("/api/v1/help", async (req, userId) => {
     return Response.json({ entry }, { status: 201 });
   }
 
-  // DELETE /api/v1/help/<topic>
+  // DELETE /api/v1/help/<topic> — remove DB override only
   if (req.method === "DELETE") {
     if (!(await isAdmin(userId))) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
@@ -138,7 +170,14 @@ registerPluginRoute("/api/v1/help", async (req, userId) => {
 
     const deleted = await deleteEntry(topic);
     if (!deleted) {
-      return Response.json({ error: "Not found" }, { status: 404 });
+      return Response.json(
+        {
+          error:
+            "No database override for this topic " +
+            "(file/command help cannot be deleted)",
+        },
+        { status: 404 },
+      );
     }
 
     return new Response(null, { status: 204 });

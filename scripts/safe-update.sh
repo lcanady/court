@@ -254,7 +254,7 @@ for key in keys:
     if not raw:
         continue
     if "vendor" in raw:
-        if key in ("@ursamu/site", "@ursamu/web", "@ursamu/mail", "@ursamu/mail-plugin", "@ursamu/channels"):
+        if key in ("@ursamu/site", "@ursamu/web", "@ursamu/mail", "@ursamu/mail-plugin", "@ursamu/channels", "@ursamu/help", "@ursamu/help-plugin"):
             continue
         bad.append(f"{key} still points at vendor: {raw}")
         continue
