@@ -56,6 +56,13 @@
   function normalizeState(raw) {
     if (!raw || typeof raw !== "object") return raw;
     var st = Object.assign({}, raw);
+    // Live approved sheet payload
+    if (st.approved || st.isApproved || st.sheetText) {
+      st.approved = true;
+      st.isApproved = true;
+      st.started = true;
+      return st;
+    }
     if (st.closed || st.needAuth) return st;
     if (st.sheet || st.stage != null) {
       st.started = true;
@@ -1059,46 +1066,49 @@
       return;
     }
 
-    // Approved live sheet — Character tab
-    if (st.approved || st.isApproved) {
-      if (st.sheet) {
-        main.innerHTML =
-          '<section class="site-section cg-root" data-cg-root>' +
-          '<header class="cg-header">' +
-          '<h2 class="cg-header__title">Character</h2>' +
-          '<p class="cg-header__sub">Live sheet' +
-          (st.name ? " — " + esc(st.name) : "") +
-          "</p></header>" +
-          renderLiveSheet(st) +
-          "</section>";
-        var rightLive = qs("[data-site-right-panels]");
-        if (rightLive) {
-          rightLive.innerHTML =
-            '<section class="site-menu menu">' +
-            '<h2 class="site-menu__title">Sheet</h2>' +
-            renderSheetSummary(st) + "</section>";
-        }
-        return;
-      }
+    // Approved / live sheet — Character tab
+    var showLive = !!(st.approved || st.isApproved ||
+      st.sheetText ||
+      (st.closed && st.sheet && !st.stage));
+    if (showLive && (st.sheet || st.sheetText)) {
       main.innerHTML =
-        '<section class="site-section cg-root">' +
-        '<div class="cg-gate">' +
-        '<h2 class="cg-header__title">Character approved</h2>' +
-        "<p>" + esc(st.reason || "Your sheet is live.") +
-        "</p>" +
-        '<a class="cg-btn cg-btn--primary" href="/">Home</a>' +
-        "</div></section>";
+        '<section class="site-section cg-root" data-cg-root>' +
+        '<header class="cg-header">' +
+        '<h2 class="cg-header__title">Character</h2>' +
+        '<p class="cg-header__sub">Live sheet' +
+        (st.name ? " — " + esc(st.name) : "") +
+        "</p></header>" +
+        renderLiveSheet(st) +
+        "</section>";
+      var rightLive = qs("[data-site-right-panels]");
+      if (rightLive) {
+        rightLive.innerHTML =
+          '<section class="site-menu menu">' +
+          '<h2 class="site-menu__title">Sheet</h2>' +
+          renderSheetSummary(st) + "</section>";
+      }
       return;
     }
 
-    if (st.closed && !st.sheet) {
+    if (st.closed && !st.sheet && !st.sheetText) {
       main.innerHTML =
         '<section class="site-section cg-root">' +
         '<div class="cg-gate">' +
-        '<h2 class="cg-header__title">Chargen closed</h2>' +
-        "<p>" + esc(st.reason || "Already approved.") + "</p>" +
-        '<a class="cg-btn cg-btn--primary" href="/">Home</a>' +
+        '<h2 class="cg-header__title">Character</h2>' +
+        "<p>" + esc(st.reason || "No live sheet yet.") +
+        "</p>" +
+        '<p class="muted">If you were just approved, refresh. ' +
+        "Otherwise finish chargen and wait for staff.</p>" +
+        '<button type="button" class="cg-btn cg-btn--primary" ' +
+        'data-cg-reload-sheet>Refresh sheet</button> ' +
+        '<a class="cg-btn" href="/">Home</a>' +
         "</div></section>";
+      var reload = qs("[data-cg-reload-sheet]");
+      if (reload) {
+        reload.addEventListener("click", function () {
+          boot();
+        });
+      }
       return;
     }
 
@@ -1613,14 +1623,15 @@
     if (!qs('link[data-cg-css]')) {
       var link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "/site/css/chargen.css?v=20260804char";
+      link.href = "/site/css/chargen.css?v=20260804sheetfix";
       link.setAttribute("data-cg-css", "1");
       document.head.appendChild(link);
     }
 
     // Keep in-progress draft if boot re-runs (SPA re-entry)
+    // Never keep stale draft over an approved live sheet.
     var hadProgress = !!(state && state.started && state.sheet &&
-      state.stage > 1);
+      state.stage > 1 && !state.approved && !state.isApproved);
 
     if (!hadProgress) renderMain(null);
     await loadOptions();
@@ -1637,6 +1648,28 @@
 
     try {
       state = await api("GET", "");
+      // Fallback: dedicated sheet endpoint if chargen closed empty
+      if (
+        state &&
+        (state.closed || state.approved) &&
+        !state.sheet &&
+        !state.sheetText
+      ) {
+        try {
+          var sh = await fetch("/api/v1/cofd/sheet", {
+            credentials: "same-origin",
+            headers: authHeaders(),
+          }).then(function (r) {
+            return r.ok ? r.json() : null;
+          });
+          if (sh && sh.sheet) {
+            state = normalizeState(Object.assign({}, state, sh, {
+              approved: true,
+              isApproved: true,
+            }));
+          }
+        } catch (_) { /* ignore */ }
+      }
       renderMain(state);
     } catch (e) {
       if (e.status === 401) {

@@ -26,6 +26,8 @@ async function onJobClosed(job: IJob): Promise<void> {
       "",
     );
 
+    // Skip if approvePlayer already ran (+approve / HTTP) and
+    // completeCgenJob emitted job:closed afterward.
     const result = await approvePlayer({
       playerId,
       staffId,

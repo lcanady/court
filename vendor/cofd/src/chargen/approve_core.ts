@@ -139,15 +139,16 @@ export async function approvePlayer(
     state?: Record<string, unknown>;
   });
 
+  const flagApproved = [...flags].some(
+    (x) => String(x).toLowerCase() === "approved",
+  );
+  const hasLive = hasLiveSheet(row as {
+    data?: Record<string, unknown>;
+    state?: Record<string, unknown>;
+  });
+
   // Already live + approved — idempotent success
-  if (
-    flags.has("approved") &&
-    hasLiveSheet(row as {
-      data?: Record<string, unknown>;
-      state?: Record<string, unknown>;
-    }) &&
-    !cg
-  ) {
+  if (flagApproved && hasLive && !cg) {
     return {
       ok: true,
       name,
@@ -157,7 +158,16 @@ export async function approvePlayer(
     };
   }
 
+  // Flag set but sheet missing — fall through if draft still exists
   if (!cg?.sheet) {
+    if (flagApproved && !hasLive) {
+      return {
+        ok: false,
+        error:
+          `${name} is flagged approved but has no live sheet ` +
+          `and no draft to rebuild. Re-run chargen or restore DB.`,
+      };
+    }
     return {
       ok: false,
       error:
@@ -168,17 +178,45 @@ export async function approvePlayer(
   const sheet = { ...cg.sheet };
   if (!sheet.specialties) sheet.specialties = {};
 
+  // Write live sheet and clear draft in one $set when possible
+  const nextData = {
+    ...((row.data && typeof row.data === "object")
+      ? row.data as Record<string, unknown>
+      : {}),
+    cofd: sheet,
+  };
+  delete nextData.cofd_cg;
   await dbojs.modify({ id: playerId }, "$set", {
-    "data.cofd": sheet,
+    data: nextData,
   });
-  await dbojs.modify({ id: playerId }, "$unset", {
-    "data.cofd_cg": "",
-  });
+  // Also unset path for adapters that deep-merge data
+  try {
+    await dbojs.modify({ id: playerId }, "$unset", {
+      "data.cofd_cg": "",
+    });
+  } catch {
+    /* optional */
+  }
 
   // approved + template sight flags
   const sightAdd = templateSightFlags(sheet.template) as SightFlag[];
   await setPlayerFlags(playerId, ["approved", ...sightAdd], []);
 
+  // Verify write landed (helps debug Character tab empties)
+  const check = await dbojs.queryOne({ id: playerId });
+  const checkData = (check as { data?: Record<string, unknown> })
+    ?.data;
+  if (!checkData?.cofd) {
+    console.error(
+      "[cofd] approve: data.cofd missing after write",
+      playerId,
+    );
+    return {
+      ok: false,
+      error:
+        "Approve write failed (sheet not stored). Check server logs.",
+    };
+  }
   // Dorm home (no teleport without full SDK)
   let dormId: string | null = dormRoomIdForTemplate(
     sheet.template,

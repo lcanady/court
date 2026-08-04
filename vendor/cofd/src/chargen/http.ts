@@ -67,9 +67,11 @@ function isStaff(flags: Set<string>): boolean {
 
 function isApproved(actor: Actor): boolean {
   const f = flagsOf(actor.flags);
-  if (f.has("approved")) return true;
-  const bag = playerBag(actor);
-  return !!bag.cofd;
+  for (const x of f) {
+    if (String(x).toLowerCase() === "approved") return true;
+  }
+  // Live sheet alone counts (flag write may lag)
+  return liveSheetOf(actor) != null;
 }
 
 /**
@@ -85,7 +87,11 @@ type Actor = {
 };
 
 async function loadActor(userId: string): Promise<Actor | null> {
-  const row = await dbojs.queryOne({ id: userId });
+  const bare = String(userId ?? "").replace(/^#/, "").trim();
+  if (!bare) return null;
+  let row = await dbojs.queryOne({ id: bare });
+  if (!row) row = await dbojs.queryOne({ id: `#${bare}` });
+  if (!row) row = await dbojs.queryOne({ id: userId });
   if (!row) return null;
   return row as unknown as Actor;
 }
@@ -108,10 +114,12 @@ function playerBag(actor: Actor): Record<string, unknown> {
 }
 
 function readCg(actor: Actor): CofdCgState | null {
-  const bag = playerBag(actor);
-  const raw = bag.cofd_cg;
-  if (!raw || typeof raw !== "object") return null;
-  return raw as CofdCgState;
+  // Check data and state directly — do not prefer wrong bag
+  const d = actor.data?.cofd_cg;
+  if (d && typeof d === "object") return d as CofdCgState;
+  const s = actor.state?.cofd_cg;
+  if (s && typeof s === "object") return s as CofdCgState;
+  return null;
 }
 
 /** Sheet for options filtering (merits eligibility). */
@@ -214,10 +222,51 @@ function json(data: unknown, status = 200): Response {
 function liveSheetOf(
   actor: Actor,
 ): CofdCgState["sheet"] | null {
-  const bag = playerBag(actor);
-  const raw = bag.cofd;
-  if (!raw || typeof raw !== "object") return null;
-  return raw as CofdCgState["sheet"];
+  // Read live sheet from data or state — never miss because
+  // playerBag preferred leftover cofd_cg.
+  const d = actor.data?.cofd;
+  if (d && typeof d === "object") {
+    return d as CofdCgState["sheet"];
+  }
+  const s = actor.state?.cofd;
+  if (s && typeof s === "object") {
+    return s as CofdCgState["sheet"];
+  }
+  return null;
+}
+
+async function sheetPayload(
+  actor: Actor,
+  live: CofdCgState["sheet"],
+  approved: boolean,
+): Promise<Record<string, unknown>> {
+  const name = String(
+    actor.name ||
+      (actor.data?.name as string) ||
+      (actor.state?.name as string) ||
+      "Character",
+  );
+  let text = "";
+  try {
+    text = stripMushForWeb(
+      await formatSheet(name, String(actor.id), live),
+    );
+  } catch {
+    text = "";
+  }
+  return {
+    ok: true,
+    approved: true,
+    isApproved: true,
+    closed: true,
+    started: true,
+    sheet: live,
+    sheetText: text,
+    name,
+    reason: approved
+      ? "Character approved — live sheet."
+      : "Live sheet.",
+  };
 }
 
 function stripMushForWeb(s: string): string {
@@ -241,65 +290,24 @@ export async function getChargen(
   const actor = await loadActor(userId);
   if (!actor) return json({ error: "Forbidden" }, 403);
 
-  const approved = isApproved(actor);
   const live = liveSheetOf(actor);
+  const flagApproved = (() => {
+    for (const x of flagsOf(actor.flags)) {
+      if (String(x).toLowerCase() === "approved") return true;
+    }
+    return false;
+  })();
+  const approved = flagApproved || live != null;
+  const cg = readCg(actor);
   const staff = isStaff(flagsOf(actor.flags));
 
-  // Approved PCs (and staff with a live sheet) see Character sheet.
-  if (approved && live && !staff) {
-    const name = String(
-      actor.name ||
-        (playerBag(actor).name as string) ||
-        "Character",
-    );
-    let text = "";
-    try {
-      text = stripMushForWeb(
-        await formatSheet(name, actor.id, live),
-      );
-    } catch {
-      text = "";
-    }
-    return json({
-      ok: true,
-      approved: true,
-      closed: true,
-      started: true,
-      isApproved: true,
-      sheet: live,
-      sheetText: text,
-      name,
-      reason: "Character approved — live sheet.",
-    });
+  // Character tab: any live sheet for approved PCs wins over draft.
+  // Staff keep draft only when NOT approved (testing chargen).
+  if (live && (flagApproved || !staff || !cg)) {
+    return json(await sheetPayload(actor, live, approved));
   }
 
-  // Staff with approved flag still may run chargen for testing
-  // unless they only want their live sheet — prefer draft if any.
-  let cg = readCg(actor);
   if (!cg) {
-    if (live) {
-      const name = String(
-        actor.name ||
-          (playerBag(actor).name as string) ||
-          "Character",
-      );
-      let text = "";
-      try {
-        text = stripMushForWeb(
-          await formatSheet(name, actor.id, live),
-        );
-      } catch { /* ignore */ }
-      return json({
-        ok: true,
-        approved: approved,
-        closed: approved && !staff,
-        started: true,
-        isApproved: approved,
-        sheet: live,
-        sheetText: text,
-        name,
-      });
-    }
     return json({
       ok: true,
       started: false,
