@@ -1047,6 +1047,7 @@
   function doSignOut() {
     try { sessionStorage.removeItem("ursamu.webAdmin.token"); } catch (_) {}
     try { localStorage.removeItem("ursamu.webAdmin.token"); } catch (_) {}
+    try { bustHelpIndex(); } catch (_) { /* defined later */ }
     window.location.href = pubPath("");
   }
 
@@ -1518,11 +1519,30 @@
 
   // ── Public help browser (/help, /help/<topic>) ───────────────────────────
 
+  function helpAuthHeaders() {
+    var headers = {};
+    try {
+      var tok = sessionStorage.getItem("ursamu.webAdmin.token") ||
+        "";
+      if (tok) {
+        headers["Authorization"] = "Bearer " + tok;
+      }
+    } catch (_) { /* private mode */ }
+    return headers;
+  }
+
+  /** Drop cached index (login/logout changes staff visibility). */
+  function bustHelpIndex() {
+    helpIndex = null;
+    helpIndexPromise = null;
+  }
+
   function fetchHelpIndex() {
     if (helpIndex) return Promise.resolve(helpIndex);
     if (helpIndexPromise) return helpIndexPromise;
     helpIndexPromise = fetch("/api/v1/help", {
       credentials: "same-origin",
+      headers: helpAuthHeaders(),
     })
       .then(function (r) {
         return r.ok ? r.json() : { sections: [], topics: [] };
@@ -1531,11 +1551,12 @@
         helpIndex = {
           sections: Array.isArray(data.sections) ? data.sections : [],
           topics: Array.isArray(data.topics) ? data.topics : [],
+          staff: data.staff === true,
         };
         return helpIndex;
       })
       .catch(function () {
-        helpIndex = { sections: [], topics: [] };
+        helpIndex = { sections: [], topics: [], staff: false };
         return helpIndex;
       });
     return helpIndexPromise;
@@ -1909,23 +1930,31 @@
       }
       var topic = helpTopicByName(HELP_PATH);
       if (topic) {
-        // Prefer fresh API body when available
+        // Always re-fetch so staff-only gates apply with Bearer token
         return fetch(
           "/api/v1/help/" +
             encodeURIComponent(HELP_PATH).replace(/%2F/gi, "/"),
-          { credentials: "same-origin" },
+          {
+            credentials: "same-origin",
+            headers: helpAuthHeaders(),
+          },
         )
           .then(function (r) {
-            return r.ok ? r.json() : null;
+            if (!r.ok) return null;
+            return r.json();
           })
           .then(function (data) {
-            var entry = (data && data.entry) ? data.entry : topic;
-            injectHelpTopic(entry);
-            return entry;
+            if (data && data.entry) {
+              injectHelpTopic(data.entry);
+              return data.entry;
+            }
+            // 404 — staff-only or missing (do not leak cached index)
+            injectHelpNotFound(HELP_PATH);
+            return null;
           })
           .catch(function () {
-            injectHelpTopic(topic);
-            return topic;
+            injectHelpNotFound(HELP_PATH);
+            return null;
           });
       }
       // Section listing?

@@ -5,14 +5,27 @@
  * GET    /api/v1/help/:topic       → { entry }
  * POST   /api/v1/help/:topic       → { entry }  (admin)
  * DELETE /api/v1/help/:topic       → 204        (admin, DB only)
+ *
+ * Staff-only topics (admin/wizard locks, staff/ paths, admin
+ * sections, dark/hidden) are omitted for non-staff; direct GET
+ * returns 404 (no existence leak).
  */
 
 import { registerPluginRoute, dbojs } from "@ursamu/mush";
 import { helpRegistry, slugify } from "./registry.ts";
 import { upsertEntry, deleteEntry } from "./providers/database.ts";
 import { emitHelp } from "./hooks.ts";
+import {
+  filterTopicsForViewer,
+  isStaffOnlyEntry,
+} from "./visibility.ts";
 
-const STAFF = new Set(["admin", "wizard", "superuser"]);
+const STAFF = new Set([
+  "admin",
+  "wizard",
+  "superuser",
+  "staff",
+]);
 
 function flagSet(raw: unknown): Set<string> {
   if (raw instanceof Set) {
@@ -30,7 +43,8 @@ function flagSet(raw: unknown): Set<string> {
   return new Set();
 }
 
-async function isAdmin(userId: string): Promise<boolean> {
+async function isStaff(userId: string | null): Promise<boolean> {
+  if (!userId) return false;
   const actor = await dbojs.queryOne({ id: userId });
   if (!actor) return false;
   const s = flagSet(actor.flags);
@@ -40,38 +54,30 @@ async function isAdmin(userId: string): Promise<boolean> {
 
 /**
  * Single prefix handler for /api/v1/help and nested topics.
- * dispatchPluginRoute matches by startsWith — one registration.
  */
 registerPluginRoute("/api/v1/help", async (req, userId) => {
   const url = new URL(req.url);
   const rest = url.pathname
     .replace(/^\/api\/v1\/help\/?/, "")
     .replace(/\/+$/, "");
-  // Keep path slashes; slugify each segment
   const topic = rest
     ? rest.split("/").map((p) => slugify(p)).filter(Boolean)
       .join("/")
     : "";
 
-  // GET /api/v1/help — index (staff sees hidden/dark topics)
+  const staff = await isStaff(userId);
+
+  // GET /api/v1/help — index
   if (!topic && req.method === "GET") {
-    const staff = userId ? await isAdmin(userId) : false;
     const all = await helpRegistry.all();
-    const topics = (staff
-      ? all
-      : all.filter((e) => !e.hidden)
-    ).filter((e) => Boolean(e.name?.trim()));
+    const topics = filterTopicsForViewer(all, staff)
+      .sort((a, b) => a.name.localeCompare(b.name));
     const sections = [
       ...new Set(
         topics.map((e) => e.section).filter(Boolean),
       ),
     ].sort();
-    return Response.json({
-      sections,
-      topics: topics.sort((a, b) =>
-        a.name.localeCompare(b.name)
-      ),
-    });
+    return Response.json({ sections, topics, staff });
   }
 
   if (!topic) {
@@ -85,6 +91,10 @@ registerPluginRoute("/api/v1/help", async (req, userId) => {
   if (req.method === "GET") {
     const entry = await helpRegistry.lookup(topic);
     if (!entry) {
+      return Response.json({ error: "Not found" }, { status: 404 });
+    }
+    // Fail closed for staff-only when viewer is not staff
+    if (isStaffOnlyEntry(entry) && !staff) {
       return Response.json({ error: "Not found" }, { status: 404 });
     }
     if (url.searchParams.get("format") === "md") {
@@ -103,7 +113,7 @@ registerPluginRoute("/api/v1/help", async (req, userId) => {
 
   // POST /api/v1/help/<topic> — create/update DB override
   if (req.method === "POST") {
-    if (!(await isAdmin(userId))) {
+    if (!staff) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -163,9 +173,9 @@ registerPluginRoute("/api/v1/help", async (req, userId) => {
     return Response.json({ entry }, { status: 201 });
   }
 
-  // DELETE /api/v1/help/<topic> — remove DB override only
+  // DELETE /api/v1/help/<topic>
   if (req.method === "DELETE") {
-    if (!(await isAdmin(userId))) {
+    if (!staff) {
       return Response.json({ error: "Forbidden" }, { status: 403 });
     }
 

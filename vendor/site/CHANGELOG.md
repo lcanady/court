@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.27
+
+- Help browser sends Bearer token when signed in so staff
+  see admin topics; public/anonymous only get player help.
+
 ## 0.1.26
 
 - Public **Wiki** index and directory listings use tables
