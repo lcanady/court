@@ -153,6 +153,21 @@
           "M+" + m + " P+" + p + " S+" + s;
       }
     }
+    if (stage === 6) {
+      var budget = String(sh.template || "").toLowerCase() ===
+        "werewolf"
+        ? 10
+        : 7;
+      var spent = 0;
+      var mer = sh.merits || {};
+      Object.keys(mer).forEach(function (k) {
+        spent += Number(mer[k]) || 0;
+      });
+      if (spent !== budget) {
+        return "Merits: spend exactly " + budget +
+          " dots (have " + spent + ").";
+      }
+    }
     return null;
   }
 
@@ -160,6 +175,10 @@
     var err = demoValidate(state);
     state.canAdvance = !err;
     state.validationError = err;
+    var mb = meritBudgetInfo(state);
+    state.meritBudget = mb.budget;
+    state.meritSpent = mb.spent;
+    state.meritRemaining = mb.remaining;
     state.stageName = (state.stages.find(function (s) {
       return s.stage === state.stage;
     }) || {}).name || "Stage";
@@ -259,6 +278,37 @@
           1,
           Math.min(5, parseInt(value, 10) || 1),
         );
+      } else if (state.stage === 6 || findMeritDef(trait)) {
+        sh.merits = sh.merits || {};
+        // Normalize language(spanish) → language:spanish storage
+        var mref = trait;
+        var pm = trait.match(/^([^(]+)\(([^)]+)\)$/);
+        if (pm) {
+          mref = pm[1].trim() + ":" +
+            pm[2].trim().toLowerCase().replace(/\s+/g, "-");
+        }
+        var def = findMeritDef(mref.split(":")[0]);
+        if (!value || value === "0") {
+          delete sh.merits[mref];
+        } else {
+          var dv = parseInt(value, 10) || 0;
+          if (def && def.allowedDots.indexOf(dv) < 0) {
+            return Promise.reject(Object.assign(
+              new Error(
+                "Merit only allows: " +
+                  def.allowedDots.join(", "),
+              ),
+              { status: 400, data: state },
+            ));
+          }
+          if (def && def.instanced && mref.indexOf(":") < 0) {
+            return Promise.reject(Object.assign(
+              new Error("Merit requires a qualifier."),
+              { status: 400, data: state },
+            ));
+          }
+          sh.merits[mref] = dv;
+        }
       } else {
         sh.skills = sh.skills || {};
         sh.skills[trait] = Math.max(
@@ -294,7 +344,7 @@
   async function loadOptions() {
     var topics = [
       "virtues", "vices", "templates", "seemings",
-      "courts", "regalia", "attributes", "skills",
+      "courts", "regalia", "attributes", "skills", "merits",
     ];
     if (demo) {
       opts = {
@@ -363,6 +413,56 @@
             { name: "Hunterheart", seeming: "Beast" },
           ],
         },
+        merits: {
+          budget: 7,
+          items: [
+            {
+              key: "allies", name: "Allies", category: "Social",
+              allowedDots: [1, 2, 3, 4, 5], minCost: 1,
+              instanced: true, prereqs: [],
+            },
+            {
+              key: "contacts", name: "Contacts", category: "Social",
+              allowedDots: [1, 2, 3, 4, 5], minCost: 1,
+              instanced: true, prereqs: [],
+            },
+            {
+              key: "resources", name: "Resources",
+              category: "Social",
+              allowedDots: [1, 2, 3, 4, 5], minCost: 1,
+              instanced: false, prereqs: [],
+            },
+            {
+              key: "language", name: "Language",
+              category: "Mental",
+              allowedDots: [1], minCost: 1,
+              instanced: true, prereqs: [],
+            },
+            {
+              key: "striking looks", name: "Striking Looks",
+              category: "Social",
+              allowedDots: [1, 2], minCost: 1,
+              instanced: false, prereqs: [],
+            },
+            {
+              key: "giant", name: "Giant", category: "Physical",
+              allowedDots: [3], minCost: 3,
+              instanced: false, prereqs: [],
+            },
+            {
+              key: "fame", name: "Fame", category: "Social",
+              allowedDots: [1, 2, 3], minCost: 1,
+              instanced: false, prereqs: [],
+            },
+            {
+              key: "a shot rings out",
+              name: "A Shot Rings Out",
+              category: "Fighting Style",
+              allowedDots: [3], minCost: 3,
+              instanced: false, prereqs: [],
+            },
+          ],
+        },
       };
       return;
     }
@@ -370,11 +470,69 @@
       try {
         var r = await fetch(
           API + "/options?topic=" + encodeURIComponent(t),
-          { credentials: "same-origin" },
+          {
+            credentials: "same-origin",
+            headers: authHeaders(),
+          },
         );
         if (r.ok) opts[t] = await r.json();
       } catch (_) { /* ignore */ }
     }));
+  }
+
+  function meritCatalog() {
+    return (opts.merits && opts.merits.items) || [];
+  }
+
+  function findMeritDef(q) {
+    q = String(q || "").trim().toLowerCase();
+    if (!q) return null;
+    var items = meritCatalog();
+    for (var i = 0; i < items.length; i++) {
+      if (items[i].key === q ||
+        String(items[i].name).toLowerCase() === q) {
+        return items[i];
+      }
+    }
+    // storage key merit:qualifier
+    var base = q.split(":")[0].split("(")[0].trim();
+    for (var j = 0; j < items.length; j++) {
+      if (items[j].key === base) return items[j];
+    }
+    return null;
+  }
+
+  function formatMeritStorageKey(key) {
+    // "contacts:police" → "Contacts (Police)"
+    var parts = String(key || "").split(":");
+    var def = findMeritDef(parts[0]);
+    var name = def ? def.name : titleCase(parts[0]);
+    if (parts[1]) {
+      return name + " (" + titleCase(parts[1].replace(/-/g, " ")) +
+        ")";
+    }
+    return name;
+  }
+
+  function meritBudgetInfo(st) {
+    var budget = st.meritBudget;
+    if (budget == null) {
+      var tmpl = (st.sheet && st.sheet.template) || "mortal";
+      budget = String(tmpl).toLowerCase() === "werewolf" ? 10 : 7;
+    }
+    var spent = st.meritSpent;
+    if (spent == null) {
+      spent = 0;
+      var m = (st.sheet && st.sheet.merits) || {};
+      Object.keys(m).forEach(function (k) {
+        spent += Number(m[k]) || 0;
+      });
+    }
+    return {
+      budget: budget,
+      spent: spent,
+      remaining: Math.max(0, budget - spent),
+    };
   }
 
   async function loadKiths(seeming) {
@@ -680,21 +838,65 @@
       html += renderDotGroup("Social", sKeys, sh.skills, 0);
       html += "</div>";
     } else if (stage === 6) {
-      html += '<p class="cg-stage__hint">Merits — set dots with ' +
-        "<code>+cg/set MeritName=N</code> in-game for full " +
-        "catalog, or enter a merit name and dots below.</p>";
+      var mb = meritBudgetInfo(st);
+      html += '<p class="cg-stage__hint">Pick merits from the ' +
+        "catalog. <strong>Cost = dots</strong> at the rating " +
+        "you choose (only legal ratings for that merit).</p>";
+      html += '<p class="cg-pool' +
+        (mb.remaining === 0 ? "" : "") +
+        (mb.spent > mb.budget ? " is-bad" : "") +
+        '">Merit dots — spent <strong>' + mb.spent +
+        "</strong> / <strong>" + mb.budget +
+        "</strong> · remaining <strong>" + mb.remaining +
+        "</strong></p>";
+
+      html += '<div class="cg-merit-picker" data-cg-merit-picker>';
+      html += '<div class="cg-field cg-merit-search-wrap">' +
+        '<label class="cg-field__label" for="merit-search">' +
+        "Search merits</label>" +
+        '<input type="search" class="cg-input" id="merit-search" ' +
+        'data-cg-merit-search autocomplete="off" ' +
+        'placeholder="Type a name…" />' +
+        '<ul class="cg-merit-suggest" data-cg-merit-suggest ' +
+        'hidden role="listbox"></ul></div>';
+
+      html += '<div class="cg-merit-detail" data-cg-merit-detail ' +
+        'hidden>' +
+        '<p class="cg-merit-detail__name" data-cg-merit-sel-name>' +
+        "</p>" +
+        '<p class="cg-merit-detail__meta muted" ' +
+        'data-cg-merit-sel-meta></p>' +
+        '<div class="cg-field" data-cg-merit-qual-wrap hidden>' +
+        '<label class="cg-field__label" for="merit-qual">' +
+        "Qualifier (required)</label>" +
+        '<input type="text" class="cg-input" id="merit-qual" ' +
+        'data-cg-merit-qual placeholder="e.g. Spanish, Police" />' +
+        "</div>" +
+        '<div class="cg-field">' +
+        '<span class="cg-field__label">Rating / cost</span>' +
+        '<div class="cg-merit-dots" data-cg-merit-dots></div>' +
+        '<p class="cg-merit-cost muted" data-cg-merit-cost></p>' +
+        "</div>" +
+        '<button type="button" class="cg-btn cg-btn--primary" ' +
+        'data-cg-add-merit disabled>Add merit</button>' +
+        "</div></div>";
+
       var merits = sh.merits || {};
       var mKeys2 = Object.keys(merits);
-      html += fieldText("merit_name", "Merit name", "");
-      html += fieldText("merit_dots", "Dots (1–5)", "1");
-      html += '<button type="button" class="cg-btn" ' +
-        'data-cg-add-merit>Add merit</button>';
       if (mKeys2.length) {
         html += '<div class="cg-group cg-group--spaced">' +
-          '<h3 class="cg-group__title">Selected</h3><ul>';
+          '<h3 class="cg-group__title">Selected</h3>' +
+          '<ul class="cg-merit-list">';
         for (var mi = 0; mi < mKeys2.length; mi++) {
-          html += "<li>" + esc(titleCase(mKeys2[mi])) + " · " +
-            merits[mKeys2[mi]] + "</li>";
+          var mk = mKeys2[mi];
+          var md = merits[mk];
+          html += '<li class="cg-merit-list__item">' +
+            '<span>' + esc(formatMeritStorageKey(mk)) +
+            ' <strong class="cg-merit-list__cost">' + md +
+            " dot" + (md === 1 ? "" : "s") + "</strong></span>" +
+            '<button type="button" class="cg-btn cg-btn--tiny" ' +
+            'data-cg-remove-merit="' + esc(mk) +
+            '">Remove</button></li>';
         }
         html += "</ul></div>";
       }
@@ -900,6 +1102,204 @@
     }
   }
 
+  /** Selected merit def + chosen rating for stage 6. */
+  var meritPick = { def: null, dots: 0 };
+
+  function wireMeritPicker(root) {
+    var search = qs("[data-cg-merit-search]", root);
+    var suggest = qs("[data-cg-merit-suggest]", root);
+    var detail = qs("[data-cg-merit-detail]", root);
+    var addBtn = qs("[data-cg-add-merit]", root);
+    if (!search || !suggest) return;
+
+    function hideSuggest() {
+      suggest.hidden = true;
+      suggest.innerHTML = "";
+    }
+
+    function showSuggest(q) {
+      q = String(q || "").trim().toLowerCase();
+      var items = meritCatalog();
+      if (!q || q.length < 1) {
+        hideSuggest();
+        return;
+      }
+      var hits = [];
+      for (var i = 0; i < items.length && hits.length < 12; i++) {
+        var it = items[i];
+        var hay = (it.name + " " + it.key + " " + it.category)
+          .toLowerCase();
+        if (hay.indexOf(q) !== -1) hits.push(it);
+      }
+      if (!hits.length) {
+        suggest.innerHTML =
+          '<li class="cg-merit-suggest__empty">No matches</li>';
+        suggest.hidden = false;
+        return;
+      }
+      var html = "";
+      for (var h = 0; h < hits.length; h++) {
+        var m = hits[h];
+        var costHint = m.allowedDots.length === 1
+          ? m.allowedDots[0] + " dots"
+          : m.allowedDots.join("/") + " dots";
+        html += '<li role="option" tabindex="0" ' +
+          'data-cg-merit-pick="' + esc(m.key) + '">' +
+          '<span class="cg-merit-suggest__name">' +
+          esc(m.name) + "</span>" +
+          '<span class="cg-merit-suggest__cost">' +
+          esc(costHint) +
+          (m.instanced ? " · needs qualifier" : "") +
+          "</span></li>";
+      }
+      suggest.innerHTML = html;
+      suggest.hidden = false;
+    }
+
+    function selectMerit(key) {
+      var def = findMeritDef(key);
+      if (!def) return;
+      meritPick.def = def;
+      meritPick.dots = def.allowedDots[0] || 1;
+      search.value = def.name;
+      hideSuggest();
+      if (!detail) return;
+      detail.hidden = false;
+      var nm = qs("[data-cg-merit-sel-name]", root);
+      var meta = qs("[data-cg-merit-sel-meta]", root);
+      if (nm) nm.textContent = def.name;
+      if (meta) {
+        meta.textContent = def.category +
+          " · allowed " + def.allowedDots.join(", ") +
+          " · min cost " + def.minCost;
+      }
+      var qw = qs("[data-cg-merit-qual-wrap]", root);
+      if (qw) qw.hidden = !def.instanced;
+      var qin = qs("[data-cg-merit-qual]", root);
+      if (qin) qin.value = "";
+      renderMeritDotChoices(root, def);
+      updateMeritCostLabel(root);
+      if (addBtn) addBtn.disabled = false;
+    }
+
+    function renderMeritDotChoices(rootEl, def) {
+      var box = qs("[data-cg-merit-dots]", rootEl);
+      if (!box) return;
+      var html = "";
+      for (var i = 0; i < def.allowedDots.length; i++) {
+        var d = def.allowedDots[i];
+        var on = d === meritPick.dots ? " is-selected" : "";
+        html += '<button type="button" class="cg-merit-dot-btn' +
+          on + '" data-cg-merit-dot="' + d + '">' +
+          d + "</button>";
+      }
+      box.innerHTML = html;
+      box.querySelectorAll("[data-cg-merit-dot]").forEach(
+        function (btn) {
+          btn.addEventListener("click", function () {
+            meritPick.dots = parseInt(
+              btn.getAttribute("data-cg-merit-dot"),
+              10,
+            );
+            renderMeritDotChoices(rootEl, def);
+            updateMeritCostLabel(rootEl);
+          });
+        },
+      );
+    }
+
+    function updateMeritCostLabel(rootEl) {
+      var el = qs("[data-cg-merit-cost]", rootEl);
+      if (!el || !meritPick.def) return;
+      var rem = meritBudgetInfo(state || {}).remaining;
+      var cost = meritPick.dots;
+      el.textContent = "Cost: " + cost + " merit dot" +
+        (cost === 1 ? "" : "s") +
+        " (you have " + rem + " remaining)";
+      el.classList.toggle("is-bad", cost > rem);
+    }
+
+    search.addEventListener("input", function () {
+      showSuggest(search.value);
+    });
+    search.addEventListener("focus", function () {
+      if (search.value) showSuggest(search.value);
+    });
+    search.addEventListener("keydown", function (e) {
+      if (e.key === "Escape") hideSuggest();
+    });
+
+    suggest.addEventListener("click", function (e) {
+      var li = e.target && e.target.closest
+        ? e.target.closest("[data-cg-merit-pick]")
+        : null;
+      if (!li) return;
+      selectMerit(li.getAttribute("data-cg-merit-pick"));
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!root.contains(e.target)) return;
+      if (search.contains(e.target) || suggest.contains(e.target)) {
+        return;
+      }
+      hideSuggest();
+    });
+
+    if (addBtn) {
+      addBtn.addEventListener("click", function () {
+        if (!meritPick.def) return;
+        var def = meritPick.def;
+        var dots = meritPick.dots;
+        if (def.allowedDots.indexOf(dots) < 0) {
+          setMsg(
+            qs("[data-cg-error]"),
+            "Invalid rating for " + def.name +
+              ". Allowed: " + def.allowedDots.join(", "),
+            true,
+          );
+          return;
+        }
+        var trait = def.key;
+        if (def.instanced) {
+          var qel = qs("[data-cg-merit-qual]", root);
+          var qv = qel ? qel.value.trim() : "";
+          if (!qv) {
+            setMsg(
+              qs("[data-cg-error]"),
+              def.name + " needs a qualifier " +
+                "(e.g. Language → Spanish).",
+              true,
+            );
+            return;
+          }
+          trait = def.key + "(" + qv + ")";
+        }
+        var rem = meritBudgetInfo(state || {}).remaining;
+        if (dots > rem) {
+          setMsg(
+            qs("[data-cg-error]"),
+            "Not enough merit dots (need " + dots +
+              ", have " + rem + ").",
+            true,
+          );
+          return;
+        }
+        applyTrait(trait, String(dots), { rerender: true });
+      });
+    }
+
+    root.querySelectorAll("[data-cg-remove-merit]").forEach(
+      function (btn) {
+        btn.addEventListener("click", function () {
+          var key = btn.getAttribute("data-cg-remove-merit");
+          if (!key) return;
+          // Empty value resets merit (validateTraitValue → 0)
+          applyTrait(key, "", { rerender: true });
+        });
+      },
+    );
+  }
+
   function wireStage() {
     var root = qs("[data-cg-root]") || document;
 
@@ -954,18 +1354,7 @@
       });
     });
 
-    var addM = qs("[data-cg-add-merit]", root);
-    if (addM) {
-      addM.addEventListener("click", function () {
-        var n = qs("#merit_name", root);
-        var d = qs("#merit_dots", root);
-        if (!n || !n.value.trim()) return;
-        applyTrait(
-          n.value.trim(),
-          (d && d.value) || "1",
-        );
-      });
-    }
+    wireMeritPicker(root);
 
     var back = qs("[data-cg-back]", root);
     if (back) {
@@ -1074,7 +1463,7 @@
     if (!qs('link[data-cg-css]')) {
       var link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "/site/css/chargen.css?v=20260804stat3";
+      link.href = "/site/css/chargen.css?v=20260804meritac";
       link.setAttribute("data-cg-css", "1");
       document.head.appendChild(link);
     }

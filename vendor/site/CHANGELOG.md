@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.38
+
+- Chargen merits: autocomplete + allowed-dot costs only
+
 ## 0.1.37
 
 - Chargen Attributes/Skills: Mental|Physical|Social in three columns (in-game layout)

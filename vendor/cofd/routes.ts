@@ -24,6 +24,7 @@ import {
   stepChargen,
   contractChargen,
   chargenOptions,
+  chargenSheetForUser,
 } from "./src/chargen/http.ts";
 
 const STAFF_FLAGS = new Set(["superuser", "admin", "wizard", "builder"]);
@@ -66,7 +67,7 @@ export async function routeHandler(
   const method = req.method;
   const path = normalizePath(url.pathname);
 
-  // Public catalog — no auth (FE can preload before login)
+  // Catalog — auth optional; merits filter by draft sheet when signed in
   if (
     method === "GET" &&
     path === "/api/v1/cofd/chargen/options"
@@ -75,7 +76,15 @@ export async function routeHandler(
       const topic = url.searchParams.get("topic") ?? "";
       const seeming = url.searchParams.get("seeming") ??
         undefined;
-      return await chargenOptions(topic, seeming);
+      let sheet = null;
+      if (
+        userId &&
+        topic.toLowerCase().trim() === "merits" &&
+        url.searchParams.get("eligible") !== "0"
+      ) {
+        sheet = await chargenSheetForUser(userId);
+      }
+      return await chargenOptions(topic, seeming, { sheet });
     } catch {
       return Response.json({ error: "Internal" }, { status: 500 });
     }

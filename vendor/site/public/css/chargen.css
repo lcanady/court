@@ -359,6 +359,157 @@
   text-align: right;
 }
 
+/* ── Merits autocomplete ────────────────────────────────────────── */
+
+.cg-merit-picker {
+  position: relative;
+  max-width: 36rem;
+  margin-bottom: 1.25rem;
+}
+
+.cg-merit-search-wrap {
+  position: relative;
+}
+
+.cg-merit-suggest {
+  list-style: none;
+  margin: 0.25rem 0 0;
+  padding: 0.25rem 0;
+  position: absolute;
+  z-index: 20;
+  left: 0;
+  right: 0;
+  max-height: 16rem;
+  overflow: auto;
+  background: var(--site-bg-surface, #0a0908);
+  border: 1px solid var(--site-border);
+  border-radius: 2px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+}
+
+.cg-merit-suggest[hidden] {
+  display: none;
+}
+
+.cg-merit-suggest li {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.cg-merit-suggest li:hover,
+.cg-merit-suggest li:focus {
+  background: var(--site-accent-muted);
+  outline: none;
+}
+
+.cg-merit-suggest__name {
+  color: var(--site-text);
+}
+
+.cg-merit-suggest__cost {
+  color: var(--site-accent);
+  font-size: 0.8rem;
+  white-space: nowrap;
+}
+
+.cg-merit-suggest__empty {
+  color: var(--site-text-muted);
+  cursor: default;
+}
+
+.cg-merit-detail {
+  margin-top: 1rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--site-border-subtle);
+  border-radius: 4px;
+  background: var(--site-bg-surface, #0a0908);
+}
+
+.cg-merit-detail[hidden] {
+  display: none;
+}
+
+.cg-merit-detail__name {
+  font-family: var(--site-font-display);
+  font-size: 1.35rem;
+  color: var(--site-accent);
+  margin: 0 0 0.25rem;
+}
+
+.cg-merit-detail__meta {
+  margin: 0 0 0.75rem;
+  font-size: 0.85rem;
+}
+
+.cg-merit-dots {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0.35rem 0 0.5rem;
+}
+
+.cg-merit-dot-btn {
+  min-width: 2.25rem;
+  height: 2.25rem;
+  padding: 0 0.5rem;
+  border: 1px solid var(--site-border);
+  border-radius: 2px;
+  background: transparent;
+  color: var(--site-text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cg-merit-dot-btn:hover {
+  border-color: var(--site-accent);
+}
+
+.cg-merit-dot-btn.is-selected {
+  background: var(--site-accent);
+  border-color: var(--site-accent);
+  color: var(--site-bg);
+}
+
+.cg-merit-cost {
+  margin: 0 0 0.75rem;
+  font-size: 0.9rem;
+}
+
+.cg-merit-cost.is-bad {
+  color: #e07070;
+}
+
+.cg-merit-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.cg-merit-list__item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--site-border-subtle);
+  font-size: 0.95rem;
+}
+
+.cg-merit-list__cost {
+  color: var(--site-accent);
+  font-weight: 600;
+}
+
+.cg-btn--tiny {
+  min-height: 1.75rem;
+  padding: 0.2rem 0.55rem;
+  font-size: 0.75rem;
+}
+
 /* Actions */
 .cg-actions {
   display: flex;

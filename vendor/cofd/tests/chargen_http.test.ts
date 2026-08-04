@@ -50,3 +50,17 @@ Deno.test("chargenOptions kiths filter", OPTS, async () => {
     );
   }
 });
+
+Deno.test("chargenOptions merits catalog", OPTS, async () => {
+  const res = await chargenOptions("merits");
+  assertEquals(res.status, 200);
+  const body = await res.json();
+  assertEquals(body.ok, true);
+  assertEquals(Array.isArray(body.items), true);
+  assertEquals(body.items.length > 50, true);
+  const allies = body.items.find((m: { key: string }) => m.key === "allies");
+  assertExists(allies);
+  assertEquals(Array.isArray(allies.allowedDots), true);
+  assertEquals(allies.allowedDots.includes(1), true);
+  assertEquals(typeof allies.minCost, "number");
+});

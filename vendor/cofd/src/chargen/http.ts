@@ -6,6 +6,7 @@
 import { dbojs } from "@ursamu/ursamu";
 import {
   COFD_ATTRIBUTES,
+  COFD_MERITS,
   COFD_MENTAL_SKILLS,
   COFD_PHYSICAL_SKILLS,
   COFD_SOCIAL_SKILLS,
@@ -25,6 +26,7 @@ import {
   initCgState,
   getStageName,
   maxStageFor,
+  startingMeritDots,
   updateCgState,
   type CofdCgState,
 } from "./state.ts";
@@ -34,6 +36,7 @@ import {
   removeContract,
   contractStageProgress,
 } from "./contracts.ts";
+import { eligibleMerits } from "./list_eligible.ts";
 
 const STAFF = new Set([
   "superuser",
@@ -108,6 +111,16 @@ function readCg(actor: Actor): CofdCgState | null {
   return raw as CofdCgState;
 }
 
+/** Sheet for options filtering (merits eligibility). */
+export async function chargenSheetForUser(
+  userId: string,
+): Promise<CofdCgState["sheet"] | null> {
+  const actor = await loadActor(userId);
+  if (!actor) return null;
+  const cg = readCg(actor);
+  return cg?.sheet ?? null;
+}
+
 async function saveCg(
   userId: string,
   cg: CofdCgState,
@@ -140,9 +153,18 @@ function stageLabels(max: number): { stage: number; name: string; short: string 
   return out;
 }
 
+function meritDotsSpent(sheet: CofdCgState["sheet"]): number {
+  const m = sheet.merits || {};
+  let n = 0;
+  for (const k of Object.keys(m)) n += Number(m[k]) || 0;
+  return n;
+}
+
 function publicState(cg: CofdCgState) {
   const max = maxStageFor(cg.sheet.template);
   const val = validateCurrentStage(cg);
+  const budget = startingMeritDots(cg.sheet.template);
+  const spent = meritDotsSpent(cg.sheet);
   return {
     // FE gate: missing `started` was treated as "Begin chargen"
     // after every /set /next /back — looked like a full restart.
@@ -158,6 +180,9 @@ function publicState(cg: CofdCgState) {
     canAdvance: val.valid,
     validationError: val.valid ? null : (val.error ?? "Invalid"),
     templateMeta: templateMeta(cg.sheet.template),
+    meritBudget: budget,
+    meritSpent: spent,
+    meritRemaining: Math.max(0, budget - spent),
   };
 }
 
@@ -357,12 +382,46 @@ export async function contractChargen(
   }
 }
 
+function meritOptionItems(
+  list: typeof COFD_MERITS,
+) {
+  return list.map((m) => ({
+    key: m.key,
+    name: m.name,
+    category: m.category,
+    /** Valid ratings at purchase — chargen cost = chosen dots. */
+    allowedDots: [...m.allowedDots],
+    /** Min cost if buying at lowest legal rating. */
+    minCost: m.allowedDots.length
+      ? Math.min(...m.allowedDots)
+      : 1,
+    instanced: m.instanced === true,
+    prereqs: [...(m.prereqs ?? [])],
+  }));
+}
+
 /** GET /api/v1/cofd/chargen/options?topic= */
 export async function chargenOptions(
   topicRaw: string,
   seeming?: string,
+  opts?: { sheet?: CofdCgState["sheet"] | null },
 ): Promise<Response> {
   const topic = topicRaw.toLowerCase().trim();
+
+  if (topic === "merits") {
+    const sheet = opts?.sheet;
+    const list = sheet
+      ? eligibleMerits(sheet)
+      : COFD_MERITS;
+    return json({
+      ok: true,
+      topic,
+      budget: sheet
+        ? startingMeritDots(sheet.template)
+        : 7,
+      items: meritOptionItems(list),
+    });
+  }
 
   if (topic === "virtues") {
     return json({
