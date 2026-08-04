@@ -1,3 +1,7 @@
+## 1.2.4
+
+- Chargen HTTP: read `data.cofd_cg` on raw dbojs rows (was only `state`, so Next said Start chargen first)
+
 ## 1.2.2
 
 - REST chargen API for public /chargen FE

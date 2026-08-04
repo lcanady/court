@@ -59,20 +59,23 @@ function isStaff(flags: Set<string>): boolean {
   return false;
 }
 
-function isApproved(actor: {
-  flags?: unknown;
-  state?: Record<string, unknown>;
-}): boolean {
+function isApproved(actor: Actor): boolean {
   const f = flagsOf(actor.flags);
   if (f.has("approved")) return true;
-  return !!actor.state?.cofd;
+  const bag = playerBag(actor);
+  return !!bag.cofd;
 }
 
+/**
+ * dbojs.queryOne returns storage shape (flags string, data bag).
+ * SDK hydrate() maps data → state; HTTP handlers must accept both.
+ */
 type Actor = {
   id: string;
   name?: string;
   flags?: unknown;
   state?: Record<string, unknown>;
+  data?: Record<string, unknown>;
 };
 
 async function loadActor(userId: string): Promise<Actor | null> {
@@ -81,8 +84,26 @@ async function loadActor(userId: string): Promise<Actor | null> {
   return row as unknown as Actor;
 }
 
+/** Player bag: hydrated `state` or raw KV `data`. */
+function playerBag(actor: Actor): Record<string, unknown> {
+  const s = actor.state && typeof actor.state === "object"
+    ? actor.state
+    : null;
+  const d = actor.data && typeof actor.data === "object"
+    ? actor.data
+    : null;
+  // Prefer the bag that actually holds chargen draft
+  if (s && s.cofd_cg != null) return s;
+  if (d && d.cofd_cg != null) return d;
+  // Live sheet may only live on one side
+  if (s && s.cofd != null) return s;
+  if (d && d.cofd != null) return d;
+  return s || d || {};
+}
+
 function readCg(actor: Actor): CofdCgState | null {
-  const raw = actor.state?.cofd_cg;
+  const bag = playerBag(actor);
+  const raw = bag.cofd_cg;
   if (!raw || typeof raw !== "object") return null;
   return raw as CofdCgState;
 }
@@ -91,6 +112,7 @@ async function saveCg(
   userId: string,
   cg: CofdCgState,
 ): Promise<void> {
+  // Storage path is data.* (same as +cg / u.db.modify)
   await dbojs.modify({ id: userId }, "$set", {
     "data.cofd_cg": cg,
   });
