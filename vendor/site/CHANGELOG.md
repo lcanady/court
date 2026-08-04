@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.37
+
+- Chargen Attributes/Skills: Mental|Physical|Social in three columns (in-game layout)
+
 ## 0.1.36
 
 - Keep traditional 3-column layout; only stack on phones (≤720px). Medium widths shrink rails instead.

@@ -638,6 +638,8 @@
         "</strong> · Social <strong>+" + ax.social +
         "</strong> (need 5/4/3)</p>";
       var A = opts.attributes || {};
+      // In-game +cg: Mental | Physical | Social side-by-side
+      html += '<div class="cg-stat-cols" data-cg-stat-cols>';
       html += renderDotGroup(
         "Mental",
         A.mental || ["intelligence", "wits", "resolve"],
@@ -656,6 +658,7 @@
         sh.attributes,
         1,
       );
+      html += "</div>";
     } else if (stage === 5) {
       var S = opts.skills || {};
       var mKeys = S.mental || [];
@@ -671,9 +674,11 @@
         "</strong> · Physical <strong>" + ps +
         "</strong> · Social <strong>" + ss +
         "</strong> (need 11/9/7)</p>";
+      html += '<div class="cg-stat-cols" data-cg-stat-cols>';
       html += renderDotGroup("Mental", mKeys, sh.skills, 0);
       html += renderDotGroup("Physical", pKeys, sh.skills, 0);
       html += renderDotGroup("Social", sKeys, sh.skills, 0);
+      html += "</div>";
     } else if (stage === 6) {
       html += '<p class="cg-stage__hint">Merits — set dots with ' +
         "<code>+cg/set MeritName=N</code> in-game for full " +
@@ -1069,7 +1074,7 @@
     if (!qs('link[data-cg-css]')) {
       var link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "/site/css/chargen.css?v=20260804cg3";
+      link.href = "/site/css/chargen.css?v=20260804stat3";
       link.setAttribute("data-cg-css", "1");
       document.head.appendChild(link);
     }
