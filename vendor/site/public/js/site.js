@@ -1172,6 +1172,14 @@
         img.src = user.avatar;
         img.className = "site-nav-avatar";
         img.alt = "";
+        img.referrerPolicy = "no-referrer";
+        img.onerror = function () {
+          // Broken /avatars path → fall back to initial
+          var fb = document.createElement("span");
+          fb.className = "site-nav-avatar-initial";
+          fb.textContent = user.name.charAt(0).toUpperCase();
+          if (img.parentNode) img.parentNode.replaceChild(fb, img);
+        };
         btn.appendChild(img);
       } else {
         var init = document.createElement("span");
@@ -2108,7 +2116,7 @@
     if (!chargenScriptPromise) {
       chargenScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/chargen.js?v=20260804finish";
+        s.src = "/site/js/chargen.js?v=20260804avatar";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {

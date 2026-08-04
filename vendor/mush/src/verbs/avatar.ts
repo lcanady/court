@@ -42,6 +42,8 @@ export async function execAvatar(u: IUrsamuSDK): Promise<void> {
     if (player) {
       player.data ||= {};
       delete player.data.avatarExt;
+      // Legacy web field — clear so /api/v1/me drops avatar
+      delete player.data.image;
       await dbojs.modify({ id: player.id }, "$set", player);
     }
     u.send("Avatar cleared.");
@@ -78,6 +80,8 @@ export async function execAvatar(u: IUrsamuSDK): Promise<void> {
 
   player.data ||= {};
   player.data.avatarExt = result.ext;
+  // Public path for /api/v1/me + staff admin chrome
+  player.data.image = `/avatars/${u.me.id}.${result.ext}`;
   await dbojs.modify({ id: player.id }, "$set", player);
   u.send("Avatar saved.");
 }

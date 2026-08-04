@@ -11,6 +11,7 @@
 import { dbojs, chans, chanHistory, Obj } from "../world/dbobjs.ts";
 import { stripAnsi } from "../softcode/stdlib/helpers.ts";
 import { monikerToHtml } from "../render/moniker-html.ts";
+import { resolveAvatarUrl } from "./avatar-url.ts";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
@@ -78,6 +79,13 @@ export async function meHandler(_req: Request, userId: string): Promise<Response
   const monikerPlain = plainMoniker(monikerRaw);
   const monikerHtml = monikerToHtml(monikerRaw);
 
+  // Avatar: local @avatar file (/avatars/{id}.ext) or legacy image URL.
+  // user.id is bare numeric/string id; dbref is "#n".
+  const bag = (user.data ??
+    user.dbobj?.data ??
+    {}) as Record<string, unknown>;
+  const avatar = await resolveAvatarUrl(user.id, bag);
+
   const profile = {
     id: user.dbref,
     // Numeric id for clients that need it (wiki admin JWT is this id)
@@ -89,7 +97,7 @@ export async function meHandler(_req: Request, userId: string): Promise<Response
     monikerHtml,
     flags: normalizeFlagList(rawFlags),
     location: user.dbobj.location || null,
-    avatar: (user.data?.image as string | undefined) || null,
+    avatar,
   };
 
   return new Response(JSON.stringify(profile), {
