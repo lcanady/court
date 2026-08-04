@@ -14,6 +14,8 @@
  *   POST /api/v1/cofd/chargen/submit  -> finish (CGEN job)
  *   POST /api/v1/cofd/chargen/contract
  *   GET  /api/v1/cofd/chargen/options -> catalog (public)
+ *   GET  /api/v1/cofd/sheet           -> live sheet (self)
+ *   POST /api/v1/cofd/approve         -> staff approve PC
  *   POST /api/v1/cofd/themes          -> staff spawn themes
  */
 import { dbojs } from "@ursamu/ursamu";
@@ -27,6 +29,8 @@ import {
   chargenOptions,
   submitChargen,
   chargenSheetForUser,
+  getSheet,
+  approveHttp,
 } from "./src/chargen/http.ts";
 
 const STAFF_FLAGS = new Set(["superuser", "admin", "wizard", "builder"]);
@@ -94,6 +98,38 @@ export async function routeHandler(
 
   if (method === "GET" && path === "/api/v1/cofd") {
     return Response.json({ ok: true });
+  }
+
+  // Live sheet + staff approve (auth required)
+  if (path === "/api/v1/cofd/sheet" || path === "/api/v1/cofd/approve") {
+    if (!userId) {
+      return Response.json(
+        { error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
+    try {
+      if (method === "GET" && path === "/api/v1/cofd/sheet") {
+        return await getSheet(userId);
+      }
+      if (method === "POST" && path === "/api/v1/cofd/approve") {
+        const parsed = await readJson(req);
+        if (!parsed.ok) {
+          return Response.json(
+            { error: "invalid JSON" },
+            { status: 400 },
+          );
+        }
+        const b = (parsed.body ?? {}) as {
+          playerId?: string;
+          jobNumber?: number | string;
+          notes?: string;
+        };
+        return await approveHttp(userId, b);
+      }
+    } catch {
+      return Response.json({ error: "Internal" }, { status: 500 });
+    }
   }
 
   // Remaining chargen routes need a signed-in player

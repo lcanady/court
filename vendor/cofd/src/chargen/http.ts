@@ -38,6 +38,8 @@ import {
 } from "./contracts.ts";
 import { eligibleMerits } from "./list_eligible.ts";
 import { submitCgDraft } from "./submit.ts";
+import { approvePlayer } from "./approve_core.ts";
+import { formatSheet } from "../sheet/index.ts";
 
 const STAFF = new Set([
   "superuser",
@@ -209,23 +211,95 @@ function json(data: unknown, status = 200): Response {
   return Response.json(data, { status });
 }
 
-/** GET /api/v1/cofd/chargen — current session + stage chrome. */
+function liveSheetOf(
+  actor: Actor,
+): CofdCgState["sheet"] | null {
+  const bag = playerBag(actor);
+  const raw = bag.cofd;
+  if (!raw || typeof raw !== "object") return null;
+  return raw as CofdCgState["sheet"];
+}
+
+function stripMushForWeb(s: string): string {
+  return String(s ?? "")
+    .replace(/%r/gi, "\n")
+    .replace(/%t/gi, "\t")
+    .replace(/%b/gi, " ")
+    .replace(/%c[a-zA-Z]/gi, "")
+    .replace(/<#(?:[0-9a-fA-F]{3}|[0-9a-fA-F]{6})>/g, "")
+    .replace(/%[nN]/g, "")
+    // deno-lint-ignore no-control-regex
+    .replace(/\u001b\[[0-9;]*m/g, "")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+}
+
+/** GET /api/v1/cofd/chargen — draft session, or live sheet if approved. */
 export async function getChargen(
   userId: string,
 ): Promise<Response> {
   const actor = await loadActor(userId);
   if (!actor) return json({ error: "Forbidden" }, 403);
 
-  if (isApproved(actor) && !isStaff(flagsOf(actor.flags))) {
+  const approved = isApproved(actor);
+  const live = liveSheetOf(actor);
+  const staff = isStaff(flagsOf(actor.flags));
+
+  // Approved PCs (and staff with a live sheet) see Character sheet.
+  if (approved && live && !staff) {
+    const name = String(
+      actor.name ||
+        (playerBag(actor).name as string) ||
+        "Character",
+    );
+    let text = "";
+    try {
+      text = stripMushForWeb(
+        await formatSheet(name, actor.id, live),
+      );
+    } catch {
+      text = "";
+    }
     return json({
       ok: true,
+      approved: true,
       closed: true,
-      reason: "Character already approved. Chargen is closed.",
+      started: true,
+      isApproved: true,
+      sheet: live,
+      sheetText: text,
+      name,
+      reason: "Character approved — live sheet.",
     });
   }
 
+  // Staff with approved flag still may run chargen for testing
+  // unless they only want their live sheet — prefer draft if any.
   let cg = readCg(actor);
   if (!cg) {
+    if (live) {
+      const name = String(
+        actor.name ||
+          (playerBag(actor).name as string) ||
+          "Character",
+      );
+      let text = "";
+      try {
+        text = stripMushForWeb(
+          await formatSheet(name, actor.id, live),
+        );
+      } catch { /* ignore */ }
+      return json({
+        ok: true,
+        approved: approved,
+        closed: approved && !staff,
+        started: true,
+        isApproved: approved,
+        sheet: live,
+        sheetText: text,
+        name,
+      });
+    }
     return json({
       ok: true,
       started: false,
@@ -238,6 +312,108 @@ export async function getChargen(
   }
 
   return json({ ok: true, started: true, ...publicState(cg) });
+}
+
+/** GET /api/v1/cofd/sheet — own live sheet (JSON + plain text). */
+export async function getSheet(
+  userId: string,
+): Promise<Response> {
+  const actor = await loadActor(userId);
+  if (!actor) return json({ error: "Forbidden" }, 403);
+  const live = liveSheetOf(actor);
+  if (!live) {
+    return json({
+      ok: false,
+      error: "No live sheet. Finish chargen first.",
+    }, 404);
+  }
+  const name = String(
+    actor.name ||
+      (playerBag(actor).name as string) ||
+      "Character",
+  );
+  let text = "";
+  try {
+    text = stripMushForWeb(
+      await formatSheet(name, actor.id, live),
+    );
+  } catch (e: unknown) {
+    const msg = e instanceof Error ? e.message : String(e);
+    text = `(sheet render failed: ${msg})`;
+  }
+  return json({
+    ok: true,
+    approved: isApproved(actor),
+    name,
+    sheet: live,
+    sheetText: text,
+  });
+}
+
+/**
+ * POST /api/v1/cofd/approve — staff approve a player (or by job).
+ * Body: { playerId?: string, jobNumber?: number, notes?: string }
+ */
+export async function approveHttp(
+  staffId: string,
+  body: {
+    playerId?: string;
+    jobNumber?: number | string;
+    notes?: string;
+  },
+): Promise<Response> {
+  const staff = await loadActor(staffId);
+  if (!staff) return json({ error: "Forbidden" }, 403);
+  if (!isStaff(flagsOf(staff.flags))) {
+    return json({ error: "Staff only." }, 403);
+  }
+
+  let playerId = String(body.playerId ?? "").replace(/^#/, "")
+    .trim();
+  if (!playerId && body.jobNumber != null) {
+    try {
+      const { jobs } = await import("@ursamu/jobs");
+      const all = await jobs.find({});
+      const want = Number(body.jobNumber);
+      const job = all.find((j) => Number(j.number) === want);
+      if (job) {
+        playerId = String(job.submittedBy ?? "").replace(
+          /^#/,
+          "",
+        );
+      }
+    } catch {
+      /* ignore */
+    }
+  }
+  if (!playerId) {
+    return json({
+      error: "playerId or jobNumber required",
+    }, 400);
+  }
+
+  const staffName = String(
+    staff.name ||
+      (playerBag(staff).name as string) ||
+      "Staff",
+  );
+  const result = await approvePlayer({
+    playerId,
+    staffId,
+    staffName,
+    notes: String(body.notes ?? ""),
+    completeJob: true,
+  });
+  if (!result.ok) {
+    return json({ error: result.error }, 400);
+  }
+  return json({
+    ok: true,
+    already: result.already,
+    name: result.name,
+    dormId: result.dormId,
+    jobNumber: result.job?.number ?? null,
+  });
 }
 
 /** POST /api/v1/cofd/chargen/start — begin or soft-reset draft. */

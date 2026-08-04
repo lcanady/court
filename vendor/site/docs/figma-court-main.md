@@ -21,7 +21,8 @@ Gap math at 1728:
 
 Layout is **CSS grid** (not absolute):  
 `minmax(aside) | minmax(main) | minmax(aside)` + `column-gap`.  
-Below 1100px columns stack (main → left → right).
+Below ~1100px rails shrink but stay 3-column. Stack only
+on phones (≤720px): main → left → right.
 
 ## Type
 

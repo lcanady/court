@@ -991,12 +991,58 @@
         esc(cf.kith || "—") + "<br>" +
         esc(cf.court || "—") + "</p></div>";
     }
-    html += '<div class="cg-sheet__block">' +
-      '<p class="cg-sheet__label">Stage</p>' +
-      '<p class="cg-sheet__value">' +
-      st.stage + " / " + st.maxStage + " — " +
-      esc(st.stageName || "") + "</p></div>";
+    if (st.stage != null && st.maxStage != null && !st.approved) {
+      html += '<div class="cg-sheet__block">' +
+        '<p class="cg-sheet__label">Stage</p>' +
+        '<p class="cg-sheet__value">' +
+        st.stage + " / " + st.maxStage + " — " +
+        esc(st.stageName || "") + "</p></div>";
+    }
     html += "</div>";
+    return html;
+  }
+
+  /** Full live sheet for approved characters. */
+  function renderLiveSheet(st) {
+    var sh = st.sheet || {};
+    var html = "";
+    if (st.sheetText) {
+      html += '<pre class="cg-sheet-text">' +
+        esc(st.sheetText) + "</pre>";
+      return html;
+    }
+    // Structured fallback when formatSheet text missing
+    var attrs = sh.attributes || {};
+    var skills = sh.skills || {};
+    var merits = sh.merits || {};
+    html += '<div class="cg-live">';
+    html += '<p class="cg-stage__hint"><strong>' +
+      esc(sh.concept || "Character") + "</strong> · " +
+      esc(titleCase(sh.template || "mortal")) +
+      " · " + esc(sh.virtue || "—") + " / " +
+      esc(sh.vice || "—") + "</p>";
+
+    function dotsBlock(title, obj, keys) {
+      var h = '<div class="cg-group"><h3 class="cg-group__title">' +
+        esc(title) + "</h3><ul class=\"cg-live-list\">";
+      for (var i = 0; i < keys.length; i++) {
+        var k = keys[i];
+        var v = obj[k];
+        if (v == null && obj[k] !== 0) continue;
+        h += "<li><span>" + esc(titleCase(k)) +
+          '</span> <strong>' + (Number(v) || 0) +
+          "</strong></li>";
+      }
+      h += "</ul></div>";
+      return h;
+    }
+
+    html += '<div class="cg-stat-cols">';
+    html += dotsBlock("Attributes", attrs, Object.keys(attrs));
+    html += dotsBlock("Skills", skills, Object.keys(skills)
+      .filter(function (k) { return (skills[k] || 0) > 0; }));
+    html += dotsBlock("Merits", merits, Object.keys(merits));
+    html += "</div></div>";
     return html;
   }
 
@@ -1013,7 +1059,39 @@
       return;
     }
 
-    if (st.closed) {
+    // Approved live sheet — Character tab
+    if (st.approved || st.isApproved) {
+      if (st.sheet) {
+        main.innerHTML =
+          '<section class="site-section cg-root" data-cg-root>' +
+          '<header class="cg-header">' +
+          '<h2 class="cg-header__title">Character</h2>' +
+          '<p class="cg-header__sub">Live sheet' +
+          (st.name ? " — " + esc(st.name) : "") +
+          "</p></header>" +
+          renderLiveSheet(st) +
+          "</section>";
+        var rightLive = qs("[data-site-right-panels]");
+        if (rightLive) {
+          rightLive.innerHTML =
+            '<section class="site-menu menu">' +
+            '<h2 class="site-menu__title">Sheet</h2>' +
+            renderSheetSummary(st) + "</section>";
+        }
+        return;
+      }
+      main.innerHTML =
+        '<section class="site-section cg-root">' +
+        '<div class="cg-gate">' +
+        '<h2 class="cg-header__title">Character approved</h2>' +
+        "<p>" + esc(st.reason || "Your sheet is live.") +
+        "</p>" +
+        '<a class="cg-btn cg-btn--primary" href="/">Home</a>' +
+        "</div></section>";
+      return;
+    }
+
+    if (st.closed && !st.sheet) {
       main.innerHTML =
         '<section class="site-section cg-root">' +
         '<div class="cg-gate">' +
@@ -1535,7 +1613,7 @@
     if (!qs('link[data-cg-css]')) {
       var link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "/site/css/chargen.css?v=20260804avatar";
+      link.href = "/site/css/chargen.css?v=20260804char";
       link.setAttribute("data-cg-css", "1");
       document.head.appendChild(link);
     }

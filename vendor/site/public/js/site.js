@@ -1007,16 +1007,16 @@
       return;
     }
 
-    // Chargen: keep search; left rail = short help
+    // Character (/chargen): sheet or stepper help
     if (MODE === "chargen") {
       if (leftPanels) {
         leftPanels.innerHTML =
           "<section class=\"site-menu menu\">" +
-          "<h2 class=\"site-menu__title\">Chargen</h2>" +
+          "<h2 class=\"site-menu__title\">Character</h2>" +
           "<ul class=\"site-menu__list\">" +
           "<li class=\"is-current\"><a href=\"" +
           pubPath("chargen") +
-          "\" aria-current=\"page\">Stepper</a></li>" +
+          "\" aria-current=\"page\">Sheet / Chargen</a></li>" +
           "<li><a href=\"" + wikiHref("rules/chargen") +
           "\">Rules</a></li>" +
           "<li><a href=\"" + helpHref("chargen") +
@@ -2116,7 +2116,7 @@
     if (!chargenScriptPromise) {
       chargenScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/chargen.js?v=20260804navflex";
+        s.src = "/site/js/chargen.js?v=20260804char";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {
