@@ -502,11 +502,29 @@
 /* ── Live Character sheet (approved) ─────────────────────────── */
 
 .cg-live {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
   width: 100%;
 }
 
+/* Explicit document order on all viewports */
+.cg-live__block {
+  display: block;
+  width: 100%;
+  order: 0;
+}
+
+.cg-live__block[data-cg-sec="identity"] { order: 1; }
+.cg-live__block[data-cg-sec="advantages"] { order: 2; }
+.cg-live__block[data-cg-sec="stats"] { order: 3; }
+.cg-live__block[data-cg-sec="specialties"] { order: 4; }
+.cg-live__block[data-cg-sec="merits"] { order: 5; }
+.cg-live__block[data-cg-sec="contracts"] { order: 6; }
+.cg-live__block[data-cg-sec="powers"] { order: 7; }
+
 .cg-live__id {
-  margin: 0 0 1.15rem;
+  margin: 0 0 1rem;
   padding: 1rem 1.15rem;
   border: 1px solid var(--site-border-subtle);
   border-radius: 6px;
@@ -545,7 +563,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.4rem 0.9rem;
-  margin: 0 0 1.35rem;
+  margin: 0 0 1.15rem;
   padding: 0.65rem 0.85rem;
   border: 1px solid var(--site-border-subtle);
   border-radius: 4px;
@@ -563,9 +581,54 @@
   font-family: var(--site-font-display);
   font-size: 1.35rem;
   color: var(--site-accent);
-  margin: 0.25rem 0 0.75rem;
-  padding-top: 0.35rem;
+  margin: 0.15rem 0 0.75rem;
+  padding-top: 0.5rem;
   border-top: 1px solid var(--site-border-subtle);
+}
+
+/* Mental | Physical | Social — column-major (attrs then skills) */
+.cg-live__cols {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.15rem 1.25rem;
+  align-items: start;
+  width: 100%;
+  margin: 0 0 0.5rem;
+}
+
+.cg-live__col {
+  min-width: 0;
+  order: 0;
+}
+
+.cg-live__col[data-cg-cat="mental"] { order: 1; }
+.cg-live__col[data-cg-cat="physical"] { order: 2; }
+.cg-live__col[data-cg-cat="social"] { order: 3; }
+
+.cg-live__col-title {
+  font-family: var(--site-font-display);
+  font-size: 1.2rem;
+  color: var(--site-accent);
+  margin: 0 0 0.55rem;
+  padding-bottom: 0.3rem;
+  border-bottom: 1px solid var(--site-border-subtle);
+}
+
+.cg-live__col-sub {
+  margin: 0.65rem 0 0.35rem;
+  font-size: 0.68rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--site-text-muted);
+}
+
+.cg-live__col-sub:first-of-type {
+  margin-top: 0;
+}
+
+.cg-dots-row--ro {
+  max-width: none;
+  margin-bottom: 0.3rem;
 }
 
 .cg-dots-row--ro .cg-dots {
@@ -583,11 +646,16 @@
   border: 1px solid var(--site-accent-border, var(--site-accent));
   background: transparent;
   box-sizing: border-box;
+  cursor: default;
 }
 
 .cg-dots-row--ro .cg-dot.is-on {
   background: var(--site-accent);
   border-color: var(--site-accent);
+}
+
+.cg-dots-row--ro .cg-dot:hover {
+  border-color: var(--site-accent-border, var(--site-accent));
 }
 
 .cg-dots-row__num {
@@ -600,6 +668,32 @@
 
 .cg-live__power-dots {
   max-width: 22rem;
+}
+
+/* Phone: stack categories Mental → Physical → Social */
+@media (max-width: 720px) {
+  .cg-live__cols {
+    display: flex;
+    flex-direction: column;
+    gap: 1.35rem;
+  }
+
+  .cg-live__col {
+    width: 100%;
+  }
+
+  .cg-live__col[data-cg-cat="mental"] { order: 1; }
+  .cg-live__col[data-cg-cat="physical"] { order: 2; }
+  .cg-live__col[data-cg-cat="social"] { order: 3; }
+
+  .cg-live__concept {
+    font-size: 1.25rem;
+  }
+
+  /* Redundant with main sheet; rails stack after main on mobile */
+  .site-shell.is-mode-chargen .site-aside--end {
+    display: none;
+  }
 }
 
 .cg-merit-list__cost {

@@ -2116,7 +2116,7 @@
     if (!chargenScriptPromise) {
       chargenScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/chargen.js?v=20260804livesheet";
+        s.src = "/site/js/chargen.js?v=20260804sheetord";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {

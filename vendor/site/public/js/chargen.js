@@ -1064,8 +1064,34 @@
   }
 
   /**
-   * Full live sheet — same visual language as chargen stages
-   * (identity card + 3-col attrs/skills + merits). Not +sheet text.
+   * One category column: Attributes then Skills (CoFD sheet order).
+   * Mobile stacks columns Mental → Physical → Social.
+   */
+  function renderCategoryCol(label, attrKeys, skillKeys, attrs, skills) {
+    var html = '<div class="cg-live__col" data-cg-cat="' +
+      esc(label.toLowerCase()) + '">';
+    html += '<h3 class="cg-live__col-title">' + esc(label) + "</h3>";
+    html += '<p class="cg-live__col-sub">Attributes</p>';
+    for (var i = 0; i < attrKeys.length; i++) {
+      var ak = attrKeys[i];
+      var av = attrs[ak];
+      if (av == null) av = attrs[ak.toLowerCase()];
+      html += renderReadonlyDots(ak, av != null ? av : 1, 5);
+    }
+    html += '<p class="cg-live__col-sub">Skills</p>';
+    for (var j = 0; j < skillKeys.length; j++) {
+      var sk = skillKeys[j];
+      var sv = skills[sk];
+      if (sv == null) sv = skills[sk.toLowerCase()];
+      html += renderReadonlyDots(sk, sv != null ? sv : 0, 5);
+    }
+    html += "</div>";
+    return html;
+  }
+
+  /**
+   * Full live sheet — identity, advantages, then 3 category
+   * columns (attrs+skills), then specialties / merits / powers.
    */
   function renderLiveSheet(st) {
     var sh = st.sheet || {};
@@ -1085,8 +1111,9 @@
 
     var html = '<div class="cg-live">';
 
-    // Identity header
-    html += '<div class="cg-live__id">';
+    // 1. Identity
+    html += '<section class="cg-live__block cg-live__id" ' +
+      'data-cg-sec="identity">';
     html += '<p class="cg-live__concept">' +
       esc(sh.concept || "Character") + "</p>";
     html += '<p class="cg-live__meta">' +
@@ -1112,9 +1139,9 @@
         "<span>Thread <strong>" +
         esc(cf.thread || "—") + "</strong></span>";
     }
-    html += "</p></div>";
+    html += "</p></section>";
 
-    // Advantages strip
+    // 2. Advantages
     var size = adv.size != null ? adv.size : 5;
     var wp = adv.willpowerMax != null ? adv.willpowerMax : "—";
     var health = adv.healthMax != null ? adv.healthMax : "—";
@@ -1123,56 +1150,62 @@
     var init = adv.initiativeMod != null
       ? adv.initiativeMod
       : (adv.initiative != null ? adv.initiative : "—");
-    html += '<div class="cg-live__adv">' +
+    html += '<section class="cg-live__block cg-live__adv" ' +
+      'data-cg-sec="advantages" aria-label="Advantages">';
+    html +=
       "<span>Size <strong>" + esc(size) + "</strong></span>" +
       "<span>Health <strong>" + esc(health) + "</strong></span>" +
       "<span>Willpower <strong>" + esc(wp) + "</strong></span>" +
       "<span>Speed <strong>" + esc(speed) + "</strong></span>" +
       "<span>Defense <strong>" + esc(defense) + "</strong></span>" +
       "<span>Initiative <strong>" + esc(init) + "</strong></span>" +
-      "</div>";
+      "</section>";
 
-    // Attributes — Mental | Physical | Social
-    html += '<h3 class="cg-live__section">Attributes</h3>';
-    html += '<div class="cg-stat-cols" data-cg-stat-cols>';
-    html += renderReadonlyDotGroup("Mental", mKeys, attrs);
-    html += renderReadonlyDotGroup("Physical", pKeys, attrs);
-    html += renderReadonlyDotGroup("Social", sKeys, attrs);
-    html += "</div>";
+    // 3. Stats — one column per category (stacks cleanly on phone)
+    html += '<section class="cg-live__block" data-cg-sec="stats">';
+    html += '<h3 class="cg-live__section">Traits</h3>';
+    html += '<div class="cg-live__cols">';
+    html += renderCategoryCol(
+      "Mental", mKeys, sm, attrs, skills,
+    );
+    html += renderCategoryCol(
+      "Physical", pKeys, sp, attrs, skills,
+    );
+    html += renderCategoryCol(
+      "Social", sKeys, ss, attrs, skills,
+    );
+    html += "</div></section>";
 
-    // Skills
-    html += '<h3 class="cg-live__section">Skills</h3>';
-    html += '<div class="cg-stat-cols" data-cg-stat-cols>';
-    html += renderReadonlyDotGroup("Mental", sm, skills);
-    html += renderReadonlyDotGroup("Physical", sp, skills);
-    html += renderReadonlyDotGroup("Social", ss, skills);
-    html += "</div>";
-
-    // Specialties
+    // 4. Specialties
     var specs = sh.specialties || {};
     var specKeys = Object.keys(specs).filter(function (k) {
       return specs[k];
-    });
+    }).sort();
     if (specKeys.length) {
-      html += '<div class="cg-group cg-group--spaced">' +
-        '<h3 class="cg-group__title">Specialties</h3>' +
+      html += '<section class="cg-live__block" ' +
+        'data-cg-sec="specialties">' +
+        '<h3 class="cg-live__section">Specialties</h3>' +
         '<ul class="cg-merit-list">';
       for (var si = 0; si < specKeys.length; si++) {
-        var sk = specKeys[si];
+        var skn = specKeys[si];
         html += '<li class="cg-merit-list__item"><span>' +
-          esc(titleCase(sk)) + " — " +
-          esc(String(specs[sk])) +
+          esc(titleCase(skn)) + " — " +
+          esc(String(specs[skn])) +
           "</span></li>";
       }
-      html += "</ul></div>";
+      html += "</ul></section>";
     }
 
-    // Merits
+    // 5. Merits (stable alpha order)
     var mKeys2 = Object.keys(merits).filter(function (k) {
       return (Number(merits[k]) || 0) > 0;
+    }).sort(function (a, b) {
+      return formatMeritStorageKey(a).localeCompare(
+        formatMeritStorageKey(b),
+      );
     });
-    html += '<div class="cg-group cg-group--spaced">' +
-      '<h3 class="cg-group__title">Merits</h3>';
+    html += '<section class="cg-live__block" data-cg-sec="merits">' +
+      '<h3 class="cg-live__section">Merits</h3>';
     if (!mKeys2.length) {
       html += '<p class="cg-sheet__muted">None.</p>';
     } else {
@@ -1188,27 +1221,31 @@
       }
       html += "</ul>";
     }
-    html += "</div>";
+    html += "</section>";
 
-    // Contracts / powers
+    // 6. Contracts
     var contracts = sh.contracts || [];
     if (contracts.length) {
-      html += '<div class="cg-group cg-group--spaced">' +
-        '<h3 class="cg-group__title">Contracts</h3>' +
+      html += '<section class="cg-live__block" ' +
+        'data-cg-sec="contracts">' +
+        '<h3 class="cg-live__section">Contracts</h3>' +
         '<ul class="cg-merit-list">';
       for (var ci = 0; ci < contracts.length; ci++) {
         html += '<li class="cg-merit-list__item"><span>' +
           esc(String(contracts[ci])) + "</span></li>";
       }
-      html += "</ul></div>";
+      html += "</ul></section>";
     }
+
+    // 7. Powers / Renown
     var powers = sh.powers || {};
     var pKeys2 = Object.keys(powers).filter(function (k) {
       return (Number(powers[k]) || 0) > 0;
-    });
+    }).sort();
     if (pKeys2.length) {
-      html += '<div class="cg-group cg-group--spaced">' +
-        '<h3 class="cg-group__title">Powers</h3>' +
+      html += '<section class="cg-live__block" ' +
+        'data-cg-sec="powers">' +
+        '<h3 class="cg-live__section">Powers</h3>' +
         '<div class="cg-live__power-dots">';
       for (var pi = 0; pi < pKeys2.length; pi++) {
         html += renderReadonlyDots(
@@ -1217,7 +1254,7 @@
           5,
         );
       }
-      html += "</div></div>";
+      html += "</div></section>";
     }
 
     html += "</div>";
@@ -1794,7 +1831,7 @@
     if (!qs('link[data-cg-css]')) {
       var link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "/site/css/chargen.css?v=20260804livesheet";
+      link.href = "/site/css/chargen.css?v=20260804sheetord";
       link.setAttribute("data-cg-css", "1");
       document.head.appendChild(link);
     }
