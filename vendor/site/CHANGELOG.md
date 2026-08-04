@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.32
+
+- Wiki FE matches Figma: full hero chrome (not compact)
+- Wikilink titles wait for page index before render
+- TOC skips page title; CSP-safe skeleton widths
+- Cache-bust `SITE_ASSET_V` → `20260804wikihero`
+
 ## 0.1.31
 
 - Cache-bust `SITE_ASSET_V` → `20260804onesearch`

@@ -189,6 +189,7 @@
 .site-skeleton-line {
   display: block;
   height: 0.75rem;
+  width: 100%;
   /* Prefer muted surface tokens so pulse reads on light and dark skins */
   background: color-mix(
     in srgb,
@@ -199,12 +200,26 @@
   animation: site-skeleton-pulse 1.35s ease-in-out infinite;
 }
 
+/* Width variants — classes avoid CSP-blocked inline style= */
+.site-skeleton-line--w72 { width: 72%; }
+.site-skeleton-line--w94 { width: 94%; }
+.site-skeleton-line--w58 { width: 58%; }
+.site-skeleton-line--w81 { width: 81%; }
+
 .site-skeleton-line:nth-child(2) {
   animation-delay: 0.12s;
 }
 
 .site-skeleton-line:nth-child(3) {
   animation-delay: 0.24s;
+}
+
+.site-skeleton-line:nth-child(4) {
+  animation-delay: 0.36s;
+}
+
+.site-skeleton-line:nth-child(5) {
+  animation-delay: 0.48s;
 }
 
 /* Fallback when color-mix unavailable */

@@ -163,8 +163,8 @@ See [design.md](./design.md) for the full contract.
 | `bannerImage` | string | — | Hero image URL |
 | `plainBg` | boolean | `false` | Drop top background art (home only) |
 
-Wiki pages may set frontmatter `bgImage: true` for the same
-home-height hero + top background; default is compact (no title height).
+Wiki pages use the same home-height hero + top background as
+the homepage (Figma wiki layout). Help stays compact under the nav.
 | `mount` | string | `"/site"` | URL prefix |
 | `serveRoot` | boolean | `false` | Also serve index at `/` |
 | `themeDir` | string | — | Game dir → `/site/theme/` |

@@ -241,6 +241,27 @@ body {
   --site-body-pad-top: calc(var(--site-nav-h) + 1.5rem);
 }
 
+/* Login / profile — centered main, no side rails (no inline styles) */
+.site-shell.is-mode-login .site-aside,
+.site-shell.is-mode-profile .site-aside {
+  display: none;
+}
+
+.site-shell.is-mode-login .site-main {
+  margin: 0 auto;
+  max-width: 440px;
+  min-height: calc(100vh - var(--site-nav-h) - 4rem);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+.site-shell.is-mode-profile .site-main {
+  margin: 0 auto;
+  max-width: 600px;
+}
+
 .site-shell.is-compact .site-banner,
 .site-shell.is-mode-no-hero .site-banner {
   display: none;

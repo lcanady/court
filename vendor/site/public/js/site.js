@@ -189,23 +189,19 @@
 
   /**
    * Shell chrome: home height vs compact (no title height).
-   * - home: site plainBg + hero offset from settings
-   * - wiki + bgImage: theme top bg, home-height spacer
-   * - wiki default / login / profile: compact under nav
+   * - home + wiki: Figma hero (top bg + banner offset)
+   * - help / login / profile: compact under nav
    */
   function applyShellChrome() {
     if (!shell) return;
     var cfg = siteConfig || {};
-    var wikiBg = MODE === "wiki" && pageBgImage === true;
+    var heroMode = MODE === "home" || MODE === "wiki";
     var compactMode = MODE === "login" || MODE === "profile" ||
-      MODE === "help" ||
-      (MODE === "wiki" && !pageBgImage);
+      MODE === "help";
 
-    if (MODE === "home") {
+    if (heroMode) {
       if (cfg.plainBg) shell.classList.add("is-plain");
       else shell.classList.remove("is-plain");
-    } else if (wikiBg) {
-      shell.classList.remove("is-plain");
     } else if (compactMode) {
       shell.classList.add("is-plain");
     } else if (cfg.plainBg) {
@@ -217,7 +213,7 @@
     if (compactMode) {
       shell.classList.add("is-compact");
       shell.classList.add("is-mode-no-hero");
-    } else if (wikiBg || MODE === "home") {
+    } else if (heroMode) {
       // Same home-height hero chrome (title / offset / bg)
       shell.classList.remove("is-mode-no-hero");
       var bSrc = String(cfg.bannerImage || "").trim();
@@ -290,9 +286,8 @@
     }
 
     var bannerSrc = String(cfg.bannerImage || "").trim();
-    // Home always; wiki only when page bgImage (home-height layout)
-    var showHero = MODE === "home" ||
-      (MODE === "wiki" && pageBgImage === true);
+    // Figma: home + wiki share full hero; help stays compact
+    var showHero = MODE === "home" || MODE === "wiki";
     if (bannerImg) {
       if (showHero && bannerSrc) {
         bannerImg.src = bannerSrc;
@@ -314,10 +309,10 @@
         bannerTitle.hidden = true;
       }
     }
-    // Connect under title (not a right-rail "Connect" menu)
+    // Connect under title on home only (Figma wiki has logo, not host)
     var telnetHost = String((cfg && cfg.telnet) || "").trim();
     if (bannerConnect) {
-      if (showHero && heroTitle && telnetHost) {
+      if (MODE === "home" && heroTitle && telnetHost) {
         bannerConnect.textContent = telnetHost;
         bannerConnect.href = "telnet://" + telnetHost;
         bannerConnect.hidden = false;
@@ -624,9 +619,12 @@
       if (!inPara) {
         html += "<p>";
         inPara = true;
-      } else {
-        // Soft line-break inside paragraph (help syntax lines)
+      } else if (MODE === "help") {
+        // Help SYNTAX blocks keep hard line breaks
         html += "<br>\n";
+      } else {
+        // Wiki prose: join soft-wrapped lines with a space
+        html += " ";
       }
       html += inlineMarkdown(line, pg);
     }
@@ -663,10 +661,9 @@
     );
     var title = String(page.title || page.path || "").trim();
     if (!bodyHtml.trim() && !title) return;
-    // Per-page bg only in wiki mode; home uses site settings
+    // Wiki uses Figma home-height hero; optional bgImage kept for API
     if (MODE === "wiki") {
-      pageBgImage = page.bgImage === true;
-      // Re-apply hero + chrome now that flag is known
+      pageBgImage = page.bgImage !== false;
       if (siteConfig && Object.keys(siteConfig).length) {
         applyConfig(siteConfig);
       } else {
@@ -690,7 +687,8 @@
   function injectWikiListing(opts) {
     if (!mainEl) return;
     opts = opts || {};
-    pageBgImage = false;
+    // Index / directories still use Figma hero chrome
+    pageBgImage = true;
     if (MODE === "wiki") {
       if (siteConfig && Object.keys(siteConfig).length) {
         applyConfig(siteConfig);
@@ -785,10 +783,10 @@
       "<div class=\"site-section__body site-loading-skeleton\" " +
       "role=\"status\">" +
       "<span class=\"site-sr-only\">Loading content…</span>" +
-      "<div class=\"site-skeleton-line\" style=\"width:72%\"></div>" +
-      "<div class=\"site-skeleton-line\" style=\"width:94%\"></div>" +
-      "<div class=\"site-skeleton-line\" style=\"width:58%\"></div>" +
-      "<div class=\"site-skeleton-line\" style=\"width:81%\"></div>" +
+      "<div class=\"site-skeleton-line site-skeleton-line--w72\"></div>" +
+      "<div class=\"site-skeleton-line site-skeleton-line--w94\"></div>" +
+      "<div class=\"site-skeleton-line site-skeleton-line--w58\"></div>" +
+      "<div class=\"site-skeleton-line site-skeleton-line--w81\"></div>" +
       "</div></section>" +
       articleFooterHtml();
   }
@@ -827,78 +825,38 @@
   var rightAside = document.getElementById("right");
 
   function updateSidebarAndBannerVisibility() {
-    // Layout chrome (bg height) is applyShellChrome; this is asides + banner
-    var wikiBg = MODE === "wiki" && pageBgImage === true;
+    // Layout chrome (bg height) is applyShellChrome; this is asides + banner.
+    // Prefer classes over inline styles (CSP blocks style= attributes).
+    if (shell) {
+      shell.classList.toggle("is-mode-login", MODE === "login");
+      shell.classList.toggle("is-mode-profile", MODE === "profile");
+    }
     if (MODE === "login") {
-      if (leftAside) leftAside.style.display = "none";
-      if (rightAside) rightAside.style.display = "none";
-      if (banner) banner.style.display = "none";
-      if (mainEl) {
-        mainEl.style.margin = "0 auto";
-        mainEl.style.maxWidth = "440px";
-        mainEl.style.minHeight = "calc(100vh - var(--site-nav-h) - 4rem)";
-        mainEl.style.display = "flex";
-        mainEl.style.flexDirection = "column";
-        mainEl.style.justifyContent = "center";
-        mainEl.style.alignItems = "center";
-      }
+      if (leftAside) leftAside.hidden = true;
+      if (rightAside) rightAside.hidden = true;
+      if (banner) banner.hidden = true;
       applyShellChrome();
     } else if (MODE === "profile") {
-      if (leftAside) leftAside.style.display = "none";
-      if (rightAside) rightAside.style.display = "none";
-      if (banner) banner.style.display = "none";
-      if (mainEl) {
-        mainEl.style.margin = "0 auto";
-        mainEl.style.maxWidth = "600px";
-        mainEl.style.minHeight = "";
-        mainEl.style.display = "";
-        mainEl.style.flexDirection = "";
-        mainEl.style.justifyContent = "";
-        mainEl.style.alignItems = "";
-      }
+      if (leftAside) leftAside.hidden = true;
+      if (rightAside) rightAside.hidden = true;
+      if (banner) banner.hidden = true;
       applyShellChrome();
     } else if (MODE === "wiki") {
-      if (leftAside) leftAside.style.display = "";
-      if (rightAside) rightAside.style.display = "";
-      // bgImage pages keep empty banner for home-height spacer
-      if (banner) banner.style.display = wikiBg ? "" : "none";
-      if (mainEl) {
-        mainEl.style.margin = "";
-        mainEl.style.maxWidth = "";
-        mainEl.style.minHeight = "";
-        mainEl.style.display = "";
-        mainEl.style.flexDirection = "";
-        mainEl.style.justifyContent = "";
-        mainEl.style.alignItems = "";
-      }
+      if (leftAside) leftAside.hidden = false;
+      if (rightAside) rightAside.hidden = false;
+      // Figma wiki: full hero banner (same as home)
+      if (banner) banner.hidden = false;
       applyShellChrome();
     } else if (MODE === "help") {
-      if (leftAside) leftAside.style.display = "";
-      if (rightAside) rightAside.style.display = "";
-      if (banner) banner.style.display = "none";
-      if (mainEl) {
-        mainEl.style.margin = "";
-        mainEl.style.maxWidth = "";
-        mainEl.style.minHeight = "";
-        mainEl.style.display = "";
-        mainEl.style.flexDirection = "";
-        mainEl.style.justifyContent = "";
-        mainEl.style.alignItems = "";
-      }
+      if (leftAside) leftAside.hidden = false;
+      if (rightAside) rightAside.hidden = false;
+      if (banner) banner.hidden = true;
       applyShellChrome();
     } else {
-      if (leftAside) leftAside.style.display = "";
-      if (rightAside) rightAside.style.display = "";
-      if (banner) banner.style.display = "";
-      if (mainEl) {
-        mainEl.style.margin = "";
-        mainEl.style.maxWidth = "";
-        mainEl.style.minHeight = "";
-        mainEl.style.display = "";
-        mainEl.style.flexDirection = "";
-        mainEl.style.justifyContent = "";
-        mainEl.style.alignItems = "";
-      }
+      // home / generic
+      if (leftAside) leftAside.hidden = false;
+      if (rightAside) rightAside.hidden = false;
+      if (banner) banner.hidden = false;
       applyShellChrome();
     }
   }
@@ -1089,7 +1047,10 @@
 
   function buildToc() {
     if (!mainEl) return [];
-    var headings = mainEl.querySelectorAll("h2, h3");
+    // Body headings only — skip page H1 (.site-section__title)
+    var headings = mainEl.querySelectorAll(
+      ".site-section__body h2, .site-section__body h3",
+    );
     var items = [];
     for (var i = 0; i < headings.length; i++) {
       var h = headings[i];
@@ -1465,17 +1426,33 @@
     }
   }
 
+  /** Latest wiki page list for search (updated each route). */
+  var searchPages = [];
+  var searchWired = false;
+
   function wireSearch(pages) {
     var form  = document.getElementById("search");
     var input = document.getElementById("site-q");
     if (!form || !input) return;
+    searchPages = Array.isArray(pages) ? pages : [];
     updateSearchChrome();
 
-    // Prefill from ?q= on help
+    // Prefill from ?q= on help; clear stale help query on wiki
     if (MODE === "help") {
       var hq = helpQueryFromUrl();
       if (hq) input.value = hq;
+    } else if (MODE === "wiki" || MODE === "home") {
+      try {
+        var wq = String(
+          new URLSearchParams(window.location.search).get("q") ||
+            "",
+        ).trim();
+        if (wq) input.value = wq;
+      } catch (_) { /* ignore */ }
     }
+
+    if (searchWired) return;
+    searchWired = true;
 
     form.addEventListener("submit", function (e) {
       e.preventDefault();
@@ -1499,7 +1476,7 @@
         return;
       }
 
-      var hits = pages.filter(function (p) {
+      var hits = searchPages.filter(function (p) {
         return !p.draft && (
           (p.title || "").toLowerCase().includes(q) ||
           (p.path  || "").toLowerCase().includes(q) ||
@@ -2103,43 +2080,74 @@
       articlePromise = loadHelpRoute();
     } else if (MODE === "wiki" && WIKI_PATH) {
       var slug = WIKI_PATH.split("/").pop().replace(/[-_]/g, " ");
-      var loadTitle = slug ? (slug.charAt(0).toUpperCase() + slug.slice(1)) : "Wiki";
+      var loadTitle = slug
+        ? (slug.charAt(0).toUpperCase() + slug.slice(1))
+        : "Wiki";
       injectLoadingState(loadTitle);
 
-      articlePromise = fetch(
-        "/api/v1/wiki/" + encodeWikiApiPath(WIKI_PATH),
-        { credentials: "same-origin" }
-      )
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (page) {
-          if (!page) {
+      // Wait for wiki index so [[wikilinks]] resolve titles
+      articlePromise = listPromise.then(function () {
+        return fetch(
+          "/api/v1/wiki/" + encodeWikiApiPath(WIKI_PATH),
+          { credentials: "same-origin" },
+        )
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (page) {
+            if (!page) {
+              injectNotFound(WIKI_PATH);
+              return null;
+            }
+            if (
+              page.type === "directory" &&
+              Array.isArray(page.children)
+            ) {
+              injectWikiListing({
+                title: page.title || page.path || WIKI_PATH,
+                items: page.children,
+              });
+              return page;
+            }
+            if (page.body != null || page.title) {
+              injectArticle(page);
+              return page;
+            }
+            injectNotFound(WIKI_PATH);
+            return page;
+          })
+          .catch(function () {
             injectNotFound(WIKI_PATH);
             return null;
-          }
-          if (page.type === "directory" && Array.isArray(page.children)) {
-            injectWikiListing({
-              title: page.title || page.path || WIKI_PATH,
-              items: page.children,
-            });
-            return page;
-          }
-          if (page.body != null || page.title) {
-            injectArticle(page);
-            return page;
-          }
-          injectNotFound(WIKI_PATH);
-          return page;
-        })
-        .catch(function () {
-          injectNotFound(WIKI_PATH);
-          return null;
-        });
+          });
+      });
     } else if (MODE === "wiki" && !WIKI_PATH) {
       injectLoadingState("Wiki");
       articlePromise = listPromise.then(function (pages) {
         var items = (pages || []).slice().sort(function (a, b) {
-          return String(a.path || "").localeCompare(String(b.path || ""));
+          return String(a.path || "").localeCompare(
+            String(b.path || ""),
+          );
         });
+        // Optional ?q= filter on index
+        var iq = "";
+        try {
+          iq = String(
+            new URLSearchParams(window.location.search).get("q") ||
+              "",
+          ).trim().toLowerCase();
+        } catch (_) { /* ignore */ }
+        if (iq) {
+          items = items.filter(function (p) {
+            return (
+              String(p.title || "").toLowerCase().indexOf(iq) !==
+                -1 ||
+              String(p.path || "").toLowerCase().indexOf(iq) !==
+                -1 ||
+              (p.tags || []).some(function (t) {
+                return String(t).toLowerCase().indexOf(iq) !== -1;
+              })
+            );
+          });
+        }
         injectWikiListing({ title: "Wiki", items: items });
         return { title: "Wiki", items: items };
       });
@@ -2147,35 +2155,39 @@
       // Home main column = wiki path "home" only.
       // featured:true pages are left-menu links, not the homepage body.
       injectLoadingState("Home");
-      articlePromise = fetch("/api/v1/wiki/home", {
-        credentials: "same-origin",
-      })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (page) {
-          if (page && page.body) {
-            injectArticle(page);
-            return page;
-          }
-          if (mainEl) {
-            injectArticle({
-              title: "Welcome",
-              body: "Welcome to the game.\n\n" +
-                "Edit the wiki page **home** for this content, or browse " +
-                "**Wiki** in the nav. Mark pages **Featured** to list them " +
-                "in the left menu (separate from home).",
-            });
-          }
-          return null;
+      articlePromise = listPromise.then(function () {
+        return fetch("/api/v1/wiki/home", {
+          credentials: "same-origin",
         })
-        .catch(function () {
-          if (mainEl) {
-            injectArticle({
-              title: "Welcome",
-              body: "Welcome. The wiki could not be loaded right now.",
-            });
-          }
-          return null;
-        });
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (page) {
+            if (page && page.body) {
+              injectArticle(page);
+              return page;
+            }
+            if (mainEl) {
+              injectArticle({
+                title: "Welcome",
+                body: "Welcome to the game.\n\n" +
+                  "Edit the wiki page **home** for this content, " +
+                  "or browse **Wiki** in the nav. Mark pages " +
+                  "**Featured** to list them in the left menu " +
+                  "(separate from home).",
+              });
+            }
+            return null;
+          })
+          .catch(function () {
+            if (mainEl) {
+              injectArticle({
+                title: "Welcome",
+                body:
+                  "Welcome. The wiki could not be loaded right now.",
+              });
+            }
+            return null;
+          });
+      });
     } else {
       articlePromise = Promise.resolve(null);
     }
