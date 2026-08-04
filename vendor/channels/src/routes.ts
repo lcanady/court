@@ -111,12 +111,14 @@ export async function channelsRouteHandler(
   const method = req.method;
   const chans = chansDb();
 
-  // Collection
+  // Collection — note: core mush may own GET /api/v1/channels.
+  // Staff UI accepts both bare arrays and { items }.
   if (path === "/api/v1/channels" || path === "/api/v1/channels/") {
     if (method === "GET") {
       const all = await chans.find({});
       all.sort((a, b) => a.name.localeCompare(b.name));
-      return json({ items: all.map(enrich) });
+      const items = all.map(enrich);
+      return json({ items, channels: items });
     }
     if (method === "POST") {
       return await createChan(req, chans, userId);
@@ -124,9 +126,10 @@ export async function channelsRouteHandler(
     return json({ error: "Method not allowed" }, 405);
   }
 
-  // /api/v1/channels/:id[/history|/who]
+  // Sub-resources. Use /messages (not /history) — core mush owns
+  // GET /api/v1/channels/:id/history with a stricter gate.
   const m = path.match(
-    /^\/api\/v1\/channels\/([^/]+)(?:\/(history|who))?$/,
+    /^\/api\/v1\/channels\/([^/]+)(?:\/(history|messages|who))?$/,
   );
   if (!m) return json({ error: "Not found" }, 404);
   const key = m[1];
@@ -134,7 +137,10 @@ export async function channelsRouteHandler(
   const chan = await findChan(key);
   if (!chan) return json({ error: "Not found" }, 404);
 
-  if (sub === "history" && method === "GET") {
+  if (
+    (sub === "history" || sub === "messages") &&
+    method === "GET"
+  ) {
     return await getHistory(chan, url);
   }
   if (sub === "who" && method === "GET") {
