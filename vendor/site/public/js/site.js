@@ -96,9 +96,21 @@
     return pathname.replace(/^\/(?:site\/)?wiki\/?/, "") || "";
   }
 
-  // "/help/mail" or "/site/help/mail" → "mail"
+  // "/help/mail" or "/site/help/mail" → "mail" (topic path)
   function helpPathFromUrl() {
     return pathname.replace(/^\/(?:site\/)?help\/?/, "") || "";
+  }
+
+  /** ?section=channel — side-nav filter (avoids clash with topic names). */
+  function helpSectionFromUrl() {
+    try {
+      return String(
+        new URLSearchParams(window.location.search).get("section") ||
+          "",
+      ).trim();
+    } catch (_) {
+      return "";
+    }
   }
 
   /** Public path prefix for in-app links ("" at apex, "/site" under mount). */
@@ -128,6 +140,15 @@
   function helpHref(topic) {
     var rest = String(topic || "").replace(/^\/+/, "");
     return pubPath(rest ? "help/" + rest : "help/");
+  }
+
+  /** Section filter link: /help/?section=channel */
+  function helpSectionHref(section) {
+    var base = helpHref("");
+    var sec = String(section || "").trim();
+    if (!sec) return base;
+    var join = base.indexOf("?") >= 0 ? "&" : "?";
+    return base + join + "section=" + encodeURIComponent(sec);
   }
 
   /**
@@ -1620,22 +1641,12 @@
   }
 
   function helpActiveSection() {
+    // Explicit side-nav filter wins
+    var qSec = helpSectionFromUrl();
+    if (qSec) return qSec;
     if (!HELP_PATH) return "";
     var topic = helpTopicByName(HELP_PATH);
     if (topic) return String(topic.section || "");
-    // path is a section name
-    if (helpIndex && helpIndex.sections) {
-      var low = HELP_PATH.toLowerCase();
-      for (var i = 0; i < helpIndex.sections.length; i++) {
-        if (String(helpIndex.sections[i]).toLowerCase() === low) {
-          return helpIndex.sections[i];
-        }
-      }
-    }
-    // nested topic prefix (mail/send → mail section if unknown)
-    if (HELP_PATH.indexOf("/") !== -1) {
-      return HELP_PATH.split("/")[0];
-    }
     return "";
   }
 
@@ -1663,19 +1674,22 @@
     html += "<section class=\"site-menu menu\">" +
       "<h2 class=\"site-menu__title\">Sections</h2>" +
       "<ul class=\"site-menu__list\">";
-    html += "<li" + (!HELP_PATH ? " class=\"is-current\"" : "") +
-      "><a href=\"" + helpHref("") + "\">All topics</a></li>";
+    var filterSec = helpSectionFromUrl();
+    html += "<li" +
+      (!HELP_PATH && !filterSec ? " class=\"is-current\"" : "") +
+      "><a href=\"" + helpSectionHref("") + "\">All topics</a></li>";
     for (var s = 0; s < sections.length; s++) {
       var secName = sections[s];
-      var isCur = String(secName).toLowerCase() ===
-        String(activeSec).toLowerCase() &&
-        !helpTopicByName(HELP_PATH);
-      if (helpTopicByName(HELP_PATH) &&
+      var isCur = !HELP_PATH &&
+        String(secName).toLowerCase() ===
+          String(filterSec || activeSec).toLowerCase() &&
+        !!filterSec;
+      // Highlight section while reading a topic in it
+      if (HELP_PATH && helpTopicByName(HELP_PATH) &&
         String(activeSec).toLowerCase() ===
           String(secName).toLowerCase()) {
         isCur = true;
       }
-      // When searching, still show section filters
       if (q) {
         var secHits = helpTopicsInSection(secName).filter(
           function (t) {
@@ -1685,13 +1699,14 @@
               body.indexOf(q) !== -1;
           },
         ).length;
-        if (!secHits && String(secName).toLowerCase().indexOf(q) === -1) {
+        if (!secHits &&
+          String(secName).toLowerCase().indexOf(q) === -1) {
           continue;
         }
       }
       var n = helpTopicsInSection(secName).length;
       html += "<li" + (isCur ? " class=\"is-current\"" : "") +
-        "><a href=\"" + helpHref(secName) + "\">" +
+        "><a href=\"" + helpSectionHref(secName) + "\">" +
         esc(secName) +
         " <span class=\"site-help-count\">" + n +
         "</span></a></li>";
@@ -1856,57 +1871,55 @@
   }
 
   function loadHelpRoute() {
-    injectLoadingState(HELP_PATH || "Help");
+    var filterSec = helpSectionFromUrl();
+    injectLoadingState(
+      HELP_PATH || filterSec || "Help",
+    );
     return fetchHelpIndex().then(function () {
+      // List view: all topics or ?section= filter
       if (!HELP_PATH) {
-        injectHelpIndex();
-        return null;
-      }
-      var topic = helpTopicByName(HELP_PATH);
-      if (topic) {
-        // Always re-fetch so staff-only gates apply with Bearer token
-        return fetch(
-          "/api/v1/help/" +
-            encodeURIComponent(HELP_PATH).replace(/%2F/gi, "/"),
-          {
-            credentials: "same-origin",
-            headers: helpAuthHeaders(),
-          },
-        )
-          .then(function (r) {
-            if (!r.ok) return null;
-            return r.json();
-          })
-          .then(function (data) {
-            if (data && data.entry) {
-              injectHelpTopic(data.entry);
-              return data.entry;
+        if (filterSec) {
+          // Resolve canonical section casing from index
+          var secCanon = filterSec;
+          var secs = (helpIndex && helpIndex.sections) || [];
+          for (var i = 0; i < secs.length; i++) {
+            if (String(secs[i]).toLowerCase() ===
+              filterSec.toLowerCase()) {
+              secCanon = secs[i];
+              break;
             }
-            // 404 — staff-only or missing (do not leak cached index)
-            injectHelpNotFound(HELP_PATH);
-            return null;
-          })
-          .catch(function () {
-            injectHelpNotFound(HELP_PATH);
-            return null;
-          });
-      }
-      // Section listing?
-      var secMatch = null;
-      var sections = (helpIndex && helpIndex.sections) || [];
-      for (var i = 0; i < sections.length; i++) {
-        if (String(sections[i]).toLowerCase() ===
-          HELP_PATH.toLowerCase()) {
-          secMatch = sections[i];
-          break;
+          }
+          injectHelpSection(secCanon);
+        } else {
+          injectHelpIndex();
         }
-      }
-      if (secMatch) {
-        injectHelpSection(secMatch);
         return null;
       }
-      injectHelpNotFound(HELP_PATH);
-      return null;
+      // Topic page
+      return fetch(
+        "/api/v1/help/" +
+          encodeURIComponent(HELP_PATH).replace(/%2F/gi, "/"),
+        {
+          credentials: "same-origin",
+          headers: helpAuthHeaders(),
+        },
+      )
+        .then(function (r) {
+          if (!r.ok) return null;
+          return r.json();
+        })
+        .then(function (data) {
+          if (data && data.entry) {
+            injectHelpTopic(data.entry);
+            return data.entry;
+          }
+          injectHelpNotFound(HELP_PATH);
+          return null;
+        })
+        .catch(function () {
+          injectHelpNotFound(HELP_PATH);
+          return null;
+        });
     });
   }
 

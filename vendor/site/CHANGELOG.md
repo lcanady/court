@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.29
+
+- Help section filters use `?section=` so they never clash with
+  topic names (e.g. `channel`).
+
 ## 0.1.28
 
 - Help index is a flat topic table (Topic / Section / Open),
