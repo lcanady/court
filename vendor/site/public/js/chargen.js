@@ -1831,7 +1831,7 @@
     if (!qs('link[data-cg-css]')) {
       var link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "/site/css/chargen.css?v=20260804navreq";
+      link.href = "/site/css/chargen.css?v=20260804routeguard";
       link.setAttribute("data-cg-css", "1");
       document.head.appendChild(link);
     }
@@ -1880,11 +1880,20 @@
       }
       renderMain(state);
     } catch (e) {
-      if (e.status === 401) {
-        renderMain({ needAuth: true });
-      } else {
-        renderMain({ needAuth: true });
+      // Unauthenticated: leave site.js route guard to redirect.
+      // Demo mode keeps the local gate UI.
+      if (e.status === 401 && !demo) {
+        try {
+          var next = encodeURIComponent(
+            location.pathname + location.search,
+          );
+          location.replace("/login?next=" + next);
+        } catch (_) {
+          renderMain({ needAuth: true });
+        }
+        return;
       }
+      renderMain({ needAuth: true });
     }
   }
 

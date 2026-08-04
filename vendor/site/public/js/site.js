@@ -1191,11 +1191,97 @@
 
   function safeNextPath(raw) {
     var n = String(raw || "").trim();
-    if (!n || n.charAt(0) !== "/" || n.indexOf("//") === 0) return pubPath("");
-    if (n.indexOf("/site") !== 0 && n.indexOf("/admin") !== 0) {
+    if (!n || n.charAt(0) !== "/" || n.indexOf("//") === 0) {
       return pubPath("");
     }
+    // Allow public SPA routes + admin after login
+    var ok =
+      n === "/" ||
+      n.indexOf("/site") === 0 ||
+      n.indexOf("/admin") === 0 ||
+      n.indexOf("/chargen") === 0 ||
+      n.indexOf("/wiki") === 0 ||
+      n.indexOf("/help") === 0 ||
+      n.indexOf("/login") === 0;
+    if (!ok) return pubPath("");
     return n;
+  }
+
+  function isDemoQuery() {
+    try {
+      return new URLSearchParams(location.search).get("demo") ===
+        "1";
+    } catch (_) {
+      return false;
+    }
+  }
+
+  /**
+   * Strongest nav.require matching this path (from config/plugins).
+   * Chargen defaults to connected even if nav omitted.
+   */
+  function requireForPath(path) {
+    var p = normalizeNavPath(path);
+    var nav = (siteConfig && siteConfig.nav) || [];
+    var best = "";
+    var bestLen = -1;
+    for (var i = 0; i < nav.length; i++) {
+      var item = nav[i];
+      if (!item) continue;
+      var req = String(item.require || "").trim();
+      if (!req) continue;
+      var h = normalizeNavPath(item.href || "");
+      if (!h || h === "#") continue;
+      var match = h === p || p.indexOf(h + "/") === 0;
+      if (!match) continue;
+      if (h.length >= bestLen) {
+        bestLen = h.length;
+        best = req;
+      }
+    }
+    if (
+      !best &&
+      (p === "/chargen" ||
+        p.indexOf("/chargen/") === 0 ||
+        p === "/site/chargen" ||
+        p.indexOf("/site/chargen/") === 0)
+    ) {
+      best = "connected";
+    }
+    return best;
+  }
+
+  function redirectToLogin() {
+    var next = encodeURIComponent(
+      window.location.pathname +
+        window.location.search +
+        window.location.hash,
+    );
+    window.location.replace(
+      pubPath("login") + "?next=" + next,
+    );
+  }
+
+  /** Enforce nav.require for the current route. */
+  function guardRouteAccess(user) {
+    if (isDemoQuery()) return true;
+    var req = requireForPath(pathname);
+    if (navRequireMet(req, user)) return true;
+    if (!user) {
+      redirectToLogin();
+      return false;
+    }
+    if (mainEl) {
+      mainEl.innerHTML =
+        "<section class=\"site-section\">" +
+        "<h2 class=\"site-section__title\">Permission denied</h2>" +
+        "<div class=\"site-rule site-rule--image\" " +
+        "role=\"presentation\"></div>" +
+        "<p>You do not have access to this page.</p>" +
+        "<p><a href=\"" + pubPath("") + "\">Home</a></p>" +
+        "</section>";
+    }
+    return false;
   }
 
   function updateNavUser(user) {
@@ -2159,7 +2245,7 @@
   /** /chargen — guided stepper FE (loads chargen.js once). */
   var chargenScriptPromise = null;
   function loadChargenRoute() {
-    injectLoadingState("Character Generation");
+    injectLoadingState("Character");
     function boot() {
       if (globalThis.SiteChargen && globalThis.SiteChargen.boot) {
         return globalThis.SiteChargen.boot();
@@ -2170,7 +2256,7 @@
     if (!chargenScriptPromise) {
       chargenScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/chargen.js?v=20260804navreq";
+        s.src = "/site/js/chargen.js?v=20260804routeguard";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {
@@ -2183,7 +2269,7 @@
       if (mainEl) {
         mainEl.innerHTML =
           "<section class=\"site-section\"><p>Could not load " +
-          "character generation. Refresh and try again.</p>" +
+          "character page. Refresh and try again.</p>" +
           "</section>";
       }
       return null;
@@ -2207,7 +2293,12 @@
 
     var articlePromise;
     if (MODE === "chargen") {
-      articlePromise = loadChargenRoute();
+      // Auth gate before loading chargen FE (nav.require + default)
+      articlePromise = authPromise.then(function (user) {
+        currentUser = user;
+        if (!guardRouteAccess(user)) return null;
+        return loadChargenRoute();
+      });
     } else if (MODE === "help") {
       articlePromise = loadHelpRoute();
     } else if (MODE === "wiki" && WIKI_PATH) {
@@ -2335,6 +2426,10 @@
           currentUser = user;
           renderTopNav(user);
           updateNavUser(user);
+          // Non-chargen routes: enforce require after content load
+          if (MODE !== "chargen" && !guardRouteAccess(user)) {
+            return;
+          }
           if (MODE === "login" || MODE === "profile") {
             injectSpecialPage(user);
           }
