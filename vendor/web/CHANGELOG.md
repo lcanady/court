@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.60
+
+- Help FE matches wiki design tokens: Library kicker, dash-table,
+  filter banner, side-nav sources, WikiBodyField + md preview
+
 ## 0.2.59
 
 - Host staff UI: Help (`HelpView`) — browse topics, DB overrides
