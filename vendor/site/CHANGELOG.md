@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.26
+
+- Public **Wiki** index and directory listings use tables
+  (Title / Path / Type / Updated / Tags / Open) instead of
+  bullet lists.
+
 ## 0.1.25
 
 - Public Help index + section pages use **tables** instead of

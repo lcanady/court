@@ -254,6 +254,99 @@
   line-height: 1.55;
 }
 
+/* ── Wiki index / directory listings (tables) ─────────────────────── */
+
+.site-wiki-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  margin: 0.25rem 0 0;
+  border: 1px solid var(--site-border, #2a2640);
+  border-radius: 4px;
+}
+
+.site-wiki-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+.site-wiki-table th,
+.site-wiki-table td {
+  padding: 0.55rem 0.75rem;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid
+    var(--site-border-subtle, #1f1c30);
+}
+
+.site-wiki-table th {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--site-text-muted);
+  background: var(--site-bg-surface, rgba(255, 255, 255, 0.03));
+}
+
+.site-wiki-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.site-wiki-table tbody tr:hover td {
+  background: var(--site-bg-surface-2, rgba(255, 255, 255, 0.04));
+}
+
+.site-wiki-table a {
+  color: var(--site-accent);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.site-wiki-table a:hover {
+  text-decoration: underline;
+}
+
+.site-wiki-table code {
+  font-family: var(--site-font-mono, ui-monospace, monospace);
+  font-size: 0.8125rem;
+  color: var(--site-text-secondary);
+  background: transparent;
+}
+
+.site-wiki-type {
+  white-space: nowrap;
+  font-size: 0.875rem;
+}
+
+.site-wiki-open {
+  width: 4.5rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.site-wiki-open-link {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border: 1px solid var(--site-border, #2a2640);
+  border-radius: 4px;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--site-text-secondary) !important;
+  text-decoration: none !important;
+}
+
+.site-wiki-open-link:hover {
+  color: var(--site-accent) !important;
+  border-color: var(--site-accent);
+}
+
+/* legacy list class unused — keep empty for old caches */
+.site-wiki-index {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
 /* ── Images (wiki markdown ![alt](url)) ───────────────────────────── */
 
 .site-section__body img {

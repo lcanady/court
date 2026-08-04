@@ -592,7 +592,7 @@
     mainEl.innerHTML = inner;
   }
 
-  /** Wiki index (/wiki/) or directory listing from API. */
+  /** Wiki index (/wiki/) or directory listing — table, not card list. */
   function injectWikiListing(opts) {
     if (!mainEl) return;
     opts = opts || {};
@@ -611,17 +611,56 @@
     if (!items.length) {
       body = "<p>No pages yet.</p>";
     } else {
-      body = "<ul class=\"site-wiki-index\">";
+      var hasMeta = false;
+      for (var m = 0; m < items.length; m++) {
+        if (items[m].date || items[m].author ||
+          (items[m].tags && items[m].tags.length) ||
+          items[m].chars != null) {
+          hasMeta = true;
+          break;
+        }
+      }
+      body = "<div class=\"site-wiki-table-wrap\">" +
+        "<table class=\"site-wiki-table\">" +
+        "<thead><tr>" +
+        "<th scope=\"col\">Title</th>" +
+        "<th scope=\"col\">Path</th>" +
+        "<th scope=\"col\">Type</th>";
+      if (hasMeta) {
+        body += "<th scope=\"col\">Updated</th>" +
+          "<th scope=\"col\">Tags</th>";
+      }
+      body += "<th scope=\"col\"><span class=\"site-sr-only\">" +
+        "Open</span></th>" +
+        "</tr></thead><tbody>";
       for (var i = 0; i < items.length; i++) {
         var it = items[i];
         var p = String(it.path || "").trim();
         if (!p) continue;
         var lbl = String(it.title || p).trim();
-        var kind = it.type === "directory" ? " (section)" : "";
-        body += "<li><a href=\"" + wikiHref(p) + "\">" +
-          esc(lbl) + "</a>" + esc(kind) + "</li>";
+        var isDir = it.type === "directory";
+        var kind = isDir ? "Section" : "Page";
+        var tags = Array.isArray(it.tags)
+          ? it.tags.map(String).join(", ")
+          : "";
+        body += "<tr>" +
+          "<td><a href=\"" + wikiHref(p) + "\">" +
+          esc(lbl) + "</a></td>" +
+          "<td><code>" + esc(p) + "</code></td>" +
+          "<td class=\"site-wiki-type muted\">" + esc(kind) +
+          "</td>";
+        if (hasMeta) {
+          body += "<td class=\"muted\">" +
+            esc(String(it.date || "—")) + "</td>" +
+            "<td class=\"muted\">" +
+            esc(tags || "—") + "</td>";
+        }
+        body += "<td class=\"site-wiki-open\">" +
+          "<a class=\"site-wiki-open-link\" href=\"" +
+          wikiHref(p) + "\">Open</a></td>" +
+          "</tr>";
       }
-      body += "</ul>";
+      body += "</tbody></table></div>";
     }
     mainEl.innerHTML =
       "<section class=\"site-section\">" +
