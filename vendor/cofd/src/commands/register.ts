@@ -58,6 +58,50 @@ import { huntCommand } from "./hunt.ts";
 import { mantleCommand } from "./mantle_cmd.ts";
 import { hobCommand } from "./hob.ts";
 import { icExec, oocExec } from "./ic_ooc.ts";
+import { timeExec } from "./time.ts";
+import { staffkitExec } from "./staffkit.ts";
+
+addCmd({
+  name: "+time",
+  pattern: /^\+time$/i,
+  lock: "connected",
+  category: "Cofd",
+  help: `+time  — Date, clock, season, weather, moon, sun.
+
+London-like climate. Moon phase follows the 28-day month.
+Staff set the game clock with @time.
+
+Examples:
+  +time`,
+  exec: timeExec,
+});
+
+addCmd({
+  name: "+staffkit",
+  pattern: /^\+staffkit(?:\/(\S+))?\s*(.*)/i,
+  lock: "connected builder+",
+  category: "Cofd",
+  help: `+staffkit <splat> [<target>]  — Install a minimal staff splat kit.
+
+Staff-only shortcut so locks and systems accept you as that splat
+without full chargen. Starts with changeling (Lost).
+
+SYNTAX
+  +staffkit <splat> [<target>]
+  +staffkit/<splat> [<target>]
+  +staffkit/list
+  +staffkit/clear [<target>]
+
+SPLATS
+  changeling   Live Lost sheet, approved, fae flag, Glamour.
+
+EXAMPLES
+  +staffkit changeling
+  +staffkit/changeling
+  +staffkit changeling Alice
+  +staffkit/clear`,
+  exec: staffkitExec,
+});
 
 addCmd({
   name: "+ooc",
@@ -87,7 +131,7 @@ Requires %chapproved%cn. Returns to your last IC room (a room
 flagged %chic%cn that you left via +ooc), or the IC hub.
 
 Switches:
-  /clear    Forget the marker and go to the hub.
+  /clear    Forget the marker (stay put; next +ic → hub).
   /status   Show where your marker points.
 
 Examples:

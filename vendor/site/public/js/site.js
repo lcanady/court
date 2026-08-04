@@ -83,6 +83,12 @@
     ) {
       return "help";
     }
+    if (
+      pathname.startsWith("/chargen") ||
+      pathname.startsWith("/site/chargen")
+    ) {
+      return "chargen";
+    }
     return "generic";
   }
 
@@ -117,7 +123,8 @@
   function publicBase() {
     if (pathname === "/" || pathname === "/login" ||
       pathname === "/profile" || pathname.startsWith("/wiki") ||
-      pathname.startsWith("/help")) {
+      pathname.startsWith("/help") ||
+      pathname.startsWith("/chargen")) {
       return "";
     }
     return "/site";
@@ -197,7 +204,7 @@
     var cfg = siteConfig || {};
     var heroMode = MODE === "home" || MODE === "wiki";
     var compactMode = MODE === "login" || MODE === "profile" ||
-      MODE === "help";
+      MODE === "help" || MODE === "chargen";
 
     if (heroMode) {
       if (cfg.plainBg) shell.classList.add("is-plain");
@@ -852,6 +859,11 @@
       if (rightAside) rightAside.hidden = false;
       if (banner) banner.hidden = true;
       applyShellChrome();
+    } else if (MODE === "chargen") {
+      if (leftAside) leftAside.hidden = false;
+      if (rightAside) rightAside.hidden = false;
+      if (banner) banner.hidden = true;
+      applyShellChrome();
     } else {
       // home / generic
       if (leftAside) leftAside.hidden = false;
@@ -992,6 +1004,25 @@
     // Help mode owns the left rail (sections + topics)
     if (MODE === "help") {
       renderHelpLeft();
+      return;
+    }
+
+    // Chargen: keep search; left rail = short help
+    if (MODE === "chargen") {
+      if (leftPanels) {
+        leftPanels.innerHTML =
+          "<section class=\"site-menu menu\">" +
+          "<h2 class=\"site-menu__title\">Chargen</h2>" +
+          "<ul class=\"site-menu__list\">" +
+          "<li class=\"is-current\"><a href=\"" +
+          pubPath("chargen") +
+          "\" aria-current=\"page\">Stepper</a></li>" +
+          "<li><a href=\"" + wikiHref("rules/chargen") +
+          "\">Rules</a></li>" +
+          "<li><a href=\"" + helpHref("chargen") +
+          "\">+cg help</a></li>" +
+          "</ul></section>";
+      }
       return;
     }
 
@@ -1277,6 +1308,9 @@
     if (!rightPanels || MODE === "login" || MODE === "profile") {
       return;
     }
+    // Chargen owns the right rail (draft sheet summary)
+    if (MODE === "chargen") return;
+
     var html = "";
 
     // TOC (wiki + help topics)
@@ -2060,6 +2094,40 @@
     });
   }
 
+  /** /chargen — guided stepper FE (loads chargen.js once). */
+  var chargenScriptPromise = null;
+  function loadChargenRoute() {
+    injectLoadingState("Character Generation");
+    function boot() {
+      if (globalThis.SiteChargen && globalThis.SiteChargen.boot) {
+        return globalThis.SiteChargen.boot();
+      }
+      return Promise.resolve(null);
+    }
+    if (globalThis.SiteChargen) return boot();
+    if (!chargenScriptPromise) {
+      chargenScriptPromise = new Promise(function (resolve, reject) {
+        var s = document.createElement("script");
+        s.src = "/site/js/chargen.js?v=20260804cg1";
+        s.async = true;
+        s.onload = function () { resolve(true); };
+        s.onerror = function () {
+          reject(new Error("chargen.js failed to load"));
+        };
+        document.head.appendChild(s);
+      });
+    }
+    return chargenScriptPromise.then(boot).catch(function () {
+      if (mainEl) {
+        mainEl.innerHTML =
+          "<section class=\"site-section\"><p>Could not load " +
+          "character generation. Refresh and try again.</p>" +
+          "</section>";
+      }
+      return null;
+    });
+  }
+
   // 4. Route loader & SPA navigation
   function loadCurrentRoute() {
     setNavOpen(false);
@@ -2076,7 +2144,9 @@
     updateSidebarAndBannerVisibility();
 
     var articlePromise;
-    if (MODE === "help") {
+    if (MODE === "chargen") {
+      articlePromise = loadChargenRoute();
+    } else if (MODE === "help") {
       articlePromise = loadHelpRoute();
     } else if (MODE === "wiki" && WIKI_PATH) {
       var slug = WIKI_PATH.split("/").pop().replace(/[-_]/g, " ");
@@ -2228,6 +2298,8 @@
       p.startsWith("/site/wiki") ||
       p.startsWith("/help") ||
       p.startsWith("/site/help") ||
+      p.startsWith("/chargen") ||
+      p.startsWith("/site/chargen") ||
       p === "/site/" ||
       p === "/site" ||
       p === "/"

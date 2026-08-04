@@ -10,3 +10,9 @@ export { icExec, oocExec } from "./ic_ooc.ts";
 export { notesExec } from "./notes.ts";
 export { viewsExec } from "./views.ts";
 export { visibleViews, canSeeView } from "./views_lib.ts";
+export { staffkitExec } from "./staffkit.ts";
+export {
+  buildChangelingKit,
+  listStaffKits,
+  resolveStaffKit,
+} from "../staffkit/index.ts";

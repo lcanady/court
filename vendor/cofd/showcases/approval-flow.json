@@ -1,0 +1,85 @@
+{
+  "key": "approval-flow",
+  "title": "+approve -- staff promotes a chargen draft",
+  "description": "Staff reviews with +sheet, then +approve. A CGEN job is optional; approve works from the draft alone.",
+  "vars": { "player": "Hopeful" },
+  "setup": {
+    "character": {
+      "state": {
+        "cofd_cg": {
+          "stage": 6,
+          "isSubmitted": false,
+          "isApproved": false,
+          "sheet": {
+            "template": "mortal",
+            "concept": "Burned-out nurse seeking redemption",
+            "virtue": "Justice",
+            "vice": "Sloth",
+            "attributes": {
+              "strength": 2, "dexterity": 3, "stamina": 3,
+              "intelligence": 2, "wits": 2, "resolve": 2,
+              "presence": 2, "manipulation": 1, "composure": 2
+            },
+            "skills": {
+              "athletics": 2, "brawl": 0, "drive": 1,
+              "firearms": 0, "larceny": 0, "stealth": 0,
+              "survival": 0, "weaponry": 0, "academics": 3,
+              "computer": 2, "crafts": 0, "investigation": 3,
+              "medicine": 3, "occult": 0, "politics": 0,
+              "science": 2, "animal_ken": 0, "empathy": 3,
+              "expression": 0, "intimidation": 0,
+              "persuasion": 2, "socialize": 0, "streetwise": 0,
+              "subterfuge": 2
+            },
+            "specialties": {
+              "investigation": ["Crime Scenes"],
+              "medicine": ["Emergency Care"]
+            },
+            "merits": {
+              "contacts": 2,
+              "resources": 2,
+              "trained observer": 1,
+              "holistic awareness": 1,
+              "fast reflexes": 1
+            }
+          }
+        }
+      }
+    }
+  },
+  "steps": [
+    { "sub": "Staff Reviews the Draft" },
+    {
+      "note": "Staff opens the draft with +sheet. No job required."
+    },
+    {
+      "cmd": "+sheet Hopeful",
+      "as": "admin",
+      "label": "review draft"
+    },
+    { "expect": "DRAFT" },
+
+    { "sub": "Staff Approves" },
+    {
+      "note": "+approve copies the draft live and clears +cg."
+    },
+    {
+      "cmd": "+approve Hopeful=Welcome. Watch your touchstones.",
+      "as": "admin",
+      "label": "admin approves"
+    },
+    { "expect": "Character Approved" },
+
+    { "sub": "Nothing Left to Approve" },
+    {
+      "cmd": "+approve Hopeful",
+      "as": "admin",
+      "label": "second approve refused"
+    },
+    { "expect": "no chargen draft" },
+
+    { "sub": "Live Sheet Is Active" },
+    { "cmd": "+sheet" },
+    { "expect": "Hopeful" }
+  ]
+}

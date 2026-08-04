@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.33
+
+- Public **/chargen** FE: in-game-style stepper, Court/Figma look
+- Stages 1–7 forms, draft sheet rail, demo mode (`?demo=1`)
+- Cache-bust `SITE_ASSET_V` → `20260804cg1`
+
 ## 0.1.32
 
 - Wiki FE matches Figma: full hero chrome (not compact)

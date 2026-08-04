@@ -63,6 +63,12 @@
           "label": "Help",
           "href": "/help/",
           "order": 30
+        },
+        {
+          "id": "chargen",
+          "label": "Chargen",
+          "href": "/chargen",
+          "order": 35
         }
       ],
       "skinCss": "/site/theme/installed/court/site.css",
