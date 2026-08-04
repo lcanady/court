@@ -1430,14 +1430,66 @@
 
   // ── Search wiring ──────────────────────────────────────────────────────────
 
+  /** Placeholder + label for the single left search (wiki vs help). */
+  function updateSearchChrome() {
+    var input = document.getElementById("site-q");
+    var label = document.querySelector('label[for="site-q"]');
+    if (!input) return;
+    if (MODE === "help") {
+      input.placeholder = "Search help…";
+      input.setAttribute("aria-label", "Search help");
+      if (label) label.textContent = "Search help";
+    } else {
+      input.placeholder = "Search wiki…";
+      input.setAttribute("aria-label", "Search wiki");
+      if (label) label.textContent = "Search wiki";
+    }
+  }
+
+  function helpQueryFromUrl() {
+    try {
+      return String(
+        new URLSearchParams(window.location.search).get("q") || "",
+      ).trim();
+    } catch (_) {
+      return "";
+    }
+  }
+
   function wireSearch(pages) {
     var form  = document.getElementById("search");
     var input = document.getElementById("site-q");
     if (!form || !input) return;
+    updateSearchChrome();
+
+    // Prefill from ?q= on help
+    if (MODE === "help") {
+      var hq = helpQueryFromUrl();
+      if (hq) input.value = hq;
+    }
+
     form.addEventListener("submit", function (e) {
       e.preventDefault();
       var q = (input.value || "").trim().toLowerCase();
-      if (!q) return;
+      if (!q) {
+        if (MODE === "help") {
+          window.location.href = helpSectionHref(
+            helpSectionFromUrl(),
+          );
+        }
+        return;
+      }
+
+      // Help mode — filter topic list via ?q=
+      if (MODE === "help") {
+        var sec = helpSectionFromUrl();
+        var base = helpSectionHref(sec);
+        var join = base.indexOf("?") >= 0 ? "&" : "?";
+        window.location.href = base + join + "q=" +
+          encodeURIComponent(q);
+        return;
+      }
+
       var hits = pages.filter(function (p) {
         return !p.draft && (
           (p.title || "").toLowerCase().includes(q) ||
@@ -1455,8 +1507,8 @@
         window.location.href = wikiHref(hits[0].path);
         return;
       }
-      // Multiple results — navigate to wiki index with query
-      window.location.href = pubPath("wiki/") + "?q=" + encodeURIComponent(q);
+      window.location.href = pubPath("wiki/") + "?q=" +
+        encodeURIComponent(q);
     });
   }
 
@@ -1775,25 +1827,17 @@
 
   function renderHelpLeft() {
     if (!leftPanels) return;
-    var q = "";
-    var searchEl = document.getElementById("help-side-search");
-    if (searchEl) q = String(searchEl.value || "").trim().toLowerCase();
+    // Single search is #site-q (wiki box → help placeholder)
+    updateSearchChrome();
+    var q = helpQueryFromUrl().toLowerCase();
+    var siteQ = document.getElementById("site-q");
+    if (siteQ && q && !siteQ.value) siteQ.value = q;
 
     var activeSec = helpActiveSection();
     var sections = (helpIndex && helpIndex.sections) || [];
     var html = "";
 
-    html += "<section class=\"site-menu menu site-help-search\">" +
-      "<h2 class=\"site-menu__title\">Search help</h2>" +
-      "<label class=\"site-sr-only\" for=\"help-side-search\">" +
-      "Search topics</label>" +
-      "<input type=\"search\" id=\"help-side-search\" " +
-      "class=\"site-help-search__input\" " +
-      "placeholder=\"Topic or keyword…\" " +
-      "value=\"" + esc(q) + "\" autocomplete=\"off\" />" +
-      "</section>";
-
-    // Side rail = search + section filters only (main pane is the list)
+    // Side rail = section filters only (search is the top box)
     html += "<section class=\"site-menu menu\">" +
       "<h2 class=\"site-menu__title\">Sections</h2>" +
       "<ul class=\"site-menu__list\">";
@@ -1807,7 +1851,6 @@
         String(secName).toLowerCase() ===
           String(filterSec || activeSec).toLowerCase() &&
         !!filterSec;
-      // Highlight section while reading a topic in it
       if (HELP_PATH && helpTopicByName(HELP_PATH) &&
         String(activeSec).toLowerCase() ===
           String(secName).toLowerCase()) {
@@ -1837,22 +1880,19 @@
     html += "</ul></section>";
 
     leftPanels.innerHTML = html;
-    var inp = document.getElementById("help-side-search");
-    if (inp) {
-      var timer = null;
-      inp.addEventListener("input", function () {
-        clearTimeout(timer);
-        timer = setTimeout(function () {
-          renderHelpLeft();
-          var again = document.getElementById("help-side-search");
-          if (again) {
-            again.focus();
-            var len = again.value.length;
-            try { again.setSelectionRange(len, len); } catch (_) {}
-          }
-        }, 120);
-      });
-    }
+  }
+
+  function filterHelpTopics(topics, q) {
+    q = String(q || "").trim().toLowerCase();
+    if (!q) return topics;
+    return topics.filter(function (t) {
+      var name = String(t.name || "").toLowerCase();
+      var sec = String(t.section || "").toLowerCase();
+      var body = String(t.content || "").toLowerCase();
+      return name.indexOf(q) !== -1 ||
+        sec.indexOf(q) !== -1 ||
+        body.indexOf(q) !== -1;
+    });
   }
 
   /**
@@ -1864,6 +1904,8 @@
     opts = opts || {};
     var title = String(opts.title || "Help").trim();
     var topics = Array.isArray(opts.topics) ? opts.topics.slice() : [];
+    var q = helpQueryFromUrl();
+    topics = filterHelpTopics(topics, q);
     topics.sort(function (a, b) {
       return String(a.name || "").localeCompare(String(b.name || ""));
     });
@@ -1871,7 +1913,9 @@
 
     var body = "";
     if (!topics.length) {
-      body = "<p>No help topics match.</p>";
+      body = q
+        ? "<p>No help topics match \"" + esc(q) + "\".</p>"
+        : "<p>No help topics match.</p>";
     } else {
       body = "<table>" +
         "<thead><tr>" +
@@ -2130,6 +2174,7 @@
     return Promise.all([listPromise, articlePromise, configPromise])
       .then(function (results) {
         var pages = results[0];
+        updateSearchChrome();
         wireSearch(pages);
         updateSidebarAndBannerVisibility();
         renderLeft(pages);

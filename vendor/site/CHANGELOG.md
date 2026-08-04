@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.31
+
+- Help uses the single left search box (placeholder “Search help…”);
+  removed duplicate Search help field. `?q=` filters the topic table.
+
 ## 0.1.30
 
 - Help index: single Topic column (no Section/Open), Figma table
