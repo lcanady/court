@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.25
+
+- Public Help index + section pages use **tables** instead of
+  card groups (Section/Topics/Sample and Topic/Summary).
+
 ## 0.1.24
 
 - Public **Help** browser at `/help/` (and `/site/help/`):

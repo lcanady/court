@@ -1687,45 +1687,59 @@
     }
   }
 
+  function helpBlurb(t, maxLen) {
+    var n = maxLen || 100;
+    return stripMushCodes(t.content || "")
+      .replace(/\s+/g, " ")
+      .trim()
+      .slice(0, n);
+  }
+
+  /** Section index — table (not card grid). */
   function injectHelpIndex() {
     if (!mainEl || !helpIndex) return;
     setDocumentTitle("Help");
     var sections = helpIndex.sections || [];
+    var allTopics = helpIndex.topics || [];
     var body = "<div class=\"site-help-index\">";
     body += "<p class=\"site-help-lead\">Browse command and " +
-      "system help by section, or search in the left rail.</p>";
+      "system help by section, or search in the left rail. " +
+      allTopics.length + " topic" +
+      (allTopics.length === 1 ? "" : "s") + ".</p>";
     if (!sections.length) {
       body += "<p>No help topics are available yet.</p>";
     } else {
-      body += "<ul class=\"site-help-sections\">";
+      body += "<div class=\"site-help-table-wrap\">" +
+        "<table class=\"site-help-table\">" +
+        "<thead><tr>" +
+        "<th scope=\"col\">Section</th>" +
+        "<th scope=\"col\">Topics</th>" +
+        "<th scope=\"col\">Sample</th>" +
+        "<th scope=\"col\"><span class=\"site-sr-only\">" +
+        "Open</span></th>" +
+        "</tr></thead><tbody>";
       for (var i = 0; i < sections.length; i++) {
         var sec = sections[i];
         var topics = helpTopicsInSection(sec);
-        body += "<li class=\"site-help-sections__item\">" +
-          "<a class=\"site-help-sections__link\" href=\"" +
-          helpHref(sec) + "\">" +
-          "<span class=\"site-help-sections__name\">" +
-          esc(sec) + "</span>" +
-          "<span class=\"site-help-count\">" + topics.length +
-          "</span></a>";
-        // Preview first few topics
-        var preview = topics.slice(0, 6);
-        if (preview.length) {
-          body += "<ul class=\"site-help-sections__preview\">";
-          for (var p = 0; p < preview.length; p++) {
-            body += "<li><a href=\"" +
-              helpHref(preview[p].name) + "\">" +
-              esc(preview[p].name) + "</a></li>";
-          }
-          if (topics.length > preview.length) {
-            body += "<li class=\"site-help-more\">+" +
-              (topics.length - preview.length) + " more</li>";
-          }
-          body += "</ul>";
+        var sample = topics.slice(0, 4).map(function (t) {
+          return t.name;
+        }).join(", ");
+        if (topics.length > 4) {
+          sample += "…";
         }
-        body += "</li>";
+        body += "<tr>" +
+          "<td><a href=\"" + helpHref(sec) + "\">" +
+          esc(sec) + "</a></td>" +
+          "<td class=\"site-help-num\">" + topics.length +
+          "</td>" +
+          "<td class=\"site-help-sample muted\">" +
+          esc(sample || "—") + "</td>" +
+          "<td class=\"site-help-open\">" +
+          "<a class=\"site-help-open-link\" href=\"" +
+          helpHref(sec) + "\">Open</a></td>" +
+          "</tr>";
       }
-      body += "</ul>";
+      body += "</tbody></table></div>";
     }
     body += "</div>";
     mainEl.innerHTML =
@@ -1738,6 +1752,7 @@
     if (rightPanels) rightPanels.innerHTML = "";
   }
 
+  /** Topics in a section — table. */
   function injectHelpSection(section) {
     if (!mainEl) return;
     var topics = helpTopicsInSection(section);
@@ -1746,21 +1761,31 @@
     if (!topics.length) {
       body = "<p>No topics in this section.</p>";
     } else {
-      body = "<ul class=\"site-help-topic-list\">";
+      body = "<div class=\"site-help-table-wrap\">" +
+        "<table class=\"site-help-table\">" +
+        "<thead><tr>" +
+        "<th scope=\"col\">Topic</th>" +
+        "<th scope=\"col\">Summary</th>" +
+        "<th scope=\"col\"><span class=\"site-sr-only\">" +
+        "Open</span></th>" +
+        "</tr></thead><tbody>";
       for (var i = 0; i < topics.length; i++) {
         var t = topics[i];
-        var blurb = stripMushCodes(t.content || "")
-          .replace(/\s+/g, " ")
-          .trim()
-          .slice(0, 120);
-        body += "<li><a href=\"" + helpHref(t.name) + "\">" +
-          "<strong>" + esc(t.name) + "</strong>" +
-          (blurb ? "<span class=\"site-help-blurb\">" +
-            esc(blurb) + (blurb.length >= 120 ? "…" : "") +
-            "</span>" : "") +
-          "</a></li>";
+        var blurb = helpBlurb(t, 120);
+        body += "<tr>" +
+          "<td><a href=\"" + helpHref(t.name) + "\">" +
+          "<code>" + esc(t.name) + "</code></a></td>" +
+          "<td class=\"site-help-sample muted\">" +
+          (blurb
+            ? esc(blurb) + (blurb.length >= 120 ? "…" : "")
+            : "—") +
+          "</td>" +
+          "<td class=\"site-help-open\">" +
+          "<a class=\"site-help-open-link\" href=\"" +
+          helpHref(t.name) + "\">Open</a></td>" +
+          "</tr>";
       }
-      body += "</ul>";
+      body += "</tbody></table></div>";
     }
     mainEl.innerHTML =
       "<section class=\"site-section\">" +
