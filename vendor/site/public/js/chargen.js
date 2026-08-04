@@ -1009,47 +1009,218 @@
     return html;
   }
 
-  /** Full live sheet for approved characters. */
+  /** Canonical attr/skill columns (same as +cg / options API). */
+  var LIVE_ATTRS = {
+    mental: ["intelligence", "wits", "resolve"],
+    physical: ["strength", "dexterity", "stamina"],
+    social: ["presence", "manipulation", "composure"],
+  };
+  var LIVE_SKILLS = {
+    mental: [
+      "academics", "computer", "crafts", "investigation",
+      "medicine", "occult", "politics", "science",
+    ],
+    physical: [
+      "athletics", "brawl", "drive", "firearms",
+      "larceny", "stealth", "survival", "weaponry",
+    ],
+    social: [
+      "animal ken", "empathy", "expression", "intimidation",
+      "persuasion", "socialize", "streetwise", "subterfuge",
+    ],
+  };
+
+  /** Read-only dots row (chargen look, not clickable). */
+  function renderReadonlyDots(name, value, maxDots) {
+    maxDots = maxDots || 5;
+    var n = Math.max(0, Math.min(maxDots, Number(value) || 0));
+    var html = '<div class="cg-dots-row cg-dots-row--ro">' +
+      '<span class="cg-dots-row__label">' +
+      esc(titleCase(name)) + "</span>" +
+      '<span class="cg-dots" aria-label="' +
+      esc(titleCase(name)) + " " + n + '">';
+    for (var i = 1; i <= maxDots; i++) {
+      html += '<span class="cg-dot' +
+        (i <= n ? " is-on" : "") +
+        '" aria-hidden="true"></span>';
+    }
+    html += '</span><span class="cg-dots-row__num">' +
+      n + "</span></div>";
+    return html;
+  }
+
+  function renderReadonlyDotGroup(title, names, values) {
+    values = values || {};
+    var html = '<div class="cg-group">' +
+      '<h3 class="cg-group__title">' + esc(title) + "</h3>";
+    for (var i = 0; i < names.length; i++) {
+      var key = names[i];
+      var v = values[key];
+      if (v == null) v = values[key.toLowerCase()];
+      html += renderReadonlyDots(key, v != null ? v : 0, 5);
+    }
+    html += "</div>";
+    return html;
+  }
+
+  /**
+   * Full live sheet — same visual language as chargen stages
+   * (identity card + 3-col attrs/skills + merits). Not +sheet text.
+   */
   function renderLiveSheet(st) {
     var sh = st.sheet || {};
-    var html = "";
-    if (st.sheetText) {
-      html += '<pre class="cg-sheet-text">' +
-        esc(st.sheetText) + "</pre>";
-      return html;
-    }
-    // Structured fallback when formatSheet text missing
+    var cf = sh.customFields || {};
     var attrs = sh.attributes || {};
     var skills = sh.skills || {};
     var merits = sh.merits || {};
-    html += '<div class="cg-live">';
-    html += '<p class="cg-stage__hint"><strong>' +
-      esc(sh.concept || "Character") + "</strong> · " +
-      esc(titleCase(sh.template || "mortal")) +
-      " · " + esc(sh.virtue || "—") + " / " +
-      esc(sh.vice || "—") + "</p>";
+    var adv = sh.advantages || {};
+    var A = (opts.attributes) || LIVE_ATTRS;
+    var S = (opts.skills) || LIVE_SKILLS;
+    var mKeys = A.mental || LIVE_ATTRS.mental;
+    var pKeys = A.physical || LIVE_ATTRS.physical;
+    var sKeys = A.social || LIVE_ATTRS.social;
+    var sm = S.mental || LIVE_SKILLS.mental;
+    var sp = S.physical || LIVE_SKILLS.physical;
+    var ss = S.social || LIVE_SKILLS.social;
 
-    function dotsBlock(title, obj, keys) {
-      var h = '<div class="cg-group"><h3 class="cg-group__title">' +
-        esc(title) + "</h3><ul class=\"cg-live-list\">";
-      for (var i = 0; i < keys.length; i++) {
-        var k = keys[i];
-        var v = obj[k];
-        if (v == null && obj[k] !== 0) continue;
-        h += "<li><span>" + esc(titleCase(k)) +
-          '</span> <strong>' + (Number(v) || 0) +
-          "</strong></li>";
+    var html = '<div class="cg-live">';
+
+    // Identity header
+    html += '<div class="cg-live__id">';
+    html += '<p class="cg-live__concept">' +
+      esc(sh.concept || "Character") + "</p>";
+    html += '<p class="cg-live__meta">' +
+      esc(titleCase(sh.template || "mortal"));
+    if (cf.seeming || cf.kith || cf.court) {
+      html += " · " +
+        esc([cf.seeming, cf.kith, cf.court]
+          .filter(Boolean).join(" / "));
+    }
+    if (cf.auspice || cf.tribe) {
+      html += " · " +
+        esc([cf.auspice, cf.tribe].filter(Boolean).join(" / "));
+    }
+    html += "</p>";
+    html += '<p class="cg-live__anchors">' +
+      "<span>Virtue <strong>" + esc(sh.virtue || "—") +
+      "</strong></span>" +
+      "<span>Vice <strong>" + esc(sh.vice || "—") +
+      "</strong></span>";
+    if (cf.needle || cf.thread) {
+      html += "<span>Needle <strong>" +
+        esc(cf.needle || "—") + "</strong></span>" +
+        "<span>Thread <strong>" +
+        esc(cf.thread || "—") + "</strong></span>";
+    }
+    html += "</p></div>";
+
+    // Advantages strip
+    var size = adv.size != null ? adv.size : 5;
+    var wp = adv.willpowerMax != null ? adv.willpowerMax : "—";
+    var health = adv.healthMax != null ? adv.healthMax : "—";
+    var speed = adv.speed != null ? adv.speed : "—";
+    var defense = adv.defense != null ? adv.defense : "—";
+    var init = adv.initiativeMod != null
+      ? adv.initiativeMod
+      : (adv.initiative != null ? adv.initiative : "—");
+    html += '<div class="cg-live__adv">' +
+      "<span>Size <strong>" + esc(size) + "</strong></span>" +
+      "<span>Health <strong>" + esc(health) + "</strong></span>" +
+      "<span>Willpower <strong>" + esc(wp) + "</strong></span>" +
+      "<span>Speed <strong>" + esc(speed) + "</strong></span>" +
+      "<span>Defense <strong>" + esc(defense) + "</strong></span>" +
+      "<span>Initiative <strong>" + esc(init) + "</strong></span>" +
+      "</div>";
+
+    // Attributes — Mental | Physical | Social
+    html += '<h3 class="cg-live__section">Attributes</h3>';
+    html += '<div class="cg-stat-cols" data-cg-stat-cols>';
+    html += renderReadonlyDotGroup("Mental", mKeys, attrs);
+    html += renderReadonlyDotGroup("Physical", pKeys, attrs);
+    html += renderReadonlyDotGroup("Social", sKeys, attrs);
+    html += "</div>";
+
+    // Skills
+    html += '<h3 class="cg-live__section">Skills</h3>';
+    html += '<div class="cg-stat-cols" data-cg-stat-cols>';
+    html += renderReadonlyDotGroup("Mental", sm, skills);
+    html += renderReadonlyDotGroup("Physical", sp, skills);
+    html += renderReadonlyDotGroup("Social", ss, skills);
+    html += "</div>";
+
+    // Specialties
+    var specs = sh.specialties || {};
+    var specKeys = Object.keys(specs).filter(function (k) {
+      return specs[k];
+    });
+    if (specKeys.length) {
+      html += '<div class="cg-group cg-group--spaced">' +
+        '<h3 class="cg-group__title">Specialties</h3>' +
+        '<ul class="cg-merit-list">';
+      for (var si = 0; si < specKeys.length; si++) {
+        var sk = specKeys[si];
+        html += '<li class="cg-merit-list__item"><span>' +
+          esc(titleCase(sk)) + " — " +
+          esc(String(specs[sk])) +
+          "</span></li>";
       }
-      h += "</ul></div>";
-      return h;
+      html += "</ul></div>";
     }
 
-    html += '<div class="cg-stat-cols">';
-    html += dotsBlock("Attributes", attrs, Object.keys(attrs));
-    html += dotsBlock("Skills", skills, Object.keys(skills)
-      .filter(function (k) { return (skills[k] || 0) > 0; }));
-    html += dotsBlock("Merits", merits, Object.keys(merits));
-    html += "</div></div>";
+    // Merits
+    var mKeys2 = Object.keys(merits).filter(function (k) {
+      return (Number(merits[k]) || 0) > 0;
+    });
+    html += '<div class="cg-group cg-group--spaced">' +
+      '<h3 class="cg-group__title">Merits</h3>';
+    if (!mKeys2.length) {
+      html += '<p class="cg-sheet__muted">None.</p>';
+    } else {
+      html += '<ul class="cg-merit-list">';
+      for (var mi = 0; mi < mKeys2.length; mi++) {
+        var mk = mKeys2[mi];
+        var md = Number(merits[mk]) || 0;
+        html += '<li class="cg-merit-list__item">' +
+          "<span>" + esc(formatMeritStorageKey(mk)) +
+          ' <strong class="cg-merit-list__cost">' + md +
+          " dot" + (md === 1 ? "" : "s") +
+          "</strong></span></li>";
+      }
+      html += "</ul>";
+    }
+    html += "</div>";
+
+    // Contracts / powers
+    var contracts = sh.contracts || [];
+    if (contracts.length) {
+      html += '<div class="cg-group cg-group--spaced">' +
+        '<h3 class="cg-group__title">Contracts</h3>' +
+        '<ul class="cg-merit-list">';
+      for (var ci = 0; ci < contracts.length; ci++) {
+        html += '<li class="cg-merit-list__item"><span>' +
+          esc(String(contracts[ci])) + "</span></li>";
+      }
+      html += "</ul></div>";
+    }
+    var powers = sh.powers || {};
+    var pKeys2 = Object.keys(powers).filter(function (k) {
+      return (Number(powers[k]) || 0) > 0;
+    });
+    if (pKeys2.length) {
+      html += '<div class="cg-group cg-group--spaced">' +
+        '<h3 class="cg-group__title">Powers</h3>' +
+        '<div class="cg-live__power-dots">';
+      for (var pi = 0; pi < pKeys2.length; pi++) {
+        html += renderReadonlyDots(
+          pKeys2[pi],
+          powers[pKeys2[pi]],
+          5,
+        );
+      }
+      html += "</div></div>";
+    }
+
+    html += "</div>";
     return html;
   }
 
@@ -1066,11 +1237,11 @@
       return;
     }
 
-    // Approved / live sheet — Character tab
+    // Approved / live sheet — Character tab (structured UI)
     var showLive = !!(st.approved || st.isApproved ||
-      st.sheetText ||
-      (st.closed && st.sheet && !st.stage));
-    if (showLive && (st.sheet || st.sheetText)) {
+      (st.closed && st.sheet && !st.stage) ||
+      (st.sheet && st.sheetText && !st.stage));
+    if (showLive && st.sheet) {
       main.innerHTML =
         '<section class="site-section cg-root" data-cg-root>' +
         '<header class="cg-header">' +
@@ -1623,7 +1794,7 @@
     if (!qs('link[data-cg-css]')) {
       var link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "/site/css/chargen.css?v=20260804sheetfix";
+      link.href = "/site/css/chargen.css?v=20260804livesheet";
       link.setAttribute("data-cg-css", "1");
       document.head.appendChild(link);
     }

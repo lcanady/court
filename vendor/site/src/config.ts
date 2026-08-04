@@ -98,7 +98,7 @@ export function markNavActive(
 }
 
 /** Cache-bust query for shipped site CSS (bump when layout/tokens change). */
-export const SITE_ASSET_V = "20260804sheetfix";
+export const SITE_ASSET_V = "20260804livesheet";
 
 /** Resolve stylesheet href for the active skin. */
 export function resolveSkinHref(cfg: SitePluginConfig): string {
