@@ -39,14 +39,25 @@ export function lockImpliesStaff(lock: unknown): boolean {
   return false;
 }
 
-/** Path/name implies staff docs (…/staff/…, admin/…, _hidden). */
+/** Path/name implies staff docs (…/staff/…, *-staff, admin/…, _hidden). */
 export function pathImpliesStaff(name: string): boolean {
   const n = String(name || "").toLowerCase().replace(/^\//, "");
   if (!n) return false;
   const segs = n.split("/").filter(Boolean);
   for (const s of segs) {
     if (s.startsWith("_")) return true;
-    if (s === "staff" || s === "admin" || s === "wizard") return true;
+    if (s === "staff" || s === "admin" || s === "wizard") {
+      return true;
+    }
+    // language-staff, bbs-staff, …
+    if (
+      s.endsWith("-staff") || s.endsWith("-admin") ||
+      s.endsWith("-wizard") || s.startsWith("staff-") ||
+      s.startsWith("admin-")
+    ) {
+      return true;
+    }
+    if (s.includes("staff") || s.includes("wizard")) return true;
   }
   return false;
 }
