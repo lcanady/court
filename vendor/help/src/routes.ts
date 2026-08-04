@@ -57,9 +57,10 @@ registerPluginRoute("/api/v1/help", async (req, userId) => {
   if (!topic && req.method === "GET") {
     const staff = userId ? await isAdmin(userId) : false;
     const all = await helpRegistry.all();
-    const topics = staff
+    const topics = (staff
       ? all
-      : all.filter((e) => !e.hidden);
+      : all.filter((e) => !e.hidden)
+    ).filter((e) => Boolean(e.name?.trim()));
     const sections = [
       ...new Set(
         topics.map((e) => e.section).filter(Boolean),
