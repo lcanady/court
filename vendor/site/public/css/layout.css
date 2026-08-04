@@ -248,13 +248,27 @@ body {
 }
 
 .site-shell.is-mode-login .site-main {
-  margin: 0 auto;
-  max-width: 440px;
-  min-height: calc(100vh - var(--site-nav-h) - 4rem);
+  /* Full-width column so .site-gate can center like /admin */
+  margin: 0;
+  max-width: none;
+  width: 100%;
+  min-height: calc(100vh - var(--site-nav-h) - 2rem);
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: center;
+  justify-content: stretch;
+  align-items: stretch;
+  padding-inline: 0;
+}
+
+.site-shell.is-mode-login .site-body {
+  /* Drop 3-col constraints on login */
+  grid-template-columns: 1fr;
+  max-width: none;
+  width: 100%;
+}
+
+.site-shell.is-mode-login .site-main > .site-gate {
+  flex: 1 1 auto;
 }
 
 .site-shell.is-mode-profile .site-main {

@@ -1398,53 +1398,96 @@
     if (!mainEl) return;
 
     if (MODE === "login") {
-      var innerHtml = "<section class=\"site-section\" style=\"width:100%;display:flex;flex-direction:column;align-items:center;\">" +
-        "<h2 class=\"site-section__title\">" + (user ? "Account" : (currentAuthMode === "register" ? "Register" : "Sign In")) + "</h2>" +
-        "<div class=\"site-rule site-rule--image\" role=\"presentation\" style=\"width:100%;max-width:400px;\"></div>" +
-        "<div class=\"site-section__body\" style=\"width:100%;display:flex;justify-content:center;\">";
+      // Same gate layout as /admin login (full-viewport card)
+      var brand = String(
+        (siteConfig && siteConfig.title) || "UrsaMU",
+      ).trim() || "UrsaMU";
+      var isReg = currentAuthMode === "register";
+      var html = "<div class=\"site-gate\" data-site-gate>";
 
       if (user) {
-        // Already signed in — no profile page; useful actions only
-        innerHtml += "<div class=\"site-auth-card\" style=\"text-align:center;\">" +
-          "<p>Signed in as <strong>" + esc(user.name) + "</strong>.</p>" +
-          "<div class=\"site-profile-actions\" style=\"justify-content:center;margin-top:1rem;\">" +
-          "<a href=\"" + pubPath("") + "\" class=\"site-auth-submit\" style=\"display:inline-flex;align-items:center;justify-content:center;text-decoration:none;padding:0 1.25rem;width:auto;\">Continue to site</a>";
+        html += "<div class=\"site-gate-card\">" +
+          "<header>" +
+          "<p class=\"site-gate-kicker\">" + esc(brand) + "</p>" +
+          "<h1>Signed in</h1>" +
+          "<p class=\"site-gate-lede\">Signed in as <strong>" +
+          esc(user.name) + "</strong>.</p>" +
+          "</header>" +
+          "<div class=\"site-gate-actions\">" +
+          "<a class=\"site-gate-btn site-gate-btn--primary\" href=\"" +
+          pubPath("") + "\">Continue to site</a>";
         if (user.isStaff) {
-          innerHtml += "<a href=\"/admin/\" class=\"site-auth-logout\" style=\"display:inline-flex;align-items:center;justify-content:center;text-decoration:none;\">Staff console</a>";
+          html += "<a class=\"site-gate-btn\" href=\"/admin/\">" +
+            "Staff console</a>";
         }
-        innerHtml += "<button type=\"button\" class=\"site-auth-logout\" id=\"page-logout-link\">Sign out</button>" +
+        html += "<button type=\"button\" class=\"site-gate-btn\" " +
+          "id=\"page-logout-link\">Sign out</button>" +
           "</div></div>";
       } else {
-        var isReg = (currentAuthMode === "register");
-        innerHtml += "<div class=\"site-auth-card\" style=\"width:100%;margin:0.5rem 0 0;\">" +
-          "<div class=\"site-auth-tabs\">" +
-          "<button type=\"button\" class=\"site-auth-tab" + (isReg ? "" : " is-active") + "\" id=\"tab-login\">Sign In</button>" +
-          "<button type=\"button\" class=\"site-auth-tab" + (isReg ? " is-active" : "") + "\" id=\"tab-register\">Register</button>" +
+        html += "<div class=\"site-gate-card\">" +
+          "<header>" +
+          "<p class=\"site-gate-kicker\">" + esc(brand) +
+          " · Web</p>" +
+          "<h1>" + (isReg ? "Create account" : "Sign in") +
+          "</h1>" +
+          "<p class=\"site-gate-lede\">" +
+          (isReg
+            ? "Register a player name to join the game and " +
+              "use Character on the site."
+            : "Sign in with your game account — same credentials " +
+              "as telnet and the staff console.") +
+          "</p>" +
+          "</header>" +
+          "<div class=\"site-auth-tabs\" role=\"tablist\">" +
+          "<button type=\"button\" class=\"site-auth-tab" +
+          (isReg ? "" : " is-active") +
+          "\" id=\"tab-login\" role=\"tab\">Sign in</button>" +
+          "<button type=\"button\" class=\"site-auth-tab" +
+          (isReg ? " is-active" : "") +
+          "\" id=\"tab-register\" role=\"tab\">Register</button>" +
           "</div>" +
           "<form class=\"site-auth-form\" id=\"site-auth-form\">" +
           "<div class=\"site-auth-field\">" +
-          "<label class=\"site-auth-label\" for=\"auth-username\">Username</label>" +
-          "<input type=\"text\" id=\"auth-username\" class=\"site-auth-input\" autocomplete=\"username\" required />" +
+          "<label class=\"site-auth-label\" for=\"auth-username\">" +
+          "Username</label>" +
+          "<input type=\"text\" id=\"auth-username\" " +
+          "class=\"site-auth-input\" name=\"username\" " +
+          "autocomplete=\"username\" required maxlength=\"64\" " +
+          "autocapitalize=\"none\" spellcheck=\"false\" />" +
           "</div>" +
-          "<div class=\"site-auth-field" + (isReg ? "" : " site-hidden") + "\" id=\"auth-email-group\">" +
-          "<label class=\"site-auth-label\" for=\"auth-email\">Email</label>" +
-          "<input type=\"email\" id=\"auth-email\" class=\"site-auth-input\" autocomplete=\"email\"" + (isReg ? " required" : "") + " />" +
+          "<div class=\"site-auth-field" +
+          (isReg ? "" : " site-hidden") +
+          "\" id=\"auth-email-group\">" +
+          "<label class=\"site-auth-label\" for=\"auth-email\">" +
+          "Email</label>" +
+          "<input type=\"email\" id=\"auth-email\" " +
+          "class=\"site-auth-input\" name=\"email\" " +
+          "autocomplete=\"email\"" +
+          (isReg ? " required" : "") + " />" +
           "</div>" +
           "<div class=\"site-auth-field\">" +
-          "<label class=\"site-auth-label\" for=\"auth-password\">Password</label>" +
-          "<input type=\"password\" id=\"auth-password\" class=\"site-auth-input\" autocomplete=\"current-password\" required />" +
+          "<label class=\"site-auth-label\" for=\"auth-password\">" +
+          "Password</label>" +
+          "<input type=\"password\" id=\"auth-password\" " +
+          "class=\"site-auth-input\" name=\"password\" " +
+          "autocomplete=\"" +
+          (isReg ? "new-password" : "current-password") +
+          "\" required maxlength=\"128\" />" +
           "</div>" +
-          "<div class=\"site-auth-error site-hidden\" id=\"auth-error\"></div>" +
-          "<button type=\"submit\" class=\"site-auth-submit\" id=\"auth-submit-btn\">" + (isReg ? "Create Account" : "Sign In") + "</button>" +
+          "<div class=\"site-auth-error site-hidden\" " +
+          "id=\"auth-error\" role=\"alert\"></div>" +
+          "<button type=\"submit\" class=\"site-auth-submit\" " +
+          "id=\"auth-submit-btn\">" +
+          (isReg ? "Create account" : "Sign in") +
+          "</button>" +
           "</form></div>";
       }
 
-      innerHtml += "</div></section>";
-
-      mainEl.innerHTML = innerHtml;
+      html += "</div>";
+      mainEl.innerHTML = html;
       wireAuthEvents(user);
     } else if (MODE === "profile") {
-      // Legacy /site/profile — redirect home (account lives in nav menu)
+      // Legacy /site/profile — redirect home (account lives in nav)
       window.location.replace(pubPath(""));
       return;
     }
@@ -2256,7 +2299,7 @@
     if (!chargenScriptPromise) {
       chargenScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/chargen.js?v=20260804routeguard";
+        s.src = "/site/js/chargen.js?v=20260804logingate";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {

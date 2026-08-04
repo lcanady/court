@@ -671,26 +671,128 @@
   color: var(--site-text-secondary);
 }
 
-/* ── Auth & Account Form ─────────────────────────────────────────── */
+/* ── Auth gate (mirrors /admin LoginView .gate / .gate-card) ──── */
+
+.site-gate {
+  width: 100%;
+  min-height: calc(100vh - var(--site-nav-h, 3.5rem) - 3rem);
+  display: grid;
+  place-items: center;
+  padding: 1.5rem 1.25rem 2.5rem;
+  box-sizing: border-box;
+}
+
+.site-gate-card {
+  width: 100%;
+  max-width: 24rem;
+  margin: 0;
+  padding: 2.15rem 1.85rem 1.85rem;
+  background: var(--site-bg-surface);
+  border: 1px solid var(--site-border);
+  border-radius: var(--site-radius-md, 8px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.28);
+  box-sizing: border-box;
+}
+
+.site-gate-card > header {
+  margin: 0 0 1.35rem;
+  padding: 0;
+  border: none;
+  background: transparent;
+  text-align: left;
+}
+
+.site-gate-kicker {
+  margin: 0 0 0.55rem;
+  font-size: 0.8125rem;
+  color: var(--site-text-muted);
+  letter-spacing: 0.02em;
+}
+
+.site-gate-card > header h1 {
+  margin: 0 0 0.45rem;
+  font-family: var(--site-font-display, inherit);
+  font-size: 1.65rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+  color: var(--site-text);
+}
+
+.site-gate-lede {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--site-text-secondary, var(--site-text-muted));
+  line-height: 1.5;
+}
+
+.site-gate-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: 0.25rem;
+}
+
+.site-gate-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  min-height: 2.75rem;
+  margin: 0;
+  padding: 0.65rem 1rem;
+  box-sizing: border-box;
+  border: 1px solid var(--site-border);
+  border-radius: var(--site-radius-sm, 6px);
+  background: transparent;
+  color: var(--site-text);
+  font-family: var(--site-font-ui);
+  font-size: 1rem;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.site-gate-btn:hover {
+  border-color: var(--site-border-strong, var(--site-accent-border));
+  background: var(--site-bg-surface-2, rgba(255, 255, 255, 0.04));
+}
+
+.site-gate-btn--primary {
+  border-color: var(--site-btn-bg, var(--site-accent));
+  background: var(--site-btn-bg, var(--site-accent));
+  color: var(--site-btn-fg, var(--site-bg));
+}
+
+.site-gate-btn--primary:hover {
+  background: var(--site-btn-bg-hover, var(--site-accent-hover));
+  border-color: var(--site-btn-bg-hover, var(--site-accent-hover));
+  color: var(--site-btn-fg, var(--site-bg));
+}
+
+/* ── Auth form controls (admin-scale) ───────────────────────────── */
 
 .site-auth-tabs {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 0.75rem;
+  gap: 0.35rem;
+  margin: 0 0 1.15rem;
   border-bottom: 1px solid var(--site-border-subtle);
-  padding-bottom: 0.35rem;
+  padding-bottom: 0;
 }
 
 .site-auth-tab {
+  flex: 1 1 0;
   background: transparent;
   border: 0;
+  border-bottom: 2px solid transparent;
   color: var(--site-text-muted);
   font-family: var(--site-font-ui);
-  font-size: 0.875rem;
+  font-size: 0.95rem;
   font-weight: 500;
-  padding: 0.2rem 0.4rem;
+  padding: 0.55rem 0.5rem;
+  margin-bottom: -1px;
   cursor: pointer;
-  border-bottom: 2px solid transparent;
 }
 
 .site-auth-tab:hover {
@@ -706,65 +808,73 @@
 .site-auth-form {
   display: flex;
   flex-direction: column;
-  gap: 0.55rem;
+  gap: 0.9rem;
+  margin: 0;
 }
 
 .site-auth-field {
   display: flex;
   flex-direction: column;
-  gap: 0.2rem;
+  gap: 0.35rem;
 }
 
 .site-auth-label {
-  font-size: 0.75rem;
+  font-size: 0.8125rem;
   font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--site-text-muted);
+  color: var(--site-text-secondary, var(--site-text-muted));
 }
 
 .site-auth-input {
   width: 100%;
-  height: 2.15rem;
+  min-height: 2.85rem;
   margin: 0;
-  padding: 0 0.55rem;
+  padding: 0.65rem 0.85rem;
   box-sizing: border-box;
   border: 1px solid var(--site-border);
-  border-radius: var(--site-radius-sm);
-  background: var(--site-bg-code);
+  border-radius: var(--site-radius-sm, 6px);
+  background: var(--site-bg-code, var(--site-bg));
   color: var(--site-text);
   font: inherit;
-  font-size: 0.875rem;
+  font-size: 1.05rem;
+  line-height: 1.3;
   outline: none;
 }
 
 .site-auth-input:focus {
-  border-color: var(--site-accent-border);
+  border-color: var(--site-accent);
+  box-shadow: 0 0 0 3px
+    color-mix(in srgb, var(--site-accent) 22%, transparent);
 }
 
 .site-auth-submit {
-  margin-top: 0.25rem;
-  height: 2.15rem;
+  width: 100%;
+  margin-top: 0.35rem;
+  min-height: 2.85rem;
   border: 0;
-  border-radius: var(--site-radius-sm);
-  background: var(--site-btn-bg);
-  color: var(--site-btn-fg);
+  border-radius: var(--site-radius-sm, 6px);
+  background: var(--site-btn-bg, var(--site-accent));
+  color: var(--site-btn-fg, var(--site-bg));
   font-family: var(--site-font-ui);
-  font-size: 0.875rem;
+  font-size: 1.05rem;
   font-weight: 600;
   cursor: pointer;
   transition: background-color 0.15s ease;
 }
 
 .site-auth-submit:hover {
-  background: var(--site-btn-bg-hover);
+  background: var(--site-btn-bg-hover, var(--site-accent-hover));
+}
+
+.site-auth-submit:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
 .site-auth-error {
-  font-size: 0.8125rem;
-  color: var(--site-error);
-  padding: 0.2rem 0;
-  line-height: 1.3;
+  font-size: 0.9rem;
+  color: var(--site-error, #e07070);
+  padding: 0.15rem 0;
+  line-height: 1.35;
 }
 
 .site-user-card {
@@ -958,15 +1068,15 @@
   line-height: 1.2;
 }
 
-/* ── Standalone Auth Card ────────────────────────────────────────── */
-
+/* Legacy alias — prefer .site-gate-card */
 .site-auth-card {
-  max-width: 400px;
+  width: 100%;
+  max-width: 24rem;
   background: var(--site-bg-surface);
   border: 1px solid var(--site-border);
   border-radius: var(--site-radius-md);
-  padding: 1.5rem;
-  margin: 1rem 0;
+  padding: 2rem 1.75rem;
+  margin: 0;
 }
 
 /* ── Profile Page Card ───────────────────────────────────────────── */
