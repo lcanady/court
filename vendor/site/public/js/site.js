@@ -2116,7 +2116,7 @@
     if (!chargenScriptPromise) {
       chargenScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/chargen.js?v=20260804avatar";
+        s.src = "/site/js/chargen.js?v=20260804navflex";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {

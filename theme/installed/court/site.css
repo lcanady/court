@@ -136,7 +136,10 @@
 .site-nav__list .site-nav-login-link,
 .site-nav__list .site-nav-user-link {
   position: relative;
-  display: inline-block;
+  /* inline-flex keeps avatar + moniker on one row */
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
   color: var(--site-text);
   font-family: var(--site-font-display);
   font-size: 20px;

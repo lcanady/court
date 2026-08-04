@@ -951,7 +951,8 @@
 .site-nav-username {
   display: inline-flex;
   align-items: center;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
+  white-space: nowrap;
   min-width: 0;
   max-width: 12rem;
   line-height: 1.2;
