@@ -589,7 +589,30 @@
   text-decoration: none;
 }
 
-/* ── Mobile ──────────────────────────────────────────────────────── */
+/* ── Responsive rails (keep 3-col; theme must not override mins) ── */
+
+@media (max-width: 1280px) {
+  :root {
+    --site-aside-width: 15.5rem;
+    --site-aside-min: 12.5rem;
+    --site-aside-max: 16.5rem;
+    --site-col-gap: 1.25rem;
+    --site-gutter: 1.5rem;
+  }
+}
+
+/* Still traditional left | main | right — shrink only */
+@media (max-width: 1100px) {
+  :root {
+    --site-aside-width: 13rem;
+    --site-aside-min: 10.5rem;
+    --site-aside-max: 14rem;
+    --site-col-gap: 0.85rem;
+    --site-gutter: 1.15rem;
+  }
+}
+
+/* ── Mobile (phones only stack — see layout.css ≤720px) ─────────── */
 
 @media (max-width: 720px) {
   .site-banner {
