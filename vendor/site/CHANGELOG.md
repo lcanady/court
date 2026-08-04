@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.36
+
+- Keep traditional 3-column layout; only stack on phones (≤720px). Medium widths shrink rails instead.
+
 ## 0.1.35
 
 - Chargen: keep session after Next/Back/Set (`started` flag + FE normalize)

@@ -282,8 +282,8 @@ body {
  * Desktop target (changeling / Figma 1728):
  *   aside 331 | gap ~50 | main 885 | gap ~50 | aside 331
  *   gap = (1728 - 2*gutter - 2*aside - main) / 2
- * Grid tracks keep center from being squeezed by flex-shrink.
- * No absolute positioning — stacks cleanly on small viewports.
+ * Traditional 3-col stays side-by-side; rails/gaps shrink on
+ * medium widths. Stack only on narrow phones (see ≤720px).
  */
 
 .site-body {
@@ -295,7 +295,7 @@ body {
   display: grid;
   grid-template-columns:
     minmax(var(--site-aside-min), var(--site-aside-width))
-    minmax(18rem, var(--site-main-max))
+    minmax(0, var(--site-main-max))
     minmax(var(--site-aside-min), var(--site-aside-width));
   column-gap: var(--site-col-gap, 1.5rem);
   row-gap: 1.5rem;
@@ -356,20 +356,57 @@ body {
   text-decoration: underline;
 }
 
-/* ── Responsive ──────────────────────────────────────────────────── */
+/* ── Responsive (prefer 3-col; shrink before stack) ──────────────── */
 
-/* Medium: keep 3-col, softer rail width */
+/* Large tablet / small desktop — still 3 columns */
 @media (max-width: 1280px) {
   :root {
-    --site-aside-width: 18rem;
-    --site-aside-min: 14rem;
-    --site-main-pad-inline: 1rem;
-    --site-col-gap: 1rem;
+    --site-aside-width: 15.5rem;
+    --site-aside-min: 12.5rem;
+    --site-aside-max: 16.5rem;
+    --site-main-pad-inline: 0.75rem;
+    --site-col-gap: 1.25rem;
+    --site-gutter: 1.5rem;
   }
 }
 
-/* Stack: main → left → right */
+/* Narrow desktop / wide tablet — still 3 columns, tighter rails */
 @media (max-width: 1100px) {
+  :root {
+    --site-aside-width: 13rem;
+    --site-aside-min: 10.5rem;
+    --site-aside-max: 14rem;
+    --site-col-gap: 0.85rem;
+    --site-gutter: 1.15rem;
+    --site-main-max: min(885px, 100%);
+  }
+
+  .site-body {
+    /* keep left | main | right */
+    grid-template-columns:
+      minmax(var(--site-aside-min), var(--site-aside-width))
+      minmax(0, 1fr)
+      minmax(var(--site-aside-min), var(--site-aside-width));
+    justify-content: stretch;
+  }
+
+  .site-aside {
+    max-width: none;
+  }
+
+  .site-main {
+    max-width: none;
+  }
+}
+
+/* Phone only — stack main → left → right */
+@media (max-width: 720px) {
+  :root {
+    --site-gutter: 1.15rem;
+    --site-banner-offset: 5.5rem;
+    --site-nav-h: 3.25rem;
+  }
+
   .site-body {
     grid-template-columns: 1fr;
     justify-content: stretch;
@@ -393,14 +430,6 @@ body {
 
   .site-aside--end {
     order: 3;
-  }
-}
-
-@media (max-width: 720px) {
-  :root {
-    --site-gutter: 1.15rem;
-    --site-banner-offset: 5.5rem;
-    --site-nav-h: 3.25rem;
   }
 
   .site-nav {
