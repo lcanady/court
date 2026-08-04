@@ -23,6 +23,8 @@ export type ApproveOpts = {
   notes?: string;
   /** Complete/archive CGEN job (default true). */
   completeJob?: boolean;
+  /** Optional sheet when draft is gone (from job snapshot). */
+  sheetOverride?: CofdCgState["sheet"] | null;
 };
 
 export type ApproveResult =
@@ -158,14 +160,15 @@ export async function approvePlayer(
     };
   }
 
-  // Flag set but sheet missing — fall through if draft still exists
-  if (!cg?.sheet) {
+  // Draft sheet, or restore from job snapshot override
+  let sheetSrc = cg?.sheet ?? opts.sheetOverride ?? null;
+  if (!sheetSrc) {
     if (flagApproved && !hasLive) {
       return {
         ok: false,
         error:
           `${name} is flagged approved but has no live sheet ` +
-          `and no draft to rebuild. Re-run chargen or restore DB.`,
+          `and no draft to rebuild. Re-submit chargen.`,
       };
     }
     return {
@@ -175,7 +178,7 @@ export async function approvePlayer(
     };
   }
 
-  const sheet = { ...cg.sheet };
+  const sheet = { ...sheetSrc };
   if (!sheet.specialties) sheet.specialties = {};
 
   // Write live sheet and clear draft in one $set when possible
@@ -236,7 +239,7 @@ export async function approvePlayer(
   let job: JobTouchResult | null = null;
   if (doJob) {
     job = await completeCgenJob(
-      cg.submittedJob,
+      cg?.submittedJob,
       playerId,
       staffId,
       staffName,

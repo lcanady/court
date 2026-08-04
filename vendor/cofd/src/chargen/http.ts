@@ -362,6 +362,24 @@ export async function getSheet(
  * POST /api/v1/cofd/approve — staff approve a player (or by job).
  * Body: { playerId?: string, jobNumber?: number, notes?: string }
  */
+/** Pull sheet JSON from a CGEN job description snapshot. */
+function sheetFromJobDescription(
+  desc: unknown,
+): CofdCgState["sheet"] | null {
+  const text = String(desc ?? "");
+  const m = text.match(/```json\s*([\s\S]*?)```/i);
+  if (!m) return null;
+  try {
+    const parsed = JSON.parse(m[1]!);
+    if (parsed && typeof parsed === "object" && parsed.template) {
+      return parsed as CofdCgState["sheet"];
+    }
+  } catch {
+    /* ignore */
+  }
+  return null;
+}
+
 export async function approveHttp(
   staffId: string,
   body: {
@@ -378,22 +396,44 @@ export async function approveHttp(
 
   let playerId = String(body.playerId ?? "").replace(/^#/, "")
     .trim();
-  if (!playerId && body.jobNumber != null) {
-    try {
-      const { jobs } = await import("@ursamu/jobs");
+  let sheetOverride: CofdCgState["sheet"] | null = null;
+  let jobNum: number | null = body.jobNumber != null
+    ? Number(body.jobNumber)
+    : null;
+
+  try {
+    const { jobs, jobArchive } = await import("@ursamu/jobs");
+    const want = jobNum;
+    let job = null as
+      | { submittedBy?: string; description?: string; number?: number }
+      | null;
+    if (want != null && !Number.isNaN(want)) {
       const all = await jobs.find({});
-      const want = Number(body.jobNumber);
-      const job = all.find((j) => Number(j.number) === want);
-      if (job) {
+      job = all.find((j) => Number(j.number) === want) ?? null;
+      if (!job) {
+        try {
+          const arch = await jobArchive.find({});
+          job = arch.find((j) => Number(j.number) === want) ??
+            null;
+        } catch {
+          /* no archive */
+        }
+      }
+    }
+    if (job) {
+      if (!playerId) {
         playerId = String(job.submittedBy ?? "").replace(
           /^#/,
           "",
         );
       }
-    } catch {
-      /* ignore */
+      sheetOverride = sheetFromJobDescription(job.description);
+      if (job.number != null) jobNum = Number(job.number);
     }
+  } catch {
+    /* ignore */
   }
+
   if (!playerId) {
     return json({
       error: "playerId or jobNumber required",
@@ -411,6 +451,7 @@ export async function approveHttp(
     staffName,
     notes: String(body.notes ?? ""),
     completeJob: true,
+    sheetOverride,
   });
   if (!result.ok) {
     return json({ error: result.error }, 400);
@@ -420,7 +461,7 @@ export async function approveHttp(
     already: result.already,
     name: result.name,
     dormId: result.dormId,
-    jobNumber: result.job?.number ?? null,
+    jobNumber: result.job?.number ?? jobNum,
   });
 }
 
