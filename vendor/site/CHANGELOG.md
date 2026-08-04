@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.34
+
+- Register `/chargen` SPA route under serveRoot
+
 ## 0.1.33
 
 - Public **/chargen** FE: in-game-style stepper, Court/Figma look
