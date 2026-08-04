@@ -333,19 +333,26 @@
     document.title = brandTitle;
     applyShellChrome();
 
-    if (Array.isArray(cfg.nav) && navList) {
-      navList.innerHTML = "";
-      for (var i = 0; i < cfg.nav.length; i++) {
-        var item = cfg.nav[i];
-        var li = document.createElement("li");
-        var a  = document.createElement("a");
-        a.href = String(item.href || "#");
-        a.textContent = String(item.label || "Link");
-        // Path wins over static active:true from config
-        if (navHrefIsActive(item.href)) a.classList.add("is-active");
-        li.appendChild(a);
-        navList.appendChild(li);
-      }
+    renderTopNav(currentUser);
+  }
+
+  /** Rebuild top nav from cfg.nav using require + auth. */
+  function renderTopNav(user) {
+    if (!navList || !siteConfig || !Array.isArray(siteConfig.nav)) {
+      return;
+    }
+    navList.innerHTML = "";
+    for (var i = 0; i < siteConfig.nav.length; i++) {
+      var item = siteConfig.nav[i];
+      if (!navRequireMet(item.require, user)) continue;
+      var li = document.createElement("li");
+      var a = document.createElement("a");
+      a.href = String(item.href || "#");
+      a.textContent = String(item.label || "Link");
+      if (item.id) li.setAttribute("data-nav-id", String(item.id));
+      if (navHrefIsActive(item.href)) a.classList.add("is-active");
+      li.appendChild(a);
+      navList.appendChild(li);
     }
   }
 
@@ -1094,8 +1101,53 @@
 
   // ── Auth & Account system ──────────────────────────────────────────────────
 
-  var STAFF_FLAGS = ["wizard", "admin", "superuser", "builder"];
+  var STAFF_FLAGS = ["wizard", "admin", "superuser", "builder", "staff", "storyteller"];
   var currentAuthMode = "login"; // "login" | "register"
+  /** @type {null | { id: string, flags: string[], isStaff: boolean }} */
+  var currentUser = null;
+
+  /**
+   * Nav require gate (mirrors siteNavRequireMet on the server).
+   * Plugins/config set item.require.
+   */
+  function navRequireMet(require, user) {
+    var r = String(require || "").trim().toLowerCase();
+    if (!r || r === "public" || r === "any" || r === "all") {
+      return true;
+    }
+    if (!user) return false;
+    if (
+      r === "connected" ||
+      r === "logged-in" ||
+      r === "logged_in" ||
+      r === "auth"
+    ) {
+      return true;
+    }
+    var flags = (user.flags || []).map(function (f) {
+      return String(f).toLowerCase().trim();
+    });
+    if (
+      r === "staff" ||
+      r === "connected staff" ||
+      r === "connected admin+" ||
+      r === "connected admin" ||
+      r === "connected wizard" ||
+      r.indexOf("perm(admin)") === 0 ||
+      r.indexOf("perm(staff)") === 0 ||
+      r.indexOf("perm(wizard)") === 0
+    ) {
+      return flags.some(function (f) {
+        return STAFF_FLAGS.indexOf(f) !== -1;
+      });
+    }
+    var fm = r.match(/^flag\(\s*([a-z0-9_-]+)\s*\)$/i);
+    if (fm) return flags.indexOf(fm[1].toLowerCase()) !== -1;
+    if (/^[a-z][a-z0-9_-]*$/i.test(r)) {
+      return flags.indexOf(r) !== -1;
+    }
+    return false;
+  }
 
   function probeAuth() {
     var token = "";
@@ -1425,6 +1477,8 @@
               sessionStorage.setItem("ursamu.webAdmin.token", res.data.token);
             } catch (_) {}
             probeAuth().then(function (u) {
+              currentUser = u;
+              renderTopNav(u);
               updateNavUser(u);
               var params = new URLSearchParams(window.location.search);
               var next = safeNextPath(params.get("next") || pubPath(""));
@@ -2116,7 +2170,7 @@
     if (!chargenScriptPromise) {
       chargenScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/chargen.js?v=20260804sheetord";
+        s.src = "/site/js/chargen.js?v=20260804navreq";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {
@@ -2278,6 +2332,8 @@
         updateSidebarAndBannerVisibility();
         renderLeft(pages);
         return authPromise.then(function (user) {
+          currentUser = user;
+          renderTopNav(user);
           updateNavUser(user);
           if (MODE === "login" || MODE === "profile") {
             injectSpecialPage(user);

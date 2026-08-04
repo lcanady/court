@@ -10,6 +10,14 @@ export type SiteNavItem = {
   active?: boolean;
   /** Sort key; lower first. Default 50 (config) / 100 (plugins). */
   order?: number;
+  /**
+   * Who may see this link (plugins + config).
+   * Empty / "public" — everyone.
+   * "connected" — signed-in players.
+   * "staff" | "connected admin+" — staff flags.
+   * "flag(name)" — enactor has that flag.
+   */
+  require?: string;
 };
 
 export type SitePluginConfig = {
@@ -98,7 +106,7 @@ export function markNavActive(
 }
 
 /** Cache-bust query for shipped site CSS (bump when layout/tokens change). */
-export const SITE_ASSET_V = "20260804sheetord";
+export const SITE_ASSET_V = "20260804navreq";
 
 /** Resolve stylesheet href for the active skin. */
 export function resolveSkinHref(cfg: SitePluginConfig): string {

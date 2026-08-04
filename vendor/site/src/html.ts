@@ -10,6 +10,7 @@ import {
   resolveSkinHref,
   SITE_ASSET_V,
 } from "./config.ts";
+import { filterSiteNav } from "./site-nav.ts";
 
 function esc(s: string): string {
   return s
@@ -222,11 +223,16 @@ export function injectSiteHtml(
     );
   }
 
-  // Nav list — active from request path when provided
+  // Nav list — public items only in first HTML (no session).
+  // site.js re-renders after probeAuth with require gates.
   if (Array.isArray(cfg.nav) && cfg.nav.length > 0) {
+    const publicNav = filterSiteNav(cfg.nav, {
+      connected: false,
+      flags: [],
+    });
     const navItems = opts.path
-      ? markNavActive(cfg.nav, opts.path)
-      : cfg.nav;
+      ? markNavActive(publicNav, opts.path)
+      : publicNav;
     const items = navHtml(navItems);
     out = out.replace(
       /(<ul\b[^>]*\bdata-site-nav-list\b[^>]*>)[\s\S]*?(<\/ul>)/i,

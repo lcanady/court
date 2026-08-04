@@ -68,7 +68,8 @@
           "id": "chargen",
           "label": "Character",
           "href": "/chargen",
-          "order": 35
+          "order": 35,
+          "require": "connected"
         }
       ],
       "skinCss": "/site/theme/installed/court/site.css",
