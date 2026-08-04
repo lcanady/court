@@ -2,6 +2,7 @@
 
 ## 0.1.31
 
+- Cache-bust `SITE_ASSET_V` → `20260804onesearch`
 - Help uses the single left search box (placeholder “Search help…”);
   removed duplicate Search help field. `?q=` filters the topic table.
 
