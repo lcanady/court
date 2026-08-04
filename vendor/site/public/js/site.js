@@ -145,10 +145,19 @@
   /** Section filter link: /help/?section=channel */
   function helpSectionHref(section) {
     var base = helpHref("");
+    var params = [];
     var sec = String(section || "").trim();
-    if (!sec) return base;
-    var join = base.indexOf("?") >= 0 ? "&" : "?";
-    return base + join + "section=" + encodeURIComponent(sec);
+    if (sec) params.push("section=" + encodeURIComponent(sec));
+    var q = helpQueryFromUrl();
+    if (!q) {
+      try {
+        var inp = document.getElementById("site-q");
+        if (inp && inp.value) q = String(inp.value).trim();
+      } catch (_) { /* ignore */ }
+    }
+    if (q) params.push("q=" + encodeURIComponent(q));
+    if (!params.length) return base;
+    return base + "?" + params.join("&");
   }
 
   /**
