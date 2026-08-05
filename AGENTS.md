@@ -9,21 +9,20 @@ GEMINI.md. Those files should point here.
 ## What this is
 
 **Court of Miracles** is a *Changeling: The Lost* freehold game on the
-UrsaMU engine (`@ursamu/mush` via `./vendor/mush`).
+UrsaMU engine (`jsr:@ursamu/mush` — **JSR only** for the engine).
 
 - **Tone:** Victorian literary fiction, not modern chat or RPG boxed text
 - **Setting:** A fog-bound, slightly wrong city of gaslight, iron, and
   bargains: the freehold's London-that-never-quite-was. Prefer atmosphere
   over naming the real city repeatedly.
 - **This repo:** game code, config samples, help, softcode, and ops
-  scripts. Engine and several first-party plugins load from
-  `./vendor/*` (synced from the ursamu monorepo); other packages use
-  JSR pins in `deno.json`.
+  scripts. Engine loads from JSR pins in `deno.json`. Source of truth
+  for packages is the ursamu monorepo; do not vendor mush.
 
 | Layer | Tech |
 |-------|------|
-| Engine | `./vendor/mush` **1.0.12** |
-| Public FE | `./vendor/site` |
+| Engine | `jsr:@ursamu/mush@1.0.12` |
+| Public FE | `./vendor/site` (or JSR pin when stable) |
 | Staff console | `./vendor/web` (or JSR pin) |
 | Runtime | Deno |
 | DB | PGlite / TypeGraph (`data/typegraph.db`) |
@@ -188,15 +187,17 @@ ssh court.ursamu.io 'bash ./court-update.sh'
 safely, reloads JSR cache, restarts daemon. Do **not** hand-edit
 production without git when the change belongs in the repo.
 
-### Engine / FE pins (vendor + JSR)
+### Engine / FE pins
 
-- Engine: **`./vendor/mush` 1.0.12** (globals cmds: +finger, +staff,
+- Engine: **`jsr:@ursamu/mush@1.0.12`** (globals: +finger, +staff,
   +duty, +glance, +gname, +motd, +uptime, +summon, +i, @exittype, …).
-- Public FE / staff: **`./vendor/site`**, **`./vendor/web`**.
+- Public FE / staff may still use `./vendor/site` and `./vendor/web`
+  until those pins move to JSR.
 - Court brand is **`theme/installed/court/`** (not a builtin site
   skin). Config: `skinCss` + `themeDir: "theme"`.
-- Bump engine by rsync from ursamu `packages/mush` → `vendor/mush`,
-  commit, push, deploy. Optional: also publish to JSR when ready.
+- Bump engine by publishing `@ursamu/mush` from the ursamu monorepo,
+  then editing the `deno.json` pin here, commit, push, deploy.
+- Do **not** reintroduce `vendor/mush`.
 
 ---
 
