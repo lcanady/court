@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.74
+
+- Chargen demo catalog: drop Werewolf card (closed in cofd 1.2.8)
+- Cache-bust `SITE_ASSET_V` → `20260805noww`
+
 ## 0.1.73
 
 - Tablet/mobile: buttons grow full width — play SEND, look

@@ -21,7 +21,10 @@ import {
   PHYSICAL_ATTRIBUTES,
   SOCIAL_ATTRIBUTES,
 } from "../dictionary/index.ts";
-import { COFD_TEMPLATES } from "../gamelines/templates.ts";
+import {
+  COFD_TEMPLATES,
+  chargenTemplates,
+} from "../gamelines/templates.ts";
 import {
   initCgState,
   getStageName,
@@ -312,7 +315,7 @@ export async function getChargen(
       ok: true,
       started: false,
       stages: stageLabels(6),
-      templates: Object.values(COFD_TEMPLATES).map((t) => ({
+      templates: chargenTemplates().map((t) => ({
         key: t.key,
         name: t.name,
       })),
@@ -728,11 +731,10 @@ export async function chargenOptions(
     return json({
       ok: true,
       topic,
-      items: Object.values(COFD_TEMPLATES)
-        .filter((t) =>
-          ["mortal", "changeling", "werewolf"].includes(t.key)
-        )
-        .map((t) => ({ key: t.key, name: t.name })),
+      items: chargenTemplates().map((t) => ({
+        key: t.key,
+        name: t.name,
+      })),
     });
   }
   if (topic === "seemings") {

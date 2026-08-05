@@ -1,3 +1,10 @@
+## 1.2.8
+
+- Chargen: Werewolf closed for player pick (mortal +
+  changeling only). `CHARGEN_TEMPLATE_KEYS` / `chargenTemplates()`
+  gate +cg list, web options, and stage-2 set. Sheet/NPC code
+  unchanged.
+
 ## 1.2.7
 
 - **+cg** on web clients: navigate to Character tab (`/chargen`)

@@ -22,6 +22,11 @@ Deno.test("chargenOptions templates filtered", OPTS, async () => {
   const keys = body.items.map((i: { key: string }) => i.key);
   assertEquals(keys.includes("changeling"), true);
   assertEquals(keys.includes("mortal"), true);
+  // Closed for chargen for now (still in COFD_TEMPLATES).
+  assertEquals(keys.includes("werewolf"), false);
+  assertEquals(keys.includes("fetch"), false);
+  assertEquals(keys.includes("hobgoblin"), false);
+  assertEquals(keys.includes("huntsman"), false);
 });
 
 Deno.test("chargenOptions attributes groups", OPTS, async () => {

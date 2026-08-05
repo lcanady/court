@@ -416,7 +416,6 @@
           items: [
             { key: "mortal", name: "Mortal" },
             { key: "changeling", name: "Changeling: The Lost" },
-            { key: "werewolf", name: "Werewolf: The Forsaken" },
           ],
         },
         seemings: {
