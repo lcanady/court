@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.75
+
+- Chargen stage 3: merit-style search pickers for seeming,
+  kith, court, and second favored Regalia (with detail blurbs)
+- Seeming/kith chosen in either order; favored list excludes
+  seeming's built-in Regalia
+- Cache-bust `SITE_ASSET_V` → `20260805catpick`
+
 ## 0.1.74
 
 - Chargen demo catalog: drop Werewolf card (closed in cofd 1.2.8)

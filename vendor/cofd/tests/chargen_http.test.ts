@@ -54,6 +54,28 @@ Deno.test("chargenOptions kiths filter", OPTS, async () => {
       "fairest",
     );
   }
+  assertExists(all.items[0].blessing);
+  assertExists(all.items[0].description);
+});
+
+Deno.test("chargenOptions seemings enriched", OPTS, async () => {
+  const body = await (await chargenOptions("seemings")).json();
+  assertEquals(body.ok, true);
+  assertEquals(body.items.length >= 6, true);
+  const s = body.items[0];
+  assertExists(s.name);
+  assertExists(s.favoredRegalia);
+  assertExists(s.blessing);
+  assertExists(s.description);
+});
+
+Deno.test("chargenOptions courts and regalia enriched", OPTS, async () => {
+  const courts = await (await chargenOptions("courts")).json();
+  assertExists(courts.items[0].emotion);
+  assertExists(courts.items[0].description);
+  const regs = await (await chargenOptions("regalia")).json();
+  assertExists(regs.items[0].favoredBy);
+  assertExists(regs.items[0].description);
 });
 
 Deno.test("chargenOptions merits catalog", OPTS, async () => {

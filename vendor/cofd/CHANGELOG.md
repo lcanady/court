@@ -1,3 +1,11 @@
+## 1.2.9
+
+- Chargen options: seemings/kiths/courts/regalia return
+  blessing, description, favoredRegalia, etc. for web pickers
+- Seeming ↔ kith: setting kith fills seeming; changing seeming
+  clears a mismatched kith; second favored cannot match
+  seeming's favored Regalia
+
 ## 1.2.8
 
 - Chargen: Werewolf closed for player pick (mortal +

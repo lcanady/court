@@ -360,7 +360,28 @@
   text-align: right;
 }
 
-/* ── Merits autocomplete ────────────────────────────────────────── */
+/* ── Merits / catalog autocomplete ──────────────────────────────── */
+
+.cg-catalog-hint {
+  margin: 0 0 0.35rem;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.cg-catalog-blurb {
+  margin: 0 0 0.75rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--site-text-muted, #a1a1aa);
+}
+
+.cg-catalog-blurb[hidden] {
+  display: none;
+}
+
+.cg-catalog-picker .cg-merit-detail {
+  margin-top: 0.65rem;
+}
 
 .cg-merit-picker {
   position: relative;

@@ -12,9 +12,9 @@ import {
   COFD_SOCIAL_SKILLS,
   COFD_VIRTUE_NAMES,
   COFD_VICE_NAMES,
-  CTL_SEEMING_NAMES,
-  CTL_COURT_NAMES,
-  CTL_REGALIA_NAMES,
+  CTL_SEEMINGS,
+  CTL_COURTS,
+  CTL_REGALIA,
   CTL_KITHS,
   kithsForSeeming,
   MENTAL_ATTRIBUTES,
@@ -741,21 +741,36 @@ export async function chargenOptions(
     return json({
       ok: true,
       topic,
-      items: CTL_SEEMING_NAMES.map((n) => ({ name: n })),
+      items: CTL_SEEMINGS.map((s) => ({
+        name: s.name,
+        favoredRegalia: s.favoredRegalia,
+        blessing: s.blessing,
+        curse: s.curse,
+        description: s.description,
+      })),
     });
   }
   if (topic === "courts") {
     return json({
       ok: true,
       topic,
-      items: CTL_COURT_NAMES.map((n) => ({ name: n })),
+      items: CTL_COURTS.map((c) => ({
+        name: c.name,
+        emotion: c.emotion,
+        mantleNotes: c.mantleNotes,
+        description: c.description,
+      })),
     });
   }
   if (topic === "regalia" || topic === "favored") {
     return json({
       ok: true,
       topic,
-      items: CTL_REGALIA_NAMES.map((n) => ({ name: n })),
+      items: CTL_REGALIA.map((r) => ({
+        name: r.name,
+        favoredBy: r.favoredBy,
+        description: r.description,
+      })),
     });
   }
   if (topic === "kiths") {
@@ -768,6 +783,8 @@ export async function chargenOptions(
       items: list.map((k) => ({
         name: k.name,
         seeming: k.seeming ?? "",
+        blessing: k.blessing,
+        description: k.description,
       })),
     });
   }

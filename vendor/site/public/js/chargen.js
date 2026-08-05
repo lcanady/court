@@ -395,7 +395,7 @@
 
   async function loadOptions() {
     var topics = [
-      "virtues", "vices", "templates", "seemings",
+      "virtues", "vices", "templates", "seemings", "kiths",
       "courts", "regalia", "attributes", "skills", "merits",
     ];
     if (demo) {
@@ -420,22 +420,69 @@
         },
         seemings: {
           items: [
-            { name: "Beast" }, { name: "Darkling" },
-            { name: "Elemental" }, { name: "Fairest" },
-            { name: "Ogre" }, { name: "Wizened" },
+            {
+              name: "Beast", favoredRegalia: "Steed",
+              blessing: "Animal ken", curse: "Bestial",
+              description: "Half-beast Lost of the Hedge.",
+            },
+            {
+              name: "Fairest", favoredRegalia: "Crown",
+              blessing: "Social grace", curse: "Fragile ego",
+              description: "Beautiful and terrible.",
+            },
+            {
+              name: "Wizened", favoredRegalia: "Jewels",
+              blessing: "Craft", curse: "Brittleness",
+              description: "Artisans of Arcadia.",
+            },
           ],
         },
         courts: {
           items: [
-            { name: "Spring" }, { name: "Summer" },
-            { name: "Autumn" }, { name: "Winter" },
+            {
+              name: "Spring", emotion: "Desire",
+              description: "Court of desire and renewal.",
+            },
+            {
+              name: "Summer", emotion: "Wrath",
+              description: "Court of wrath and war.",
+            },
+            {
+              name: "Autumn", emotion: "Fear",
+              description: "Court of fear and magic.",
+            },
+            {
+              name: "Winter", emotion: "Sorrow",
+              description: "Court of sorrow and secrets.",
+            },
           ],
         },
         regalia: {
           items: [
-            { name: "Crown" }, { name: "Jewel" },
-            { name: "Mirror" }, { name: "Shield" },
-            { name: "Steed" }, { name: "Sword" },
+            {
+              name: "Crown", favoredBy: "Fairest",
+              description: "Authority and rule.",
+            },
+            {
+              name: "Jewel", favoredBy: "Wizened",
+              description: "Treasure and craft.",
+            },
+            {
+              name: "Mirror", favoredBy: "Darkling",
+              description: "Reflection and lies.",
+            },
+            {
+              name: "Shield", favoredBy: "Ogre",
+              description: "Protection and endurance.",
+            },
+            {
+              name: "Steed", favoredBy: "Beast",
+              description: "Motion and chase.",
+            },
+            {
+              name: "Sword", favoredBy: "Elemental",
+              description: "Conflict and force.",
+            },
           ],
         },
         attributes: {
@@ -459,9 +506,22 @@
         },
         kiths: {
           items: [
-            { name: "Dancer", seeming: "Fairest" },
-            { name: "Playmate", seeming: "Fairest" },
-            { name: "Hunterheart", seeming: "Beast" },
+            {
+              name: "Dancer", seeming: "Fairest",
+              blessing: "Grace", description: "Movement as art.",
+            },
+            {
+              name: "Playmate", seeming: "Fairest",
+              blessing: "Charm", description: "Beloved companion.",
+            },
+            {
+              name: "Hunterheart", seeming: "Beast",
+              blessing: "Hunt", description: "Predator's edge.",
+            },
+            {
+              name: "Smith", seeming: "Wizened",
+              blessing: "Forge", description: "Makes wonders.",
+            },
           ],
         },
         merits: {
@@ -667,6 +727,138 @@
       "</select></div>";
   }
 
+  /**
+   * Merit-style searchable catalog for a single-choice field
+   * (seeming, kith, court, favored regalia).
+   */
+  function fieldCatalog(field, label, selected, hint) {
+    var has = !!(selected && String(selected).trim());
+    var html = '<div class="cg-catalog-picker cg-merit-picker" ' +
+      'data-cg-catalog="' + esc(field) + '">';
+    html += '<div class="cg-field cg-merit-search-wrap">' +
+      '<label class="cg-field__label" for="cat-' + esc(field) +
+      '">' + esc(label) + "</label>";
+    if (hint) {
+      html += '<p class="cg-catalog-hint muted">' + esc(hint) +
+        "</p>";
+    }
+    html += '<input type="search" class="cg-input" id="cat-' +
+      esc(field) + '" data-cg-cat-search="' + esc(field) +
+      '" autocomplete="off" placeholder="Search…" value="' +
+      esc(has ? selected : "") + '" />' +
+      '<ul class="cg-merit-suggest" data-cg-cat-suggest="' +
+      esc(field) + '" hidden></ul></div>';
+    html += '<div class="cg-merit-detail" data-cg-cat-detail="' +
+      esc(field) + '"' + (has ? "" : " hidden") + ">" +
+      '<p class="cg-merit-detail__name" data-cg-cat-name>' +
+      esc(has ? selected : "") + "</p>" +
+      '<p class="cg-merit-detail__meta muted" ' +
+      'data-cg-cat-meta></p>' +
+      '<p class="cg-catalog-blurb" data-cg-cat-blurb></p>' +
+      '<button type="button" class="cg-btn cg-btn--tiny" ' +
+      'data-cg-cat-clear="' + esc(field) +
+      '">Clear</button></div>';
+    html += "</div>";
+    return html;
+  }
+
+  function catalogItems(field, sheet) {
+    sheet = sheet || (state && state.sheet) || {};
+    var cf = sheet.customFields || {};
+    if (field === "seeming") {
+      return (opts.seemings && opts.seemings.items) || [];
+    }
+    if (field === "kith") {
+      var all = (opts.kiths && opts.kiths.items) || [];
+      var seem = String(cf.seeming || "").trim().toLowerCase();
+      if (!seem) return all;
+      return all.filter(function (k) {
+        return String(k.seeming || "").toLowerCase() === seem;
+      });
+    }
+    if (field === "court") {
+      return (opts.courts && opts.courts.items) || [];
+    }
+    if (field === "favored") {
+      var regs = (opts.regalia && opts.regalia.items) || [];
+      var seemName = String(cf.seeming || "").trim().toLowerCase();
+      var blocked = "";
+      if (seemName) {
+        var slist = (opts.seemings && opts.seemings.items) || [];
+        for (var si = 0; si < slist.length; si++) {
+          if (
+            String(slist[si].name).toLowerCase() === seemName
+          ) {
+            if (slist[si].favoredRegalia) {
+              blocked = String(slist[si].favoredRegalia)
+                .toLowerCase();
+            }
+            break;
+          }
+        }
+      }
+      if (!blocked) return regs;
+      return regs.filter(function (r) {
+        return String(r.name).toLowerCase() !== blocked;
+      });
+    }
+    return [];
+  }
+
+  function findCatalogItem(field, name, sheet) {
+    var q = String(name || "").trim().toLowerCase();
+    if (!q) return null;
+    // Search full catalogs so kith can resolve seeming even when
+    // filtered list is empty.
+    var pool;
+    if (field === "seeming") {
+      pool = (opts.seemings && opts.seemings.items) || [];
+    } else if (field === "kith") {
+      pool = (opts.kiths && opts.kiths.items) || [];
+    } else if (field === "court") {
+      pool = (opts.courts && opts.courts.items) || [];
+    } else if (field === "favored") {
+      pool = (opts.regalia && opts.regalia.items) || [];
+    } else {
+      pool = catalogItems(field, sheet);
+    }
+    for (var i = 0; i < pool.length; i++) {
+      if (String(pool[i].name).toLowerCase() === q) return pool[i];
+    }
+    return null;
+  }
+
+  function catalogMetaLine(field, item) {
+    if (!item) return "";
+    if (field === "seeming") {
+      return "Favored Regalia: " + (item.favoredRegalia || "—");
+    }
+    if (field === "kith") {
+      return "Seeming: " + (item.seeming || "—");
+    }
+    if (field === "court") {
+      return item.emotion
+        ? "Emotion: " + item.emotion
+        : "";
+    }
+    if (field === "favored") {
+      return item.favoredBy
+        ? "Seeming affinity: " + item.favoredBy
+        : "Second favored Regalia";
+    }
+    return "";
+  }
+
+  function catalogBlurb(item) {
+    if (!item) return "";
+    var parts = [];
+    if (item.blessing) parts.push("Blessing: " + item.blessing);
+    if (item.curse) parts.push("Curse: " + item.curse);
+    if (item.description) parts.push(item.description);
+    if (item.mantleNotes) parts.push(item.mantleNotes);
+    return parts.join(" · ");
+  }
+
   function fieldText(id, label, value, multiline) {
     var tag = multiline ? "textarea" : "input";
     var extra = multiline
@@ -787,7 +979,9 @@
       html += "</div>";
     } else if (stage === 3) {
       html += '<p class="cg-stage__hint">Template-specific details. ' +
-        "Required fields must be set before advancing.</p>";
+        "Search catalogs like merits — seeming and kith work " +
+        "together (pick either first). Court and second favored " +
+        "Regalia are independent.</p>";
       var fields = (st.templateMeta && st.templateMeta.customFields) ||
         [];
       var optional = { mask: 1, mien: 1, animals: 1 };
@@ -796,32 +990,35 @@
         var fname = fields[f];
         if (optional[fname]) continue;
         if (fname === "seeming") {
-          html += fieldSelect(
+          html += fieldCatalog(
             "seeming",
             "Seeming",
-            (opts.seemings && opts.seemings.items) || [],
             cf.seeming,
+            "Sets favored Regalia; filters kiths.",
           );
         } else if (fname === "kith") {
-          html += fieldSelect(
+          html += fieldCatalog(
             "kith",
             "Kith",
-            (opts.kiths && opts.kiths.items) || [],
             cf.kith,
+            cf.seeming
+              ? "Kiths of " + cf.seeming +
+                " (or pick any — sets seeming)."
+              : "Pick a kith to set seeming, or choose seeming first.",
           );
         } else if (fname === "court") {
-          html += fieldSelect(
+          html += fieldCatalog(
             "court",
             "Court",
-            (opts.courts && opts.courts.items) || [],
             cf.court,
+            "Seasonal court — free choice.",
           );
         } else if (fname === "favored") {
-          html += fieldSelect(
+          html += fieldCatalog(
             "favored",
             "Second favored Regalia",
-            (opts.regalia && opts.regalia.items) || [],
             cf.favored,
+            "Must differ from your seeming's favored Regalia.",
           );
         } else if (fname === "auspice" || fname === "tribe") {
           html += fieldText(fname, titleCase(fname), cf[fname]);
@@ -1581,12 +1778,20 @@
         trait: trait,
         value: String(value),
       });
-      if (trait === "seeming") await loadKiths(value);
+      if (trait === "seeming" || trait === "kith") {
+        await loadKiths(
+          (state.sheet && state.sheet.customFields &&
+            state.sheet.customFields.seeming) || value,
+        );
+      }
       // Full re-render only when layout must change (template /
-      // dots / seeming→kith). Text fields keep focus.
+      // dots / seeming↔kith / favored). Text fields keep focus.
       var heavy = opts.rerender ||
         trait === "template" ||
         trait === "seeming" ||
+        trait === "kith" ||
+        trait === "court" ||
+        trait === "favored" ||
         opts.dots;
       if (heavy) {
         renderMain(state);
@@ -1621,6 +1826,188 @@
 
   /** Selected merit def + chosen rating for stage 6. */
   var meritPick = { def: null, dots: 0 };
+
+  function fillCatalogDetail(root, field, item) {
+    var detail = qs(
+      '[data-cg-cat-detail="' + field + '"]',
+      root,
+    );
+    if (!detail) return;
+    if (!item) {
+      detail.hidden = true;
+      return;
+    }
+    detail.hidden = false;
+    var nm = qs("[data-cg-cat-name]", detail);
+    var meta = qs("[data-cg-cat-meta]", detail);
+    var blurb = qs("[data-cg-cat-blurb]", detail);
+    if (nm) nm.textContent = item.name || "";
+    if (meta) meta.textContent = catalogMetaLine(field, item);
+    if (blurb) {
+      var t = catalogBlurb(item);
+      blurb.textContent = t;
+      blurb.hidden = !t;
+    }
+  }
+
+  function wireCatalogPickers(root) {
+    var pickers = root.querySelectorAll("[data-cg-catalog]");
+    if (!pickers.length) return;
+    var sheet = (state && state.sheet) || {};
+
+    pickers.forEach(function (box) {
+      var field = box.getAttribute("data-cg-catalog");
+      if (!field) return;
+      var search = qs('[data-cg-cat-search="' + field + '"]', box);
+      var suggest = qs(
+        '[data-cg-cat-suggest="' + field + '"]',
+        box,
+      );
+      if (!search || !suggest) return;
+
+      // Hydrate detail from current sheet value.
+      var cur = (sheet.customFields &&
+        sheet.customFields[field]) || "";
+      if (cur) {
+        fillCatalogDetail(
+          box,
+          field,
+          findCatalogItem(field, cur, sheet),
+        );
+      }
+
+      function hideSuggest() {
+        suggest.hidden = true;
+        suggest.innerHTML = "";
+      }
+
+      function showSuggest(q) {
+        q = String(q || "").trim().toLowerCase();
+        var items = catalogItems(field, state && state.sheet);
+        if (!q || q.length < 1) {
+          // Empty query: show first N so lists feel browsable.
+          items = items.slice(0, 12);
+        } else {
+          var hits = [];
+          for (
+            var i = 0;
+            i < items.length && hits.length < 12;
+            i++
+          ) {
+            var it = items[i];
+            var hay = (
+              it.name + " " +
+              (it.seeming || "") + " " +
+              (it.emotion || "") + " " +
+              (it.favoredRegalia || "") + " " +
+              (it.favoredBy || "") + " " +
+              (it.description || "")
+            ).toLowerCase();
+            if (hay.indexOf(q) !== -1) hits.push(it);
+          }
+          items = hits;
+        }
+        if (!items.length) {
+          suggest.innerHTML =
+            '<li class="cg-merit-suggest__empty">No matches' +
+            (field === "kith" &&
+              !(state && state.sheet &&
+                state.sheet.customFields &&
+                state.sheet.customFields.seeming)
+              ? " — try a seeming first, or type a kith name"
+              : "") +
+            "</li>";
+          suggest.hidden = false;
+          return;
+        }
+        var html = "";
+        for (var h = 0; h < items.length; h++) {
+          var m = items[h];
+          var sub = catalogMetaLine(field, m) || "";
+          html += '<li role="option" tabindex="0" ' +
+            'data-cg-cat-pick="' + esc(m.name) + '">' +
+            '<span class="cg-merit-suggest__name">' +
+            esc(m.name) + "</span>" +
+            (sub
+              ? '<span class="cg-merit-suggest__cost">' +
+                esc(sub) + "</span>"
+              : "") +
+            "</li>";
+        }
+        suggest.innerHTML = html;
+        suggest.hidden = false;
+      }
+
+      function pick(name) {
+        var item = findCatalogItem(
+          field,
+          name,
+          state && state.sheet,
+        );
+        if (!item) return;
+        search.value = item.name;
+        hideSuggest();
+        fillCatalogDetail(box, field, item);
+        applyTrait(field, item.name, { rerender: true });
+      }
+
+      search.addEventListener("input", function () {
+        showSuggest(search.value);
+      });
+      search.addEventListener("focus", function () {
+        showSuggest(search.value);
+      });
+      search.addEventListener("keydown", function (e) {
+        if (e.key === "Escape") hideSuggest();
+        if (e.key === "Enter") {
+          e.preventDefault();
+          var first = qs("[data-cg-cat-pick]", suggest);
+          if (first && !suggest.hidden) {
+            pick(first.getAttribute("data-cg-cat-pick"));
+          }
+        }
+      });
+
+      suggest.addEventListener("click", function (e) {
+        var li = e.target && e.target.closest
+          ? e.target.closest("[data-cg-cat-pick]")
+          : null;
+        if (!li) return;
+        pick(li.getAttribute("data-cg-cat-pick"));
+      });
+
+      var clearBtn = qs(
+        '[data-cg-cat-clear="' + field + '"]',
+        box,
+      );
+      if (clearBtn) {
+        clearBtn.addEventListener("click", function () {
+          search.value = "";
+          fillCatalogDetail(box, field, null);
+          applyTrait(field, "", { rerender: true });
+        });
+      }
+    });
+
+    document.addEventListener("click", function (e) {
+      if (!root.contains(e.target)) return;
+      root.querySelectorAll("[data-cg-cat-suggest]").forEach(
+        function (sug) {
+          var wrap = sug.closest("[data-cg-catalog]");
+          if (!wrap) return;
+          var inp = qs("[data-cg-cat-search]", wrap);
+          if (
+            inp &&
+            (inp.contains(e.target) || sug.contains(e.target))
+          ) {
+            return;
+          }
+          sug.hidden = true;
+          sug.innerHTML = "";
+        },
+      );
+    });
+  }
 
   function wireMeritPicker(root) {
     var search = qs("[data-cg-merit-search]", root);
@@ -1872,6 +2259,7 @@
     });
 
     wireMeritPicker(root);
+    wireCatalogPickers(root);
 
     var back = qs("[data-cg-back]", root);
     if (back) {
