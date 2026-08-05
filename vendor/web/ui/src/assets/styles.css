@@ -2119,51 +2119,91 @@ fieldset legend {
 
 /* ── Game client (Play) — design.md mono + host chrome ─────────── */
 
-.play-client {
+/* Chat shell: output fills; prompt fixed under stage */
+.play-client--chat {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - var(--header-h) - 2rem);
-  max-width: 100%;
+  min-height: calc(100vh - var(--header-h) - 2.5rem);
+  max-width: 48rem;
+  margin: 0 auto;
+  background: var(--bg-code);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.play-client__bar {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
+}
+
+.play-client__title {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.play-client__status[data-status="open"] {
+  color: var(--success);
+}
+
+.play-client__error {
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 0.45rem 1rem;
+  font-size: 0.85rem;
+  color: var(--error);
+  background: rgba(255, 138, 143, 0.1);
+  border-bottom: 1px solid rgba(255, 138, 143, 0.35);
 }
 
 .play-client__stage {
   flex: 1 1 auto;
-  min-height: 16rem;
-  max-height: min(70vh, 40rem);
+  min-height: 14rem;
   overflow: auto;
-  margin: 0 0 1rem;
-  padding: 0.75rem 1rem;
+  margin: 0;
+  padding: 0.85rem 1rem 1rem;
   background: var(--bg-code);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
 }
 
 .play-client__prompt {
+  flex: 0 0 auto;
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.5rem;
   align-items: center;
   margin: 0;
+  padding: 0.65rem 0.75rem;
+  border-top: 1px solid var(--border-subtle);
+  background: var(--bg-elevated);
 }
 
 .play-client__label {
-  flex: 1 1 12rem;
+  flex: 1 1 auto;
   display: flex;
   align-items: center;
-  gap: 0.4rem;
   margin: 0;
+  min-width: 0;
 }
 
 .play-client__gt {
+  flex: 0 0 auto;
   font-family: var(--font-mono);
-  font-weight: 600;
+  font-weight: 700;
+  color: var(--primary);
   user-select: none;
 }
 
 .play-client__label input {
-  flex: 1 1 auto;
+  width: 100%;
   font-family: var(--font-mono);
   font-size: 0.875rem;
+  margin: 0;
 }
 
 .game-output {

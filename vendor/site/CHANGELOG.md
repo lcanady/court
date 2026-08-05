@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.39
+
+- Player **/play** chat client: output window + bottom input;
+  MUSH-colored pre or JSON layout; requires sign-in
+
+
+## Unreleased
+
+- Chargen form fields use full main-column width
+  (removed 28–36rem caps on inputs / cards / merits)
+
 ## 0.1.38
 
 - Chargen merits: autocomplete + allowed-dot costs only

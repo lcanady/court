@@ -55,6 +55,9 @@ function isPublicRootSpa(path: string): boolean {
   if (path === "/chargen" || path.startsWith("/chargen/")) {
     return true;
   }
+  if (path === "/play" || path.startsWith("/play/")) {
+    return true;
+  }
   return false;
 }
 

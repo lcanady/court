@@ -89,6 +89,12 @@
     ) {
       return "chargen";
     }
+    if (
+      pathname.startsWith("/play") ||
+      pathname.startsWith("/site/play")
+    ) {
+      return "play";
+    }
     return "generic";
   }
 
@@ -124,7 +130,8 @@
     if (pathname === "/" || pathname === "/login" ||
       pathname === "/profile" || pathname.startsWith("/wiki") ||
       pathname.startsWith("/help") ||
-      pathname.startsWith("/chargen")) {
+      pathname.startsWith("/chargen") ||
+      pathname.startsWith("/play")) {
       return "";
     }
     return "/site";
@@ -204,7 +211,7 @@
     var cfg = siteConfig || {};
     var heroMode = MODE === "home" || MODE === "wiki";
     var compactMode = MODE === "login" || MODE === "profile" ||
-      MODE === "help" || MODE === "chargen";
+      MODE === "help" || MODE === "chargen" || MODE === "play";
 
     if (heroMode) {
       if (cfg.plainBg) shell.classList.add("is-plain");
@@ -871,6 +878,12 @@
       if (rightAside) rightAside.hidden = false;
       if (banner) banner.hidden = true;
       applyShellChrome();
+    } else if (MODE === "play") {
+      // Chat client: main column only
+      if (leftAside) leftAside.hidden = true;
+      if (rightAside) rightAside.hidden = true;
+      if (banner) banner.hidden = true;
+      applyShellChrome();
     } else {
       // home / generic
       if (leftAside) leftAside.hidden = false;
@@ -1006,7 +1019,10 @@
   }
 
   function renderLeft(pages) {
-    if (!leftPanels || MODE === "login" || MODE === "profile") return;
+    if (!leftPanels || MODE === "login" || MODE === "profile" ||
+      MODE === "play") {
+      return;
+    }
 
     // Help mode owns the left rail (sections + topics)
     if (MODE === "help") {
@@ -1200,6 +1216,7 @@
       n.indexOf("/site") === 0 ||
       n.indexOf("/admin") === 0 ||
       n.indexOf("/chargen") === 0 ||
+      n.indexOf("/play") === 0 ||
       n.indexOf("/wiki") === 0 ||
       n.indexOf("/help") === 0 ||
       n.indexOf("/login") === 0;
@@ -1245,6 +1262,15 @@
         p.indexOf("/chargen/") === 0 ||
         p === "/site/chargen" ||
         p.indexOf("/site/chargen/") === 0)
+    ) {
+      best = "connected";
+    }
+    if (
+      !best &&
+      (p === "/play" ||
+        p.indexOf("/play/") === 0 ||
+        p === "/site/play" ||
+        p.indexOf("/site/play/") === 0)
     ) {
       best = "connected";
     }
@@ -1494,7 +1520,8 @@
   }
 
   function renderRight(user) {
-    if (!rightPanels || MODE === "login" || MODE === "profile") {
+    if (!rightPanels || MODE === "login" || MODE === "profile" ||
+      MODE === "play") {
       return;
     }
     // Chargen owns the right rail (draft sheet summary)
@@ -2319,6 +2346,51 @@
     });
   }
 
+  /** /play — chat-style game client (output + bottom input). */
+  var playScriptPromise = null;
+  function ensurePlayCss() {
+    if (document.getElementById("site-play-css")) return;
+    var link = document.createElement("link");
+    link.id = "site-play-css";
+    link.rel = "stylesheet";
+    link.href = "/site/css/play.css?v=20260804play";
+    document.head.appendChild(link);
+  }
+  function loadPlayRoute() {
+    injectLoadingState("Play");
+    ensurePlayCss();
+    if (shell) shell.classList.add("is-mode-play");
+    function boot() {
+      if (globalThis.SitePlay && globalThis.SitePlay.mount) {
+        globalThis.SitePlay.mount(mainEl);
+        return Promise.resolve(true);
+      }
+      return Promise.resolve(null);
+    }
+    if (globalThis.SitePlay) return boot();
+    if (!playScriptPromise) {
+      playScriptPromise = new Promise(function (resolve, reject) {
+        var s = document.createElement("script");
+        s.src = "/site/js/play.js?v=20260804play";
+        s.async = true;
+        s.onload = function () { resolve(true); };
+        s.onerror = function () {
+          reject(new Error("play.js failed to load"));
+        };
+        document.head.appendChild(s);
+      });
+    }
+    return playScriptPromise.then(boot).catch(function () {
+      if (mainEl) {
+        mainEl.innerHTML =
+          "<section class=\"site-section\"><p>Could not load " +
+          "the play client. Refresh and try again.</p>" +
+          "</section>";
+      }
+      return null;
+    });
+  }
+
   // 4. Route loader & SPA navigation
   function loadCurrentRoute() {
     setNavOpen(false);
@@ -2335,12 +2407,27 @@
     updateSidebarAndBannerVisibility();
 
     var articlePromise;
+    // Leave play mode class when navigating away
+    if (shell && MODE !== "play") {
+      shell.classList.remove("is-mode-play");
+      if (globalThis.SitePlay && globalThis.SitePlay.destroy) {
+        try {
+          globalThis.SitePlay.destroy();
+        } catch (_) { /* ignore */ }
+      }
+    }
     if (MODE === "chargen") {
       // Auth gate before loading chargen FE (nav.require + default)
       articlePromise = authPromise.then(function (user) {
         currentUser = user;
         if (!guardRouteAccess(user)) return null;
         return loadChargenRoute();
+      });
+    } else if (MODE === "play") {
+      articlePromise = authPromise.then(function (user) {
+        currentUser = user;
+        if (!guardRouteAccess(user)) return null;
+        return loadPlayRoute();
       });
     } else if (MODE === "help") {
       articlePromise = loadHelpRoute();
@@ -2469,8 +2556,12 @@
           currentUser = user;
           renderTopNav(user);
           updateNavUser(user);
-          // Non-chargen routes: enforce require after content load
-          if (MODE !== "chargen" && !guardRouteAccess(user)) {
+          // Auth-gated SPAs enforce earlier; others after content load
+          if (
+            MODE !== "chargen" &&
+            MODE !== "play" &&
+            !guardRouteAccess(user)
+          ) {
             return;
           }
           if (MODE === "login" || MODE === "profile") {
@@ -2502,6 +2593,8 @@
       p.startsWith("/site/help") ||
       p.startsWith("/chargen") ||
       p.startsWith("/site/chargen") ||
+      p.startsWith("/play") ||
+      p.startsWith("/site/play") ||
       p === "/site/" ||
       p === "/site" ||
       p === "/"

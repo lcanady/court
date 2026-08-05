@@ -72,7 +72,29 @@ drop-in familiarity with court-template CSS ports.
 
 ---
 
-## 4. Shipping a brand theme (Court example)
+## 4. Play client (`/play`) — chat layout
+
+Player-facing game client (connected required).
+
+| Region | Class | Role |
+|--------|--------|------|
+| Shell mode | `.site-shell.is-mode-play` | Hides banner + side rails |
+| Root | `.play-root` | Flex column chat panel |
+| Output | `.play-output` | Scrollable history |
+| Plain text | `.play-pre` | Mono, max 78ch, MUSH colors |
+| Layout UI | `.play-layout*` | `u.ui.layout` tables/panels |
+| Prompt | `.play-prompt` | Sticky bottom input + Send |
+
+**Message contract** (same as staff Play):
+
+- No `data.ui` → `.play-pre` + colored spans
+- `data.ui.components` → structured blocks
+
+Tokens only (`--site-*`). No separate terminal skin.
+
+---
+
+## 5. Shipping a brand theme (Court example)
 
 Court of Miracles is an **installable theme**, not a builtin skin.
 Only `default` ships inside `@ursamu/site`.

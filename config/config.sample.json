@@ -70,6 +70,13 @@
           "href": "/chargen",
           "order": 35,
           "require": "connected"
+        },
+        {
+          "id": "play",
+          "label": "Play",
+          "href": "/play",
+          "order": 36,
+          "require": "connected"
         }
       ],
       "skinCss": "/site/theme/installed/court/site.css",

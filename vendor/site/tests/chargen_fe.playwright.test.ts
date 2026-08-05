@@ -267,3 +267,181 @@ Deno.test(
     }
   },
 );
+
+Deno.test(
+  "chargen FE: Finish submits on final stage (demo)",
+  OPTS,
+  async () => {
+    if (!hasPlaywright()) {
+      console.log("skip: playwright browsers not installed");
+      return;
+    }
+    const { chromium } = await import("npm:playwright@1.49.1");
+    const root = new URL("../public", import.meta.url).pathname;
+    const srv = await startStaticServer(root);
+    const browser = await chromium.launch({ headless: true });
+    try {
+      const page = await browser.newPage({
+        viewport: { width: 1280, height: 800 },
+      });
+      await page.route("**/site/config.json**", async (route) => {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: JSON.stringify({
+            title: "Test",
+            plainBg: true,
+            nav: [
+              { id: "chargen", label: "Chargen", href: "/chargen" },
+            ],
+            leftMenu: "",
+          }),
+        });
+      });
+      await page.route("**/api/v1/**", async (route) => {
+        await route.fulfill({
+          status: 401,
+          contentType: "application/json",
+          body: '{"error":"Unauthorized"}',
+        });
+      });
+      await page.goto(
+        `http://127.0.0.1:${srv.port}/chargen?demo=1`,
+        { waitUntil: "networkidle", timeout: 60000 },
+      );
+      await page.waitForFunction(
+        () => !!(globalThis as unknown as {
+          SiteChargen?: { getState: () => unknown };
+        }).SiteChargen,
+        { timeout: 15000 },
+      );
+      await page.waitForSelector("[data-cg-stepper]", {
+        timeout: 15000,
+      });
+
+      // Drive demo state to final stage with valid merits.
+      await page.evaluate(() => {
+        const SC = (globalThis as unknown as {
+          SiteChargen: {
+            getState: () => {
+              stage: number;
+              maxStage: number;
+              sheet: {
+                concept: string;
+                virtue: string;
+                vice: string;
+                template: string;
+                attributes: Record<string, number>;
+                skills: Record<string, number>;
+                merits: Record<string, number>;
+              };
+              isSubmitted?: boolean;
+            };
+          };
+        }).SiteChargen;
+        const st = SC.getState();
+        st.sheet.concept = "Finish button tester";
+        st.sheet.virtue = "Just";
+        st.sheet.vice = "Greedy";
+        st.sheet.template = "mortal";
+        st.sheet.attributes = {
+          intelligence: 5, wits: 2, resolve: 1,
+          strength: 4, dexterity: 2, stamina: 1,
+          presence: 3, manipulation: 2, composure: 1,
+        };
+        st.sheet.skills = {
+          academics: 3, computer: 2, crafts: 2,
+          investigation: 2, medicine: 1, occult: 1,
+          athletics: 3, brawl: 2, drive: 2, firearms: 2,
+          persuasion: 3, socialize: 2, streetwise: 2,
+        };
+        st.sheet.merits = {
+          resources: 3,
+          "contacts:cops": 2,
+          "language:spanish": 1,
+          barfly: 1,
+        };
+        // barfly is 2 dots in catalog — demo accepts any;
+        // spend exactly 7: 3+2+1+1 = 7
+        st.sheet.merits = {
+          resources: 3,
+          "contacts:cops": 2,
+          "language:spanish": 1,
+          fame: 1,
+        };
+        st.stage = st.maxStage || 6;
+        st.isSubmitted = false;
+      });
+
+      // Re-boot so UI renders final stage Finish button
+      await page.evaluate(() => {
+        const SC = (globalThis as unknown as {
+          SiteChargen: { boot: () => Promise<void> };
+        }).SiteChargen;
+        return SC.boot();
+      });
+      await page.waitForTimeout(200);
+
+      // Force stage label + Finish via re-render path:
+      // click Finish if present, else poke state through demo
+      const finishText = await page.locator("[data-cg-next]")
+        .innerText()
+        .catch(() => "");
+      if (/Finish/i.test(finishText)) {
+        await page.click("[data-cg-next]");
+      } else {
+        // boot may reset stage — set again and call submit via
+        // internal demo by advancing UI
+        await page.evaluate(async () => {
+          const SC = (globalThis as unknown as {
+            SiteChargen: {
+              getState: () => {
+                stage: number;
+                maxStage: number;
+                sheet: {
+                  concept: string;
+                  virtue: string;
+                  vice: string;
+                  merits: Record<string, number>;
+                };
+                isSubmitted?: boolean;
+                canAdvance?: boolean;
+              };
+              boot: () => Promise<void>;
+            };
+          }).SiteChargen;
+          const st = SC.getState();
+          st.stage = st.maxStage || 6;
+          st.sheet.concept = "Finish button tester";
+          st.sheet.virtue = "Just";
+          st.sheet.vice = "Greedy";
+          st.sheet.merits = {
+            resources: 3,
+            "contacts:cops": 2,
+            "language:spanish": 1,
+            fame: 1,
+          };
+          await SC.boot();
+        });
+        await page.waitForTimeout(200);
+        await page.click("[data-cg-next]");
+      }
+      await page.waitForTimeout(300);
+
+      const body = await page.locator("[data-site-main]")
+        .innerText();
+      assertStringIncludes(body, "Submitted");
+      const st2 = await page.evaluate(() => {
+        return (globalThis as unknown as {
+          SiteChargen: {
+            getState: () => { isSubmitted?: boolean };
+          };
+        }).SiteChargen.getState();
+      });
+      assertEquals(!!st2.isSubmitted, true);
+    } finally {
+      await browser.close();
+      srv.close();
+    }
+  },
+);

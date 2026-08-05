@@ -1,9 +1,7 @@
 <script setup lang="ts">
 /**
- * In-console game client — design.md list/detail chrome + mono output.
- *
- * Plain text → .game-pre with MUSH colors.
- * u.ui.layout → GameLayout (dash-table / headers).
+ * Staff Play — same chat layout as public /play:
+ * scrollable output + fixed prompt below.
  */
 import { nextTick, onMounted, ref, watch } from "vue";
 import GameOutput from "@/components/GameOutput.vue";
@@ -51,23 +49,20 @@ function reconnect(): void {
 <template>
   <article
     id="main-play"
-    class="dash-browser play-client"
+    class="play-client play-client--chat"
   >
-    <header class="dash-header">
-      <div>
+    <header class="play-client__bar">
+      <div class="play-client__bar-text">
         <p class="muted dash-kicker">
           Game
         </p>
-        <h1 class="page-title">
+        <h1 class="page-title play-client__title">
           Play
-          <span class="muted">
-            ({{ status }})
-          </span>
+          <span
+            class="muted play-client__status"
+            :data-status="status"
+          >({{ status }})</span>
         </h1>
-        <p class="muted">
-          Live world client. Structured layouts when a command
-          sends JSON UI; otherwise colored terminal text.
-        </p>
       </div>
       <div class="dash-header-actions">
         <button
@@ -82,7 +77,7 @@ function reconnect(): void {
 
     <p
       v-if="error"
-      class="dash-filter-banner"
+      class="play-client__error"
       role="alert"
     >
       {{ error }}
@@ -96,20 +91,20 @@ function reconnect(): void {
         :messages="messages"
         :empty-hint="status === 'connecting'
           ? 'Connecting to world…'
-          : 'No output yet.'"
+          : 'No output yet — type a command below.'"
       />
     </div>
 
     <form
-      class="play-client__prompt pages-toolbar"
+      class="play-client__prompt"
       @submit="onSubmit"
     >
-      <label class="pages-search-label play-client__label">
+      <span
+        class="play-client__gt muted"
+        aria-hidden="true"
+      >&gt;</span>
+      <label class="play-client__label">
         <span class="visually-hidden">Command</span>
-        <span
-          class="play-client__gt muted"
-          aria-hidden="true"
-        >&gt;</span>
         <input
           v-model="input"
           type="text"
