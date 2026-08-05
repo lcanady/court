@@ -14,8 +14,10 @@ logs/
 .ursamu.pid
 .ursamu-deno.pid
 
-# local engine data from vendor rsync
-vendor/mush/data/
+# Local-only engine vendor (prod always uses JSR pins in deno.json)
+vendor/mush/
+.deno.local.json
+
 
 # wiki editor history
 wiki/.history/

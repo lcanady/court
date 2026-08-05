@@ -254,7 +254,20 @@ for key in keys:
     if not raw:
         continue
     if "vendor" in raw:
-        if key in ("@ursamu/site", "@ursamu/web", "@ursamu/mail", "@ursamu/mail-plugin", "@ursamu/channels", "@ursamu/help", "@ursamu/help-plugin"):
+        # Engine must never be vendor on prod. Other packages may still
+        # vendor locally until their JSR pins catch up.
+        if key == "@ursamu/mush":
+            bad.append(f"{key} must be JSR on prod, not vendor: {raw}")
+            continue
+        if key in (
+            "@ursamu/site",
+            "@ursamu/web",
+            "@ursamu/mail",
+            "@ursamu/mail-plugin",
+            "@ursamu/channels",
+            "@ursamu/help",
+            "@ursamu/help-plugin",
+        ):
             continue
         bad.append(f"{key} still points at vendor: {raw}")
         continue
@@ -263,6 +276,10 @@ for key in keys:
         bad.append(f"{key} not a pinned jsr URL: {raw!r}")
         continue
     ok.append(f"{key}@{m.group(1)}")
+# Hard require mush JSR pin
+mush = str(imp.get("@ursamu/mush") or "")
+if not re.search(r"jsr:@ursamu/mush@\d+\.\d+\.\d+", mush):
+    bad.append(f"@ursamu/mush must be jsr:@ursamu/mush@x.y.z, got {mush!r}")
 if bad:
     print("[safe-update] ERROR: JSR pin check failed:", file=sys.stderr)
     for b in bad:
@@ -270,6 +287,7 @@ if bad:
     sys.exit(6)
 print("[safe-update] JSR pins ok:", ", ".join(ok))
 PY
+
 
 # --- pre-warm Deno cache while old main still runs -------------------------
 log "caching packages (game still up)..."

@@ -8,7 +8,9 @@ cd "$(dirname "$0")/.." || exit 1
 LOG_DIR="logs"
 MAIN_LOG="${MAIN_LOG:-$LOG_DIR/main.log}"
 DENO_PID_FILE=".ursamu-deno.pid"
-DENO_FLAGS=(--minimum-dependency-age=0 --allow-all --node-modules-dir=auto --unstable-detect-cjs --unstable-kv --unstable-net)
+# shellcheck disable=SC1091
+source "$(dirname "$0")/deno-env.sh"
+court_deno_flags || exit 1
 
 RESTART_DELAY=1
 MAX_DELAY=60
@@ -89,6 +91,8 @@ trap cleanup SIGTERM SIGINT
 while true; do
   clear_pglite_lock
   START_TS=$(date +%s)
+  # Refresh local config each restart (vendor may have been re-synced).
+  court_deno_flags || exit 1
   deno run "${DENO_FLAGS[@]}" "$MAIN_ENTRY" >> "$MAIN_LOG" 2>&1 &
   _deno_pid=$!
   echo "$_deno_pid" > "$DENO_PID_FILE"

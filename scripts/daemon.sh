@@ -8,7 +8,9 @@ PID_FILE=".ursamu.pid"
 LOG_DIR="logs"
 MAIN_LOG="$LOG_DIR/main.log"
 TELNET_LOG="$LOG_DIR/telnet.log"
-DENO_FLAGS="--minimum-dependency-age=0 --allow-all --node-modules-dir=auto --unstable-detect-cjs --unstable-kv --unstable-net"
+# shellcheck disable=SC1091
+source "$(dirname "$0")/deno-env.sh"
+court_deno_flags || exit 1
 
 if [ -f "$PID_FILE" ]; then
   # shellcheck disable=SC1090
@@ -30,8 +32,8 @@ for port in 4201 4202 4203; do
   [ -n "$pids" ] && echo $pids | xargs kill -9 2>/dev/null || true
 done
 
-# shellcheck disable=SC2086
-nohup deno run $DENO_FLAGS src/telnet.ts >> "$TELNET_LOG" 2>&1 &
+nohup deno run "${DENO_FLAGS[@]}" src/telnet.ts \
+  >> "$TELNET_LOG" 2>&1 &
 TELNET_PID=$!
 
 MAIN_LOG="$MAIN_LOG" nohup bash "$(dirname "$0")/main-loop.sh" \

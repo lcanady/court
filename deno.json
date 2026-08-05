@@ -9,8 +9,9 @@
     "status": "bash ./scripts/status.sh",
     "logs": "tail -f logs/main.log logs/telnet.log",
     "update": "deno run -A --minimum-dependency-age=0 ./scripts/update.ts",
-    "server": "deno run --minimum-dependency-age=0 -A --watch --unstable-detect-cjs --unstable-kv --unstable-net ./src/main.ts",
-    "telnet": "deno run --minimum-dependency-age=0 -A --unstable-detect-cjs --unstable-kv --unstable-net ./src/telnet.ts",
+    "vendor:mush": "bash ./scripts/vendor-mush.sh",
+    "server": "bash ./scripts/run-one.sh src/main.ts --watch",
+    "telnet": "bash ./scripts/run-one.sh src/telnet.ts",
     "test": "deno test --allow-all --unstable-kv --no-check",
     "showcase": "deno run -A ./src/cli/showcase.ts"
   },

@@ -163,5 +163,5 @@ so **https://court.ursamu.io/** serves the public FE (not `/admin/`).
 | `https://court.ursamu.io/site/` | Same FE (asset mount) |
 
 Pins (JSR only): `@ursamu/site@0.1.7`, `@ursamu/web@0.2.40`,
-`@ursamu/mush@1.0.9`. Engine and public FE load from
-[jsr.io/@ursamu](https://jsr.io/@ursamu) — no local vendor override.
+`jsr:@ursamu/mush@1.0.12` in `deno.json` (prod always JSR).
+Local engine work: `deno task vendor:mush` (gitignored `vendor/mush`).

@@ -9,19 +9,21 @@ GEMINI.md. Those files should point here.
 ## What this is
 
 **Court of Miracles** is a *Changeling: The Lost* freehold game on the
-UrsaMU engine (`jsr:@ursamu/mush` — **JSR only** for the engine).
+UrsaMU engine (`jsr:@ursamu/mush`).
 
 - **Tone:** Victorian literary fiction, not modern chat or RPG boxed text
 - **Setting:** A fog-bound, slightly wrong city of gaslight, iron, and
   bargains: the freehold's London-that-never-quite-was. Prefer atmosphere
   over naming the real city repeatedly.
 - **This repo:** game code, config samples, help, softcode, and ops
-  scripts. Engine loads from JSR pins in `deno.json`. Source of truth
-  for packages is the ursamu monorepo; do not vendor mush.
+  scripts. **Production always loads the engine from JSR pins in
+  `deno.json`.** Locally you may sync `vendor/mush` for engine work;
+  that path is gitignored and never used by prod.
 
 | Layer | Tech |
 |-------|------|
-| Engine | `jsr:@ursamu/mush@1.0.12` |
+| Engine (prod) | `jsr:@ursamu/mush@1.0.12` only |
+| Engine (local) | optional `vendor/mush` via `deno task vendor:mush` |
 | Public FE | `./vendor/site` (or JSR pin when stable) |
 | Staff console | `./vendor/web` (or JSR pin) |
 | Runtime | Deno |
@@ -187,17 +189,30 @@ ssh court.ursamu.io 'bash ./court-update.sh'
 safely, reloads JSR cache, restarts daemon. Do **not** hand-edit
 production without git when the change belongs in the repo.
 
-### Engine / FE pins
+### Engine pins (prod = JSR, local = optional vendor)
 
-- Engine: **`jsr:@ursamu/mush@1.0.12`** (globals: +finger, +staff,
-  +duty, +glance, +gname, +motd, +uptime, +summon, +i, @exittype, …).
-- Public FE / staff may still use `./vendor/site` and `./vendor/web`
-  until those pins move to JSR.
-- Court brand is **`theme/installed/court/`** (not a builtin site
-  skin). Config: `skinCss` + `themeDir: "theme"`.
-- Bump engine by publishing `@ursamu/mush` from the ursamu monorepo,
-  then editing the `deno.json` pin here, commit, push, deploy.
-- Do **not** reintroduce `vendor/mush`.
+**Production (court-update / safe-update):**
+- `deno.json` must pin **`jsr:@ursamu/mush@x.y.z`** (currently
+  **1.0.12**). Safe-update **fails** if mush points at `vendor/`.
+- Never commit `vendor/mush` or put vendor paths in `deno.json` for mush.
+
+**Local engine hacking:**
+```bash
+# from monorepo packages/mush (or set URSAMU_MUSH_SRC=...)
+deno task vendor:mush
+deno task start          # auto-uses vendor/mush when present
+COURT_VENDOR_MUSH=0 deno task start   # force JSR
+```
+- `vendor/mush/` and `.deno.local.json` are **gitignored**.
+- `scripts/run.sh` / `daemon.sh` build `.deno.local.json` only when
+  `vendor/mush/mod.ts` exists.
+
+**Bump prod engine:** publish `@ursamu/mush` from ursamu monorepo →
+edit `deno.json` pin → commit → push → `ssh … court-update.sh`.
+
+Public FE / staff may still use `./vendor/site` and `./vendor/web`
+until those pins move to JSR. Court brand:
+`theme/installed/court/` (`skinCss` + `themeDir: "theme"`).
 
 ---
 
@@ -219,7 +234,7 @@ court/
 ├── system/scripts/     <- softcode overrides
 ├── help/               <- in-game help (.md)
 ├── text/               <- connect screen, etc.
-├── vendor/             <- optional local extras only (not engine)
+├── vendor/             <- site/web/… ; mush is local-only gitignored
 ├── data/               <- DB (gitignored runtime)
 └── logs/               <- gitignored
 ```
