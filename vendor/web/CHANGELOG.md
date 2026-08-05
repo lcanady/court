@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.2.71
+
+- Wiki edit: **Delete** page button (staff confirm →
+  `DELETE /api/v1/wiki/<path>`, leaves list)
+
 ## 0.2.68
 
 - DbView object image: force HTTP upload, 8 MB limit, full-width

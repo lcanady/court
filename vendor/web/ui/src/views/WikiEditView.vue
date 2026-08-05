@@ -205,6 +205,48 @@ function discard(): void {
   void load();
 }
 
+async function deletePage(): Promise<void> {
+  if (busy.value || loading.value) return;
+  const path = props.path;
+  const label = title.value.trim() || path;
+  if (
+    !globalThis.confirm(
+      `Delete wiki page “${label}” (${path})?\n\n` +
+        "This removes the page file. History snapshots " +
+        "may remain on disk. This cannot be undone from " +
+        "the web UI.",
+    )
+  ) {
+    return;
+  }
+  busy.value = true;
+  saveError.value = "";
+  status.value = "Deleting…";
+  try {
+    const enc = encodeWikiPath(path);
+    const { res, data } = await api<{
+      error?: string;
+      deleted?: boolean;
+    }>(`/api/v1/wiki/${enc}`, { method: "DELETE" });
+    if (res.status === 401) {
+      session.signOut();
+      await router.replace({ name: "login" });
+      return;
+    }
+    if (!res.ok) {
+      saveError.value = data?.error ||
+        `Delete failed (${res.status}).`;
+      status.value = "Error";
+      return;
+    }
+    live.removePage(path);
+    loadedSnap.value = "";
+    await router.replace({ name: "wiki" });
+  } finally {
+    busy.value = false;
+  }
+}
+
 /** Insert markdown at end of body (from Images panel). */
 function insertMediaMarkdown(md: string): void {
   const cur = body.value;
@@ -259,6 +301,15 @@ onBeforeRouteLeave(() => confirmLeave());
         </h1>
       </div>
       <div class="editor-actions">
+        <button
+          type="button"
+          class="secondary outline"
+          :disabled="busy || loading || !!error"
+          title="Delete this page"
+          @click="deletePage"
+        >
+          Delete
+        </button>
         <button
           type="button"
           class="secondary outline"
