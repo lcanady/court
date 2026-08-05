@@ -1,3 +1,11 @@
+## 1.2.10
+
+- **Victorian Lost** (`books/vctl.txt`) → CtL 2e catalog:
+  Inventor / Lurker blessings (Inventive Genius, Larcenous
+  Fingers); contracts Envoy's Splendor, Smoke-Stepping, Riot,
+  Sabotage; Tatterdemalion's Workshop Victorian note
+- Conversion notes: `docs/vctl-2e-conversion.md`
+
 ## 1.2.9
 
 - Chargen options: seemings/kiths/courts/regalia return
