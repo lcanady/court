@@ -127,7 +127,7 @@
   margin: 0 0 1.25rem;
   color: var(--site-text-muted);
   line-height: 1.5;
-  max-width: 40rem;
+  max-width: none;
 }
 
 .cg-error {
@@ -177,7 +177,7 @@
 .cg-select,
 .cg-textarea {
   width: 100%;
-  max-width: 28rem;
+  max-width: none;
   box-sizing: border-box;
   padding: 0.55rem 0.75rem;
   border: 1px solid var(--site-border);
@@ -191,7 +191,6 @@
 .cg-textarea {
   min-height: 4.5rem;
   resize: vertical;
-  max-width: 36rem;
 }
 
 .cg-input:focus,
@@ -206,7 +205,8 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
   gap: 0.75rem;
-  max-width: 36rem;
+  max-width: none;
+  width: 100%;
 }
 
 .cg-card {
@@ -321,7 +321,8 @@
   align-items: center;
   gap: 0.5rem 0.75rem;
   margin-bottom: 0.4rem;
-  max-width: 28rem;
+  max-width: none;
+  width: 100%;
 }
 
 .cg-dots-row__label {
@@ -363,7 +364,8 @@
 
 .cg-merit-picker {
   position: relative;
-  max-width: 36rem;
+  max-width: none;
+  width: 100%;
   margin-bottom: 1.25rem;
 }
 
