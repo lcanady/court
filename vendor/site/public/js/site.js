@@ -2363,7 +2363,7 @@
       var link = document.createElement("link");
       link.id = "site-play-css";
       link.rel = "stylesheet";
-      link.href = "/site/css/play.css?v=20260805nosearch";
+      link.href = "/site/css/play.css?v=20260805cgredir";
       document.head.appendChild(link);
     }
     // Separate file: CSP blocks inline style=; classes live here.
@@ -2371,7 +2371,7 @@
       var pal = document.createElement("link");
       pal.id = "site-play-palette-css";
       pal.rel = "stylesheet";
-      pal.href = "/site/css/play-palette.css?v=20260805nosearch";
+      pal.href = "/site/css/play-palette.css?v=20260805cgredir";
       document.head.appendChild(pal);
     }
   }
@@ -2406,7 +2406,7 @@
     if (!playScriptPromise) {
       playScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/play.js?v=20260805nosearch";
+        s.src = "/site/js/play.js?v=20260805cgredir";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {
@@ -2645,6 +2645,37 @@
   window.addEventListener("popstate", function () {
     loadCurrentRoute();
   });
+
+  /**
+   * SPA navigate helper (play client +cg → Character tab).
+   * Same-origin path only.
+   */
+  function siteNavigate(path) {
+    var href = String(path || "").trim();
+    if (!href) return;
+    var targetUrl;
+    try {
+      targetUrl = new URL(href, window.location.href);
+    } catch (_) {
+      return;
+    }
+    if (targetUrl.origin !== window.location.origin) {
+      window.location.href = href;
+      return;
+    }
+    if (
+      window.location.pathname + window.location.search ===
+        targetUrl.pathname + targetUrl.search
+    ) {
+      loadCurrentRoute();
+      return;
+    }
+    window.history.pushState({}, "", targetUrl.href);
+    loadCurrentRoute();
+  }
+
+  globalThis.SiteShell = globalThis.SiteShell || {};
+  globalThis.SiteShell.navigate = siteNavigate;
 
   // Initial route load
   loadCurrentRoute();

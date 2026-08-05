@@ -1,3 +1,8 @@
+## 1.2.7
+
+- **+cg** on web clients: navigate to Character tab (`/chargen`)
+  instead of running the terminal stepper in /play.
+
 ## 1.2.6
 
 - **+sheet** on web /play: structured layout (attribute/skill dots,

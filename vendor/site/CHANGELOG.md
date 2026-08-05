@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.69
+
+- `/play`: `+cg` / `+chargen` open Character tab (`/chargen`)
+- `SiteShell.navigate` for SPA jumps from the play client
+- Cache-bust `SITE_ASSET_V` → `20260805cgredir`
+
 ## 0.1.68
 
 - Hide wiki search box on `/play` (game client only)

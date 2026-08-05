@@ -14,7 +14,7 @@
   var socket = null;
   var status = "idle";
   var rootEl = null;
-  var PLAY_JS_VER = "20260805nosearch";
+  var PLAY_JS_VER = "20260805cgredir";
   /** Stick to bottom unless the user scrolls up. */
   var stickBottom = true;
   var STICK_PX = 48;
@@ -1483,6 +1483,34 @@
       socket.onmessage = function (ev) {
         try {
           var payload = JSON.parse(String(ev.data));
+          var ui = payload.data && payload.data.ui;
+          // Server asked play client to open Character tab
+          if (
+            ui &&
+            (ui.type === "navigate" ||
+              (ui.meta && ui.meta.type === "navigate"))
+          ) {
+            var dest = ui.path || ui.href ||
+              (ui.meta && (ui.meta.path || ui.meta.href)) ||
+              "";
+            if (
+              !dest ||
+              /chargen/i.test(String(dest)) ||
+              String(ui.to || "").toLowerCase() === "chargen"
+            ) {
+              goToChargen();
+              return;
+            }
+            try {
+              if (global.SiteShell &&
+                global.SiteShell.navigate) {
+                global.SiteShell.navigate(String(dest));
+                return;
+              }
+            } catch (_) { /* ignore */ }
+            window.location.href = String(dest);
+            return;
+          }
           if (
             payload.msg != null ||
             (payload.data && Object.keys(payload.data).length)
@@ -1509,6 +1537,43 @@
   }
 
   /**
+   * +cg / +chargen on web → Character tab (/chargen), not
+   * in-game stepper text.
+   */
+  function isChargenCmd(line) {
+    var t = String(line || "").trim().toLowerCase();
+    if (!t) return false;
+    // +cg, +cg/set, +chargen, chargen …
+    if (/^\+?cg(?:\/|\s|$)/.test(t)) return true;
+    if (/^\+?chargen(?:\/|\s|$)/.test(t)) return true;
+    return false;
+  }
+
+  function chargenPath() {
+    var p = location.pathname || "";
+    if (p === "/site" || p.indexOf("/site/") === 0) {
+      return "/site/chargen";
+    }
+    return "/chargen";
+  }
+
+  function goToChargen() {
+    var path = chargenPath();
+    try {
+      if (global.SiteShell && typeof global.SiteShell.navigate ===
+        "function") {
+        global.SiteShell.navigate(path);
+        return;
+      }
+    } catch (_) { /* fall through */ }
+    try {
+      window.location.assign(path);
+    } catch (_) {
+      window.location.href = path;
+    }
+  }
+
+  /**
    * Send as typed. Server defaults unmatched bare text to `say`
    * after registered commands / exits / $patterns (see addCmd).
    * Pose shortcuts (: ; " ') and say/pose already match engine cmds.
@@ -1519,7 +1584,12 @@
    */
   function sendCmd(line) {
     var t = String(line || "").trim();
-    if (!t || !socket || socket.readyState !== 1) return;
+    if (!t) return;
+    if (isChargenCmd(t)) {
+      goToChargen();
+      return;
+    }
+    if (!socket || socket.readyState !== 1) return;
     socket.send(JSON.stringify({ msg: t }));
   }
 
