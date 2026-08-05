@@ -173,4 +173,6 @@ export async function loadDefaultCommands(): Promise<void> {
   await import("../verbs/softcode-dolist.ts");
   await import("../verbs/softcode-switch.ts");
   await import("../verbs/softcode-flow.ts");
+  // Globals-style social/staff commands (+finger, +staff, …)
+  await import("../verbs/globals/mod.ts");
 }

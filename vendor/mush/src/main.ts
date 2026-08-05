@@ -168,6 +168,19 @@ export const initializeEngine = async (
     await loadCmds();
   }
 
+  // Soft-register packaged help (optional @ursamu/help)
+  try {
+    const { registerHelpDir } = await import("@ursamu/help");
+    for (const sec of ["social", "info", "staff", "building"]) {
+      registerHelpDir(
+        new URL(`../help/${sec}`, import.meta.url),
+        sec,
+      );
+    }
+  } catch {
+    /* @ursamu/help not installed */
+  }
+
   // Load custom commands if path provided
   if (customCommandsPath) {
     await plugins(customCommandsPath);

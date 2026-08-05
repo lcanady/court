@@ -9,22 +9,22 @@ GEMINI.md. Those files should point here.
 ## What this is
 
 **Court of Miracles** is a *Changeling: The Lost* freehold game on the
-UrsaMU engine (`jsr:@ursamu/mush` — **JSR only**, no vendor override).
+UrsaMU engine (`@ursamu/mush` via `./vendor/mush`).
 
 - **Tone:** Victorian literary fiction, not modern chat or RPG boxed text
 - **Setting:** A fog-bound, slightly wrong city of gaslight, iron, and
   bargains: the freehold's London-that-never-quite-was. Prefer atmosphere
   over naming the real city repeatedly.
 - **This repo:** game code, config samples, help, softcode, and ops
-  scripts. Engine and first-party plugins load from JSR pins in
-  `deno.json`. Source of truth for packages is the ursamu monorepo;
-  production never vendors mush/site/web.
+  scripts. Engine and several first-party plugins load from
+  `./vendor/*` (synced from the ursamu monorepo); other packages use
+  JSR pins in `deno.json`.
 
 | Layer | Tech |
 |-------|------|
-| Engine | `jsr:@ursamu/mush@1.0.10` |
-| Public FE | `./vendor/site` (help FE; re-pin JSR when 0.1.24 publishes) |
-| Staff console | `jsr:@ursamu/web@0.2.56` |
+| Engine | `./vendor/mush` **1.0.12** |
+| Public FE | `./vendor/site` |
+| Staff console | `./vendor/web` (or JSR pin) |
 | Runtime | Deno |
 | DB | PGlite / TypeGraph (`data/typegraph.db`) |
 | Game system | `@ursamu/cofd-plugin` (CtL / CofD 2e) |
@@ -188,16 +188,15 @@ ssh court.ursamu.io 'bash ./court-update.sh'
 safely, reloads JSR cache, restarts daemon. Do **not** hand-edit
 production without git when the change belongs in the repo.
 
-### Engine / FE pins (JSR only)
+### Engine / FE pins (vendor + JSR)
 
-- Production imports **`jsr:@ursamu/mush@1.0.10`**,
-  **`jsr:@ursamu/site@0.1.24`**, **`jsr:@ursamu/web@0.2.56`**.
+- Engine: **`./vendor/mush` 1.0.12** (globals cmds: +finger, +staff,
+  +duty, +glance, +gname, +motd, +uptime, +summon, +i, @exittype, …).
+- Public FE / staff: **`./vendor/site`**, **`./vendor/web`**.
 - Court brand is **`theme/installed/court/`** (not a builtin site
   skin). Config: `skinCss` + `themeDir: "theme"`.
-- Bump by publishing packages from the ursamu monorepo to JSR, then
-  editing `deno.json` pins here, commit, push, deploy.
-- Do **not** reintroduce `vendor/mush`, `vendor/site`, or
-  `vendor/web`.
+- Bump engine by rsync from ursamu `packages/mush` → `vendor/mush`,
+  commit, push, deploy. Optional: also publish to JSR when ready.
 
 ---
 

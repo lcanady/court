@@ -1,3 +1,13 @@
+## 1.0.12
+
+- Globals-style player/staff commands (SGP parity where missing):
+  `+finger`, `+staff`, `+duty`, `+glance`, `+gname`, `+motd`,
+  `+uptime`, `+i`/`+inv`, `+summon`/`+rsummon`/`+join`/`+rjoin`,
+  `@exittype`, `+ooctag`
+- In-game help files under `help/{social,info,staff,building}/`
+- Soft-registers help dirs when `@ursamu/help` is installed
+- `ooc` respects personal `+ooctag` when OOCFORMAT is unset
+
 ## 1.0.11
 
 - HTTP login accepts legacy plaintext passwords (parity with telnet)

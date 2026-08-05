@@ -44,8 +44,22 @@ export function buildOocBody(
   return `${name} says, "${text}"`;
 }
 
-export function defaultOocLine(body: string): string {
-  return `${DEFAULT_OOC_PREFIX}${body}`;
+export function defaultOocLine(
+  body: string,
+  prefix = DEFAULT_OOC_PREFIX,
+): string {
+  return `${prefix}${body}`;
+}
+
+/** Personal +ooctag override, else default %cr<OOC>%cn. */
+export function oocPrefixOf(me: {
+  state?: Record<string, unknown>;
+}): string {
+  const tag = me.state?.ooctag;
+  if (typeof tag === "string" && tag.trim()) {
+    return tag.endsWith(" ") ? tag : `${tag} `;
+  }
+  return DEFAULT_OOC_PREFIX;
 }
 
 function displayName(u: IUrsamuSDK): string {
@@ -74,7 +88,7 @@ export async function execOoc(u: IUrsamuSDK): Promise<void> {
 
   const name = displayName(u);
   const body = buildOocBody(name, mode, text);
-  const fallback = defaultOocLine(body);
+  const fallback = defaultOocLine(body, oocPrefixOf(u.me));
 
   let line = fallback;
   try {
@@ -126,6 +140,52 @@ Customize with softcode on yourself:
 Examples:
   ooc brb five minutes
   ooc :waves
-  ooc ;'s phone buzzes.`,
+  ooc ;'s phone buzzes.
+See also: +ooctag`,
   exec: execOoc,
+});
+
+export async function execOocTag(u: IUrsamuSDK): Promise<void> {
+  const raw = (u.cmd.args[0] ?? "").trim();
+
+  if (!raw) {
+    const override = u.me.state?.ooctag as string | undefined;
+    const effective = oocPrefixOf(u.me).trimEnd();
+    const source =
+      override && String(override).trim()
+        ? "personal"
+        : "default";
+    u.send(`OOC tag (${source}): ${effective}`);
+    return;
+  }
+
+  const lower = raw.toLowerCase();
+  if (lower === "reset" || lower === "clear") {
+    await u.db.modify(u.me.id, "$unset", { "data.ooctag": 1 });
+    u.send(
+      `OOC tag cleared. Now using: ${DEFAULT_OOC_PREFIX.trim()}`,
+    );
+    return;
+  }
+
+  await u.db.modify(u.me.id, "$set", { "data.ooctag": raw });
+  u.send(`OOC tag set. Preview: ${raw}`);
+}
+
+addCmd({
+  name: "+ooctag",
+  pattern: /^\+ooctag(?:\s+(.*))?$/i,
+  lock: "connected",
+  category: "Communication",
+  help: `+ooctag [<literal>]  — Set or view your OOC tag.
+
+Literal includes decoration and MUSH color codes.
+Bare +ooctag shows the effective tag. reset/clear
+restores the default %cr<OOC>%cn prefix.
+
+Examples:
+  +ooctag
+  +ooctag [%cyOOC%cn]
+  +ooctag reset`,
+  exec: execOocTag,
 });
