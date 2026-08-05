@@ -1981,7 +1981,7 @@
     if (!qs('link[data-cg-css]')) {
       var link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "/site/css/chargen.css?v=20260805zebrat";
+      link.href = "/site/css/chargen.css?v=20260805tab1024";
       link.setAttribute("data-cg-css", "1");
       document.head.appendChild(link);
     }

@@ -568,14 +568,14 @@
   border-color: var(--site-accent);
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .play-stat-cols__grid {
     grid-template-columns: 1fr;
     gap: 1rem;
   }
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .play-chat {
     gap: 0.5rem;
     padding: 0.3rem 0;
@@ -1004,7 +1004,7 @@
   text-align: left;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   /*
    * Single line: name | role | idle | short-desc
    * All tracks minmax(0, …) so they shrink; ellipsis, no wrap.
@@ -1272,7 +1272,7 @@
   display: none;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .site-shell.is-mode-play .site-body {
     padding-top: calc(var(--site-nav-h, 3.5rem) + 0.5rem);
     padding-bottom: 0.5rem;

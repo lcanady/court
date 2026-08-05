@@ -654,9 +654,9 @@
   }
 }
 
-/* ── Mobile (phones only stack — see layout.css ≤720px) ─────────── */
+/* ── Mobile (tablet and below stack — see layout.css ≤1024px) ─────────── */
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .site-banner {
     margin-top: 5.5rem;
   }

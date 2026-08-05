@@ -148,7 +148,7 @@ body {
   color: var(--site-text);
 }
 
-/* Hamburger — hidden on desktop; shown ≤720px */
+/* Hamburger — hidden on desktop; shown ≤1024px */
 .site-nav__toggle {
   display: none;
   flex: 0 0 auto;
@@ -351,7 +351,7 @@ body {
  *   aside 331 | gap ~50 | main 885 | gap ~50 | aside 331
  *   gap = (1728 - 2*gutter - 2*aside - main) / 2
  * Traditional 3-col stays side-by-side; rails/gaps shrink on
- * medium widths. Stack only on narrow phones (see ≤720px).
+ * medium widths. Stack on tablet and below (see ≤1024px).
  */
 
 .site-body {
@@ -467,8 +467,8 @@ body {
   }
 }
 
-/* Phone only — stack main → left → right */
-@media (max-width: 720px) {
+/* Tablet and below — stack main → left → right */
+@media (max-width: 1024px) {
   :root {
     --site-gutter: 1.15rem;
     --site-banner-offset: 5.5rem;

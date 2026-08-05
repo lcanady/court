@@ -308,7 +308,7 @@
   height: 0.85rem;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 1024px) {
   .cg-stat-cols {
     grid-template-columns: 1fr;
     gap: 1.25rem;
@@ -820,8 +820,8 @@
   max-width: 22rem;
 }
 
-/* Phone: stack categories Mental → Physical → Social */
-@media (max-width: 720px) {
+/* Tablet/phone: stack categories Mental → Physical → Social */
+@media (max-width: 1024px) {
   .cg-live__cols {
     display: flex;
     flex-direction: column;

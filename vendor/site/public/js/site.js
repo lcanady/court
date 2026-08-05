@@ -1852,7 +1852,7 @@
     });
 
     window.addEventListener("resize", function () {
-      if (window.innerWidth > 720 && isNavOpen()) setNavOpen(false);
+      if (window.innerWidth > 1024 && isNavOpen()) setNavOpen(false);
     });
   }
 
@@ -2336,7 +2336,7 @@
     if (!chargenScriptPromise) {
       chargenScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/chargen.js?v=20260805zebrat";
+        s.src = "/site/js/chargen.js?v=20260805tab1024";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {
@@ -2363,7 +2363,7 @@
       var link = document.createElement("link");
       link.id = "site-play-css";
       link.rel = "stylesheet";
-      link.href = "/site/css/play.css?v=20260805cgredir";
+      link.href = "/site/css/play.css?v=20260805tab1024";
       document.head.appendChild(link);
     }
     // Separate file: CSP blocks inline style=; classes live here.
@@ -2371,7 +2371,7 @@
       var pal = document.createElement("link");
       pal.id = "site-play-palette-css";
       pal.rel = "stylesheet";
-      pal.href = "/site/css/play-palette.css?v=20260805cgredir";
+      pal.href = "/site/css/play-palette.css?v=20260805tab1024";
       document.head.appendChild(pal);
     }
   }
@@ -2406,7 +2406,7 @@
     if (!playScriptPromise) {
       playScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/play.js?v=20260805cgredir";
+        s.src = "/site/js/play.js?v=20260805tab1024";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {

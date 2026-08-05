@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.70
+
+- Mobile / hamburger / stacked layout starts at **≤1024px**
+  (tablet), was ≤720px
+- Cache-bust `SITE_ASSET_V` → `20260805tab1024`
+
 ## 0.1.69
 
 - `/play`: `+cg` / `+chargen` open Character tab (`/chargen`)
