@@ -1,0 +1,13 @@
+# Court of Miracles — public edge (install: sudo cp to /etc/caddy/Caddyfile)
+# HTTPS → game HTTP API :4203
+# /ws   → game WebSocket :4202 (TLS terminated by Caddy)
+court.ursamu.io {
+	handle /ws* {
+		reverse_proxy 127.0.0.1:4202
+	}
+
+	handle {
+		encode gzip
+		reverse_proxy 127.0.0.1:4203
+	}
+}

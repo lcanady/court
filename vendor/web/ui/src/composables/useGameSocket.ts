@@ -13,20 +13,26 @@ export type GameSocketStatus =
   | "closed"
   | "error";
 
+/**
+ * HTTPS → same-origin `/ws` (Caddy TLS → engine :4202).
+ * HTTP local → direct `ws://host:wsPort`.
+ */
 function wsUrlFromConfig(wsPort: number): string {
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
-  // Same hostname; game WS is usually a dedicated port.
+  if (location.protocol === "https:") {
+    return `${proto}//${location.host}/ws`;
+  }
   const host = location.hostname;
-  if (
-    location.port &&
-    String(wsPort) === location.port
-  ) {
-    return `${proto}//${location.host}`;
+  if (location.port && String(wsPort) === location.port) {
+    return `${proto}//${location.host}/ws`;
   }
   return `${proto}//${host}:${wsPort}`;
 }
 
 async function resolveWsUrl(): Promise<string> {
+  if (location.protocol === "https:") {
+    return wsUrlFromConfig(4202);
+  }
   try {
     const res = await fetch("/api/v1/config");
     if (res.ok) {

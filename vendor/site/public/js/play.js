@@ -41,11 +41,21 @@
       .replace(/"/g, "&quot;");
   }
 
+  /** Engine may already send HTML for clientType=web. */
+  function looksLikeHtml(s) {
+    return /<\s*(span|b|i|br|div|font)\b/i.test(String(s || ""));
+  }
+
   /** MUSH / truecolor → safe HTML spans. */
   function mushToHtml(raw) {
     if (raw == null) return "";
+    var s0 = String(raw);
+    // Trust engine web presenter output (already escaped spans).
+    if (looksLikeHtml(s0)) {
+      return s0.replace(/\n/g, "<br>");
+    }
     // deno-lint-ignore no-control-regex
-    var s = String(raw).replace(/\u001b\[[0-9;]*m/g, "");
+    var s = s0.replace(/\u001b\[[0-9;]*m/g, "");
     s = s.replace(/%r/gi, "\n").replace(/%t/gi, "\t")
       .replace(/%b/gi, " ");
 
@@ -243,8 +253,18 @@
     renderMessages();
   }
 
+  /**
+   * Resolve game WebSocket URL.
+   * HTTPS pages MUST use same-origin wss://host/ws (Caddy → :4202).
+   * Direct ws://host:4202 has no TLS and is blocked by browsers.
+   */
   function wsUrl() {
     var proto = location.protocol === "https:" ? "wss:" : "ws:";
+    // Production / any TLS page: reverse-proxied path
+    if (location.protocol === "https:") {
+      return proto + "//" + location.host + "/ws";
+    }
+    // Local HTTP: direct engine port from config (default 4202)
     var host = location.hostname;
     var port = 4202;
     try {
@@ -253,8 +273,8 @@
         port = Number(cfg.server.wsPort || cfg.server.ws || 4202);
       }
     } catch (_) { /* ignore */ }
-    if (String(port) === String(location.port)) {
-      return proto + "//" + location.host;
+    if (String(port) === String(location.port || "80")) {
+      return proto + "//" + location.host + "/ws";
     }
     return proto + "//" + host + ":" + port;
   }

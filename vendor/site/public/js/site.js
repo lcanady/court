@@ -2351,7 +2351,7 @@
     var link = document.createElement("link");
     link.id = "site-play-css";
     link.rel = "stylesheet";
-    link.href = "/site/css/play.css?v=20260804play";
+    link.href = "/site/css/play.css?v=20260805wss";
     document.head.appendChild(link);
   }
   function loadPlayRoute() {
@@ -2369,7 +2369,7 @@
     if (!playScriptPromise) {
       playScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/play.js?v=20260804play";
+        s.src = "/site/js/play.js?v=20260805wss";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {
