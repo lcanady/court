@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.68
+
+- Hide wiki search box on `/play` (game client only)
+- Cache-bust `SITE_ASSET_V` → `20260805nosearch`
+
 ## 0.1.67
 
 - Play +sheet layout: stat-cols (dots), health/willpower tracks,

@@ -14,7 +14,7 @@
   var socket = null;
   var status = "idle";
   var rootEl = null;
-  var PLAY_JS_VER = "20260805sheet";
+  var PLAY_JS_VER = "20260805nosearch";
   /** Stick to bottom unless the user scrolls up. */
   var stickBottom = true;
   var STICK_PX = 48;
