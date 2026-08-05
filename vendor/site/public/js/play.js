@@ -14,7 +14,7 @@
   var socket = null;
   var status = "idle";
   var rootEl = null;
-  var PLAY_JS_VER = "20260805tab1024";
+  var PLAY_JS_VER = "20260805logosm";
   /** Stick to bottom unless the user scrolls up. */
   var stickBottom = true;
   var STICK_PX = 48;

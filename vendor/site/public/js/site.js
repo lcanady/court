@@ -276,11 +276,21 @@
 
     var heroTitle = String(cfg.title || "").trim();
     var brandTitle = heroTitle || "UrsaMU";
-    // Nav brand always uses site name; document title set per-mode below
+    var logoSrc = String(cfg.logoImage || "").trim();
+    // Nav brand: optional logo image + title; document title set per-mode
     if (brand) {
-      brand.textContent = brandTitle;
       // Logo always goes to public home (/ at apex, /site/ when mounted)
       brand.setAttribute("href", pubPath(""));
+      if (logoSrc) {
+        brand.classList.add("has-logo");
+        brand.innerHTML =
+          '<img class="site-nav__brand-logo" src="' +
+          esc(logoSrc) + '" alt="' + esc(brandTitle) +
+          '" decoding="async" />';
+      } else {
+        brand.classList.remove("has-logo");
+        brand.textContent = brandTitle;
+      }
     }
 
     var href  = String(cfg.skinHref || cfg.skinCss || "").trim();
@@ -2336,7 +2346,7 @@
     if (!chargenScriptPromise) {
       chargenScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/chargen.js?v=20260805tab1024";
+        s.src = "/site/js/chargen.js?v=20260805logosm";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {
@@ -2363,7 +2373,7 @@
       var link = document.createElement("link");
       link.id = "site-play-css";
       link.rel = "stylesheet";
-      link.href = "/site/css/play.css?v=20260805tab1024";
+      link.href = "/site/css/play.css?v=20260805logosm";
       document.head.appendChild(link);
     }
     // Separate file: CSP blocks inline style=; classes live here.
@@ -2371,7 +2381,7 @@
       var pal = document.createElement("link");
       pal.id = "site-play-palette-css";
       pal.rel = "stylesheet";
-      pal.href = "/site/css/play-palette.css?v=20260805tab1024";
+      pal.href = "/site/css/play-palette.css?v=20260805logosm";
       document.head.appendChild(pal);
     }
   }
@@ -2406,7 +2416,7 @@
     if (!playScriptPromise) {
       playScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/play.js?v=20260805tab1024";
+        s.src = "/site/js/play.js?v=20260805logosm";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {

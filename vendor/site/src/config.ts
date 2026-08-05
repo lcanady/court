@@ -31,6 +31,11 @@ export type SitePluginConfig = {
   skinCss?: string;
   /** Document / brand title */
   title?: string;
+  /**
+   * Nav brand logo image URL (optional). When set, the nav brand
+   * shows this image (with title as alt). Shrinks on mobile.
+   */
+  logoImage?: string;
   /** Banner image URL (optional) */
   bannerImage?: string;
   /** Suppress top background art */
@@ -106,7 +111,7 @@ export function markNavActive(
 }
 
 /** Cache-bust query for shipped site CSS (bump when layout/tokens change). */
-export const SITE_ASSET_V = "20260805tab1024";
+export const SITE_ASSET_V = "20260805logosm";
 
 /** Resolve stylesheet href for the active skin. */
 export function resolveSkinHref(cfg: SitePluginConfig): string {
@@ -155,6 +160,9 @@ export function readSiteConfig(
   if (typeof o.skin === "string") out.skin = o.skin.trim();
   if (typeof o.skinCss === "string") out.skinCss = o.skinCss.trim();
   if (typeof o.title === "string") out.title = o.title.trim();
+  if (typeof o.logoImage === "string") {
+    out.logoImage = o.logoImage.trim();
+  }
   if (typeof o.bannerImage === "string") {
     out.bannerImage = o.bannerImage.trim();
   }

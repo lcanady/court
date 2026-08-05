@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.71
+
+- Nav `logoImage` (config / theme): brand shows img when set
+- Logo shrinks on tablet/mobile (≤1024px, ~28px tall)
+- Cache-bust `SITE_ASSET_V` → `20260805logosm`
+
 ## 0.1.70
 
 - Mobile / hamburger / stacked layout starts at **≤1024px**

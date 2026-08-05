@@ -42,6 +42,8 @@ export type SiteThemeManifest = {
   css?: string;
   /** Relative path to banner image */
   bannerImage?: string;
+  /** Relative path to nav logo image */
+  logoImage?: string;
   title?: string;
   plainBg?: boolean;
   description?: string;
@@ -51,6 +53,8 @@ export type SiteThemeManifest = {
   skinCss?: string;
   /** Resolved banner href */
   bannerHref?: string;
+  /** Resolved logo href */
+  logoHref?: string;
 };
 
 const ID_RE = /^[a-z][a-z0-9_-]{0,39}$/;
@@ -105,6 +109,9 @@ export function registerSiteTheme(
     skinCss: theme.skinCss?.trim() || undefined,
     bannerHref: theme.bannerHref?.trim() ||
       theme.bannerImage?.trim() ||
+      undefined,
+    logoHref: theme.logoHref?.trim() ||
+      theme.logoImage?.trim() ||
       undefined,
   });
   return true;
@@ -193,6 +200,9 @@ function parseManifest(raw: Uint8Array): SiteThemeManifest {
     css,
     bannerImage: typeof j.bannerImage === "string"
       ? j.bannerImage.trim()
+      : undefined,
+    logoImage: typeof j.logoImage === "string"
+      ? j.logoImage.trim()
       : undefined,
     title: typeof j.title === "string" ? j.title.trim() : undefined,
     plainBg: j.plainBg === true,
@@ -366,12 +376,20 @@ export async function installThemeZip(
       bannerHref = `/site/theme/installed/${manifest.id}/${b}`;
     }
   }
+  let logoHref: string | undefined;
+  if (manifest.logoImage) {
+    const l = manifest.logoImage.replace(/^\/+/, "");
+    if (safeFiles[l]) {
+      logoHref = `/site/theme/installed/${manifest.id}/${l}`;
+    }
+  }
 
   const installed: SiteThemeManifest = {
     ...manifest,
     source: "installed",
     skinCss,
     bannerHref,
+    logoHref,
     css: cssName,
   };
   registerSiteTheme(installed);
@@ -401,11 +419,18 @@ export async function scanInstalledThemes(
           bannerHref =
             `/site/theme/installed/${m.id}/${b}`;
         }
+        let logoHref: string | undefined;
+        if (m.logoImage) {
+          const l = m.logoImage.replace(/^\/+/, "");
+          logoHref =
+            `/site/theme/installed/${m.id}/${l}`;
+        }
         const full: SiteThemeManifest = {
           ...m,
           source: "installed",
           skinCss,
           bannerHref,
+          logoHref,
         };
         out.push(full);
         registerSiteTheme(full);
@@ -459,6 +484,7 @@ export function themeToSiteConfig(
   skin?: string;
   skinCss?: string;
   bannerImage?: string;
+  logoImage?: string;
   title?: string;
   plainBg?: boolean;
   themeDir?: string;
@@ -468,6 +494,7 @@ export function themeToSiteConfig(
       skin: theme.id,
       skinCss: "",
       bannerImage: theme.bannerHref ?? "",
+      logoImage: theme.logoHref ?? "",
       title: theme.title,
       plainBg: theme.plainBg,
     };
@@ -476,6 +503,7 @@ export function themeToSiteConfig(
     skin: theme.id,
     skinCss: theme.skinCss ?? "",
     bannerImage: theme.bannerHref ?? "",
+    logoImage: theme.logoHref ?? "",
     title: theme.title,
     plainBg: theme.plainBg,
     themeDir: "theme",

@@ -673,7 +673,14 @@
   }
 
   .site-nav__brand {
-    font-size: 1.5rem;
+    font-size: 1.15rem;
+    max-width: min(12rem, 58vw);
+  }
+
+  .site-nav__brand-logo,
+  .site-nav__brand img {
+    max-height: 1.75rem;
+    max-width: min(9.5rem, 52vw);
   }
 
   .site-nav__toggle {

@@ -121,8 +121,9 @@ export function injectSiteHtml(
   const brandHref = cfg.serveRoot === true
     ? "/"
     : `${normalizeMount(cfg.mount)}/`;
+  const logoSrc = (cfg.logoImage ?? "").trim();
   out = out.replace(
-    /(<a\b[^>]*\bdata-site-brand\b)([^>]*)(>)[^<]*(<\/a>)/i,
+    /(<a\b)([^>]*\bdata-site-brand\b[^>]*)(>)[\s\S]*?(<\/a>)/i,
     (_m, open: string, mid: string, gt: string, close: string) => {
       let m = String(mid);
       if (/\bhref\s*=/.test(m)) {
@@ -133,6 +134,32 @@ export function injectSiteHtml(
       } else {
         m += ` href="${escAttr(brandHref)}"`;
       }
+      // Ensure class list includes has-logo once when image brand
+      if (logoSrc) {
+        if (/\bclass\s*=\s*"/i.test(m)) {
+          m = m.replace(/\bclass\s*=\s*"([^"]*)"/i, (_c, cls: string) => {
+            const parts = String(cls).split(/\s+/).filter(Boolean);
+            if (!parts.includes("has-logo")) parts.push("has-logo");
+            if (!parts.includes("site-nav__brand")) {
+              parts.unshift("site-nav__brand");
+            }
+            return `class="${parts.join(" ")}"`;
+          });
+        } else {
+          m += ` class="site-nav__brand has-logo"`;
+        }
+        const img =
+          `<img class="site-nav__brand-logo" src="${escAttr(logoSrc)}" ` +
+          `alt="${escAttr(brandTitle)}" decoding="async" />`;
+        return `${open}${m}${gt}${img}${close}`;
+      }
+      // Text brand — strip leftover has-logo
+      m = m.replace(/\bclass\s*=\s*"([^"]*)"/i, (_c, cls: string) => {
+        const parts = String(cls).split(/\s+/).filter(
+          (p) => p && p !== "has-logo",
+        );
+        return parts.length ? `class="${parts.join(" ")}"` : "";
+      });
       return `${open}${m}${gt}${esc(brandTitle)}${close}`;
     },
   );
