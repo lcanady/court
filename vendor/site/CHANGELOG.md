@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.73
+
+- Tablet/mobile: buttons grow full width — play SEND, look
+  exit chips, chargen Back/Next/primary actions
+- Cache-bust `SITE_ASSET_V` → `20260805btngrow`
+
 ## 0.1.72
 
 - Fix mobile overflow: Court banner logo no longer

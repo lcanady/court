@@ -1284,16 +1284,41 @@
 
   .play-prompt {
     flex-wrap: wrap;
+    align-items: stretch;
+    gap: 0.55rem;
   }
 
   .play-prompt__input {
     flex: 1 1 100%;
     min-width: 0;
+    width: 100%;
   }
 
+  /* SEND grows full width (drop fixed 119×55) */
   .play-prompt__send {
+    flex: 1 1 100%;
     width: 100%;
     min-width: 0;
+    max-width: none;
+    height: auto;
+    min-height: 3rem; /* touch target */
+    padding: 0.75rem 1rem;
+  }
+
+  /* Look exit chips / action buttons — single column, fill row */
+  .play-actions,
+  .play-actions--cols-1,
+  .play-actions--cols-2,
+  .play-actions--cols-3 {
+    grid-template-columns: minmax(0, 1fr);
+    width: 100%;
+  }
+
+  .play-action {
+    width: 100%;
+    min-height: 2.75rem;
+    justify-content: flex-start;
+    padding: 0.65rem 0.75rem;
   }
 
   .play-output {

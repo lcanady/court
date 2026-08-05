@@ -844,6 +844,29 @@
   .site-shell.is-mode-chargen .site-aside--end {
     display: none;
   }
+
+  /* Back / Next / primary actions grow full width */
+  .cg-actions {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.55rem;
+  }
+
+  .cg-actions .cg-btn,
+  .cg-gate .cg-btn,
+  .cg-btn {
+    flex: 1 1 auto;
+    width: 100%;
+    min-width: 0;
+    min-height: 2.75rem;
+    box-sizing: border-box;
+  }
+
+  .cg-btn--tiny {
+    width: auto;
+    min-width: 4.5rem;
+    flex: 0 0 auto;
+  }
 }
 
 .cg-merit-list__cost {
