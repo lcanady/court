@@ -460,7 +460,62 @@ Wiki API notes: engine wiki routes / package docs as applicable.
 
 ---
 
-## 11. Plugin UI contract (required)
+## 11. Game client output (Play)
+
+**Route:** `/admin/play` · **View:** `PlayView.vue` · **Stream:**
+`GameOutput.vue`
+
+The in-console game client uses the **same host chrome** as Wiki
+(dash-header, pages-toolbar, tokens). Game text is mono; chrome is not.
+
+### Message contract (WS `{ msg, data }`)
+
+| Payload | Render |
+|---------|--------|
+| `data.ui` with `components[]` | Structured `GameLayout` — host `.dash-table`, panel surfaces, section titles |
+| No `data.ui` (plain `msg`) | **Default:** `.game-pre` mono block, MUSH colors via `mushTextToHtml` |
+
+Commands that call `u.ui.layout({ components, meta })` emit
+`{ msg: "", data: { ui: { type: "layout", components, meta } } }`.
+Everything else (look, say, +finger, …) is plain `msg` text.
+
+### Default text path (required look)
+
+```html
+<div class="game-pre">
+  <!-- spans from mushTextToHtml; white-space: pre-wrap; max 78ch -->
+</div>
+```
+
+- Font: `var(--font-mono)` on `--bg-code` stage
+- Colors: design tokens (`--success`, `--error`, `--warning`, `--info`,
+  `--text`, …) — **not** Tailwind slate / random hex outside tokens
+- Width: `max-width: 78ch` (in-game column)
+- No second theme, no terminal “green-on-black” skin
+
+### Structured layout path
+
+| `component.type` | Host treatment |
+|------------------|----------------|
+| `header` | `.game-layout__title` (UI font, hairline under) |
+| `table` | `.table-wrap` > `table.dash-table` |
+| `list` | plain list, muted body |
+| `panel` | `.game-layout__panel` surface + optional title kicker |
+
+Cell / title strings still run through `MushText` (colors allowed).
+
+### MUST / MUST NOT
+
+| Do | Don’t |
+|----|--------|
+| Reuse dash-header + prompt toolbar | Invent a floating MUD HUD |
+| Mono only inside `.game-pre` / output | Style the whole admin shell as a game |
+| Escape plain text in `mushTextToHtml` | `v-html` unsanitized server HTML |
+| Cap history (socket composable) | Unbounded DOM growth |
+
+---
+
+## 12. Plugin UI contract (required)
 
 The **host** (`@ursamu/web`) owns visual design. Plugin UIs — whether
 in-console Vue views (`registerStaffNav` + `route`) or standalone SPAs

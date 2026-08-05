@@ -77,6 +77,8 @@ type SiteNavRow = {
   label: string;
   href: string;
   order: number;
+  /** Visibility: public | connected | staff | flag(name) */
+  require?: string;
 };
 
 function json(data: unknown, status = 200): Response {
@@ -247,6 +249,7 @@ async function buildSettingsPayload(): Promise<Record<string, unknown>> {
         label: string;
         href: string;
         order?: number;
+        require?: string;
       }>;
     };
     siteLoaded = true;
@@ -259,6 +262,7 @@ async function buildSettingsPayload(): Promise<Record<string, unknown>> {
         label: n.label,
         href: n.href,
         order: typeof n.order === "number" ? n.order : (i + 1) * 10,
+        require: n.require,
       }));
     }
   } catch {
@@ -531,11 +535,15 @@ function normalizeSiteNav(raw: unknown): SiteNavRow[] {
     const order = typeof r.order === "number" && Number.isFinite(r.order)
       ? r.order
       : (i + 1) * 10;
+    const reqRaw = typeof r.require === "string"
+      ? r.require.trim()
+      : "";
     out.push({
       id: idRaw || undefined,
       label: label || "Link",
       href: href || "#",
       order,
+      require: reqRaw || undefined,
     });
   }
   // Stable sort by order, keep equal-order array order

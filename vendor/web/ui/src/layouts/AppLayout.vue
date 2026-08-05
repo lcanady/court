@@ -101,6 +101,7 @@ const section = computed<Section>(() => {
     return String(route.params.pluginId ?? "").trim() || "plugin";
   }
   if (n === "dashboard" || n === "") return "dashboard";
+  if (n === "play") return "play";
   if (n.startsWith("wiki")) return "wiki";
   if (n.startsWith("job")) return "jobs";
   if (n.startsWith("bbs")) return "bbs";
@@ -131,6 +132,8 @@ const sectionTitle = computed(() => {
   switch (section.value) {
     case "dashboard":
       return "Dashboard";
+    case "play":
+      return "Play";
     case "wiki":
       return "Wiki";
     case "jobs":
@@ -266,6 +269,7 @@ function ackSectionBadges(sec: Section): void {
  */
 const CORE_PRIMARY: Omit<PrimaryItem, "badge" | "badgeTitle">[] = [
   { id: "dashboard", name: "dashboard", label: "Dashboard", order: 10 },
+  { id: "play", name: "play", label: "Play", order: 15 },
   { id: "db", name: "db", label: "Database", order: 60 },
   { id: "settings", name: "settings", label: "Settings", order: 90 },
 ];
@@ -625,6 +629,15 @@ const sideLinks = computed((): SideLink[] => {
   if (fromPlugin) return fromPlugin;
 
   switch (section.value) {
+    case "play":
+      return [
+        {
+          to: { name: "play" },
+          label: "Client",
+          desc: "Live game output",
+          icon: "›",
+        },
+      ];
     case "wiki":
       return wikiStatusLinks.value;
     case "help":
@@ -1049,6 +1062,8 @@ function primaryIcon(id: string): string {
   switch (id) {
     case "dashboard":
       return "⌂";
+    case "play":
+      return "›";
     case "wiki":
       return "¶";
     case "players":

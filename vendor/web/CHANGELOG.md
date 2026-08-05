@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.2.61
+
+- Play game client: plain `msg` → mono `.game-pre` with MUSH colors;
+  `data.ui` layout → host tables/panels (design.md §11)
+- `mushTextToHtml`, GameOutput, GameLayout, PlayView `/admin/play`
+
+
 ## 0.2.60
 
 - Help FE matches wiki design tokens: Library kicker, dash-table,
