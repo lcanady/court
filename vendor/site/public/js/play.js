@@ -14,7 +14,7 @@
   var socket = null;
   var status = "idle";
   var rootEl = null;
-  var PLAY_JS_VER = "20260805oocwho";
+  var PLAY_JS_VER = "20260805sheet";
   /** Stick to bottom unless the user scrolls up. */
   var stickBottom = true;
   var STICK_PX = 48;
@@ -807,6 +807,93 @@
     return html;
   }
 
+  /** Dot row for sheet attrs/skills (● filled / ○ empty). */
+  function renderDots(value, maxDots) {
+    maxDots = Math.max(1, Math.min(10, Number(maxDots) || 5));
+    var n = Math.max(0, Math.min(maxDots, Number(value) || 0));
+    var html = '<span class="play-dots" aria-hidden="true">';
+    for (var i = 1; i <= maxDots; i++) {
+      html += '<span class="play-dot' +
+        (i <= n ? " is-on" : "") + '"></span>';
+    }
+    return html + "</span>";
+  }
+
+  /**
+   * Stat columns: Attributes / Skills blocks.
+   * c.columns = [{ title, rows: [{ label, value, max }] }]
+   */
+  function renderStatCols(c) {
+    var cols = Array.isArray(c.columns) ? c.columns : [];
+    var html = '<section class="play-layout__section play-stat-cols">';
+    if (c.title) {
+      html += '<h3 class="play-layout__section-title">' +
+        esc(String(c.title)) + "</h3>";
+    }
+    html += '<div class="play-stat-cols__grid" data-cols="' +
+      Math.min(3, Math.max(1, cols.length)) + '">';
+    for (var i = 0; i < cols.length; i++) {
+      var col = cols[i] || {};
+      html += '<div class="play-stat-cols__col">';
+      if (col.title) {
+        html += '<p class="play-stat-cols__title">' +
+          esc(String(col.title)) + "</p>";
+      }
+      var rows = Array.isArray(col.rows) ? col.rows : [];
+      for (var r = 0; r < rows.length; r++) {
+        var row = rows[r] || {};
+        var val = Number(row.value) || 0;
+        var maxD = Number(row.max) || 5;
+        html += '<div class="play-stat-row">' +
+          '<span class="play-stat-row__label">' +
+          esc(String(row.label || "")) + "</span>" +
+          renderDots(val, maxD) +
+          '<span class="play-stat-row__num">' + val +
+          "</span></div>";
+      }
+      html += "</div>";
+    }
+    html += "</div></section>";
+    return html;
+  }
+
+  /**
+   * Health / willpower track.
+   * c.kinds = "empty"|"bash"|"leth"|"agg"|"wp-on"|"wp-off"
+   */
+  function renderTrackRow(c) {
+    var label = String(c.label || "");
+    var kinds = Array.isArray(c.kinds) ? c.kinds : [];
+    var meta = c.meta != null ? String(c.meta) : "";
+    var html = '<div class="play-track-row">' +
+      '<span class="play-track-row__label">' + esc(label) +
+      "</span>" +
+      '<span class="play-track" role="img" aria-label="' +
+      escAttr(label + (meta ? " " + meta : "")) + '">';
+    for (var i = 0; i < kinds.length; i++) {
+      var k = String(kinds[i] || "empty");
+      if (k === "wp-on" || k === "wp-off") {
+        html += '<span class="play-wbox' +
+          (k === "wp-on" ? " is-on" : "") +
+          '" aria-hidden="true"></span>';
+      } else {
+        var mark = "";
+        if (k === "bash") mark = "/";
+        else if (k === "leth") mark = "✕";
+        else if (k === "agg") mark = "★";
+        html += '<span class="play-hbox play-hbox--' +
+          esc(k) + '" aria-hidden="true">' + mark + "</span>";
+      }
+    }
+    html += "</span>";
+    if (meta) {
+      html += '<span class="play-track-row__meta">' +
+        esc(meta) + "</span>";
+    }
+    html += "</div>";
+    return html;
+  }
+
   function renderLayout(ui) {
     var comps = Array.isArray(ui.components) ? ui.components : [];
     var metaType = ui.meta && ui.meta.type
@@ -880,7 +967,16 @@
           html += "</tr>";
         }
         html += "</tbody></table>";
+      } else if (t === "stat-cols") {
+        html += renderStatCols(c);
+      } else if (t === "track-row") {
+        html += renderTrackRow(c);
       } else if (t === "list") {
+        html += '<section class="play-layout__section">';
+        if (c.title) {
+          html += '<h3 class="play-layout__section-title">' +
+            esc(String(c.title)) + "</h3>";
+        }
         var items = Array.isArray(c.content)
           ? c.content
           : [c.content];
@@ -888,7 +984,7 @@
         for (var li = 0; li < items.length; li++) {
           html += "<li>" + cellHtml(items[li]) + "</li>";
         }
-        html += "</ul>";
+        html += "</ul></section>";
       } else if (t === "panel") {
         html += '<section class="play-layout__panel">';
         if (c.title) {

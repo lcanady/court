@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.67
+
+- Play +sheet layout: stat-cols (dots), health/willpower tracks,
+  zebra merit lists
+- Cache-bust `SITE_ASSET_V` → `20260805sheet`
+
+## 0.1.66
+
+- Play layout polish for inventory / glance entity lists
+- Cache-bust `SITE_ASSET_V` → `20260805invgl`
+
 ## 0.1.65
 
 - Play chat: OOC badge + muted OOC bubbles (`kind: ooc`)

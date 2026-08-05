@@ -1,3 +1,9 @@
+## 1.2.6
+
+- **+sheet** on web /play: structured layout (attribute/skill dots,
+  health & willpower boxes, merits/contracts lists, advantages).
+  Telnet ASCII sheet unchanged.
+
 ## 1.2.4
 
 - Chargen HTTP: read `data.cofd_cg` on raw dbojs rows (was only `state`, so Next said Start chargen first)
