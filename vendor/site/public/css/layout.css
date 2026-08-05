@@ -117,6 +117,37 @@ body {
   border-bottom-color: var(--site-accent);
 }
 
+/* Play unread: red/accent dot with count (since last check) */
+.site-nav__list a.site-nav__play-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.site-nav__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.15rem;
+  height: 1.15rem;
+  padding: 0 0.3rem;
+  box-sizing: border-box;
+  border-radius: 999px;
+  background: var(--site-error, #c44);
+  color: #fff;
+  font-family: var(--site-font-ui, system-ui, sans-serif);
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: 0;
+  vertical-align: middle;
+}
+
+.site-nav__list a.has-unread {
+  color: var(--site-text);
+}
+
 /* Hamburger — hidden on desktop; shown ≤720px */
 .site-nav__toggle {
   display: none;

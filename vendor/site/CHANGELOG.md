@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.62
+
+- `/play` stays connected across SPA navigations (WS kept alive)
+- Nav Play badge: count of new entries since last catch-up
+- Chat-style **New** divider when not autoscrolling; clears when
+  the last new post is reached (or bottom is hit)
+- Cache-bust `SITE_ASSET_V` → `20260805playkeep`
+
 ## 0.1.61
 
 - Live character sheet: Advantages moved to the bottom

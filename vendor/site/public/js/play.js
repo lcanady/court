@@ -14,10 +14,25 @@
   var socket = null;
   var status = "idle";
   var rootEl = null;
-  var PLAY_JS_VER = "20260805inpgrow";
+  var PLAY_JS_VER = "20260805playkeep";
   /** Stick to bottom unless the user scrolls up. */
   var stickBottom = true;
   var STICK_PX = 48;
+  /** UI mounted on /play (false while SPA is elsewhere). */
+  var playVisible = false;
+  /** Keep trying WS after first successful login to /play. */
+  var wantLive = false;
+  var reconnectTimer = null;
+  var reconnectAttempt = 0;
+  var didInitialLook = false;
+  var msgSeq = 0;
+  /**
+   * Unread while not autoscrolling (scrolled up or left /play).
+   * unreadStartId = first new msg id; null = caught up.
+   */
+  var unreadCount = 0;
+  var unreadStartId = null;
+  var lastUnreadId = null;
 
   /** Web-safe 16-color primaries (lowercase hex for CSS class names). */
   var FG_LETTER = {
@@ -912,7 +927,113 @@
     out._playScrollBound = true;
     out.addEventListener("scroll", function () {
       stickBottom = isNearBottom(out);
+      if (stickBottom) {
+        markAllRead();
+      } else {
+        maybeClearUnreadByScroll(out);
+      }
     }, { passive: true });
+  }
+
+  /** True when the player is watching live output (bottom + on /play). */
+  function isActivelyReading() {
+    if (!playVisible || !stickBottom) return false;
+    try {
+      if (document.hidden) return false;
+    } catch (_) { /* ignore */ }
+    return true;
+  }
+
+  function playHrefMatch(href) {
+    var h = String(href || "");
+    try {
+      if (h.indexOf("http") === 0) {
+        h = new URL(h, location.href).pathname;
+      }
+    } catch (_) { /* ignore */ }
+    return h === "/play" ||
+      h.indexOf("/play/") === 0 ||
+      h === "/site/play" ||
+      h.indexOf("/site/play/") === 0 ||
+      /\/play\/?$/.test(h);
+  }
+
+  /** Nav badge: dot + count on the Play link. */
+  function updatePlayNavBadge() {
+    var list = document.querySelector("[data-site-nav-list]");
+    if (!list) return;
+    var links = list.querySelectorAll("a[href]");
+    for (var i = 0; i < links.length; i++) {
+      var a = links[i];
+      if (!playHrefMatch(a.getAttribute("href"))) continue;
+      a.classList.add("site-nav__play-link");
+      var badge = a.querySelector(".site-nav__badge");
+      if (unreadCount <= 0) {
+        a.classList.remove("has-unread");
+        if (badge && badge.parentNode) badge.parentNode.removeChild(badge);
+        continue;
+      }
+      a.classList.add("has-unread");
+      if (!badge) {
+        badge = document.createElement("span");
+        badge.className = "site-nav__badge";
+        badge.setAttribute("aria-hidden", "true");
+        a.appendChild(badge);
+      }
+      badge.textContent = unreadCount > 99
+        ? "99+"
+        : String(unreadCount);
+      a.setAttribute(
+        "aria-label",
+        "Play, " + unreadCount + " new",
+      );
+    }
+    try {
+      document.dispatchEvent(new CustomEvent("siteplay:unread", {
+        detail: { count: unreadCount },
+      }));
+    } catch (_) { /* ignore */ }
+  }
+
+  function markAllRead() {
+    if (unreadCount === 0 && unreadStartId == null) {
+      updatePlayNavBadge();
+      return;
+    }
+    var had = unreadCount > 0 || unreadStartId != null;
+    unreadCount = 0;
+    unreadStartId = null;
+    lastUnreadId = null;
+    updatePlayNavBadge();
+    if (had && playVisible) renderMessages();
+  }
+
+  /**
+   * Clear unread once the last new post is scrolled into the
+   * bottom of the output viewport (chat "caught up").
+   */
+  function maybeClearUnreadByScroll(out) {
+    if (!out || unreadStartId == null || !lastUnreadId) return;
+    var last = out.querySelector(
+      '[data-msg-id="' + lastUnreadId + '"]',
+    );
+    if (!last) return;
+    var er = last.getBoundingClientRect();
+    var or = out.getBoundingClientRect();
+    // Reached = last new post's bottom is at/above viewport bottom
+    if (er.bottom <= or.bottom + 12) {
+      markAllRead();
+    }
+  }
+
+  function renderNewDivider() {
+    return '<div class="play-new-divider" id="play-new-divider" ' +
+      'role="separator" aria-label="New messages">' +
+      '<span class="play-new-divider__line" aria-hidden="true">' +
+      "</span>" +
+      '<span class="play-new-divider__label">New</span>' +
+      '<span class="play-new-divider__line" aria-hidden="true">' +
+      "</span></div>";
   }
 
   /** Layout controls: data-play-cmd → send as game input. */
@@ -1012,6 +1133,8 @@
     bindOutputScroll(out);
     bindOutputActions(out);
     var shouldStick = stickBottom || isNearBottom(out);
+    var prevTop = out.scrollTop;
+    var prevH = out.scrollHeight;
 
     if (!messages.length) {
       out.innerHTML =
@@ -1019,10 +1142,16 @@
       if (shouldStick) scrollOutputToBottom(out);
       return;
     }
+    // Divider only when not autoscrolling / have unread
+    var showNew = !shouldStick && unreadStartId != null;
     var html = "";
     for (var i = 0; i < messages.length; i++) {
       var m = messages[i];
-      html += '<div class="play-msg">';
+      if (showNew && m._id === unreadStartId) {
+        html += renderNewDivider();
+      }
+      html += '<div class="play-msg" data-msg-id="' +
+        esc(String(m._id || "")) + '">';
       if (isCmdEcho(m.data)) {
         html += renderCmdEcho(m.data.ui);
       } else if (isChatUi(m.data)) {
@@ -1059,6 +1188,10 @@
     if (shouldStick) {
       scrollOutputToBottom(out);
       stickBottom = true;
+    } else {
+      // Keep viewport anchored when history grows above
+      var delta = out.scrollHeight - prevH;
+      out.scrollTop = prevTop + (delta > 0 ? delta : 0);
     }
   }
 
@@ -1090,11 +1223,46 @@
   }
 
   function push(m) {
+    m = m || {};
+    m._id = ++msgSeq;
     messages.push(m);
     if (messages.length > MAX_MSG) {
+      var dropped = messages.length - MAX_MSG;
       messages = messages.slice(-MAX_MSG);
+      if (unreadStartId != null) {
+        var still = false;
+        for (var di = 0; di < messages.length; di++) {
+          if (messages[di]._id === unreadStartId) {
+            still = true;
+            break;
+          }
+        }
+        if (!still) {
+          unreadStartId = messages.length
+            ? messages[0]._id
+            : null;
+          unreadCount = Math.max(0, unreadCount - dropped);
+          if (!unreadStartId) {
+            unreadCount = 0;
+            lastUnreadId = null;
+          }
+        }
+      }
     }
-    renderMessages();
+
+    if (isActivelyReading()) {
+      // Live at bottom — consume immediately, no badge/divider
+      unreadCount = 0;
+      unreadStartId = null;
+      lastUnreadId = null;
+    } else {
+      if (unreadStartId == null) unreadStartId = m._id;
+      lastUnreadId = m._id;
+      unreadCount += 1;
+    }
+    updatePlayNavBadge();
+
+    if (playVisible) renderMessages();
   }
 
   function wsUrl() {
@@ -1132,6 +1300,28 @@
       });
   }
 
+  function clearReconnect() {
+    if (reconnectTimer) {
+      clearTimeout(reconnectTimer);
+      reconnectTimer = null;
+    }
+  }
+
+  function scheduleReconnect() {
+    if (!wantLive) return;
+    clearReconnect();
+    reconnectAttempt += 1;
+    var delay = Math.min(
+      30000,
+      1000 * Math.pow(1.6, Math.min(reconnectAttempt, 10)),
+    );
+    setStatus("connecting");
+    reconnectTimer = setTimeout(function () {
+      reconnectTimer = null;
+      connect();
+    }, delay);
+  }
+
   function connect() {
     var t = token();
     if (!t) {
@@ -1139,7 +1329,14 @@
       setError("Sign in to play.");
       return;
     }
+    wantLive = true;
+    // Stay on existing open/connecting socket
     if (socket) {
+      var rs = socket.readyState;
+      if (rs === 0 || rs === 1) {
+        if (rs === 1) setStatus("open");
+        return;
+      }
       try {
         socket.close();
       } catch (_) { /* ignore */ }
@@ -1148,21 +1345,28 @@
     setStatus("connecting");
     setError("");
     fetchWsPort(function () {
+      if (!wantLive) return;
       try {
         socket = new WebSocket(wsUrl());
       } catch (e) {
         setStatus("error");
         setError(String(e && e.message || e));
+        scheduleReconnect();
         return;
       }
       socket.onopen = function () {
+        reconnectAttempt = 0;
         setStatus("open");
         socket.send(JSON.stringify({ type: "auth", token: t }));
-        setTimeout(function () {
-          if (socket && socket.readyState === 1) {
-            socket.send(JSON.stringify({ msg: "look" }));
-          }
-        }, 200);
+        // Initial look only once per live session
+        if (!didInitialLook) {
+          didInitialLook = true;
+          setTimeout(function () {
+            if (socket && socket.readyState === 1) {
+              socket.send(JSON.stringify({ msg: "look" }));
+            }
+          }, 200);
+        }
       };
       socket.onmessage = function (ev) {
         try {
@@ -1182,11 +1386,12 @@
       };
       socket.onerror = function () {
         setStatus("error");
-        setError("Connection error");
+        if (playVisible) setError("Connection error");
       };
       socket.onclose = function () {
         setStatus("closed");
         socket = null;
+        if (wantLive) scheduleReconnect();
       };
     });
   }
@@ -1208,6 +1413,9 @@
 
   function mount(mainEl) {
     if (!mainEl) return;
+    playVisible = true;
+    wantLive = true;
+
     mainEl.innerHTML =
       '<div class="play-root" id="play-root" data-play-js="' +
       PLAY_JS_VER + '">' +
@@ -1227,8 +1435,31 @@
       "</form></div>";
 
     rootEl = document.getElementById("play-root");
-    messages = [];
+    // Keep message history across SPA navigations
+    // Unread: land on divider (not forced to bottom)
+    if (unreadCount > 0) stickBottom = false;
+    else stickBottom = true;
+    setStatus(status);
     renderMessages();
+    updatePlayNavBadge();
+
+    if (unreadCount > 0) {
+      // Jump to the New divider so context is clear
+      setTimeout(function () {
+        var out = rootEl &&
+          rootEl.querySelector(".play-output");
+        var div = out &&
+          out.querySelector("#play-new-divider");
+        if (div && out) {
+          try {
+            div.scrollIntoView({ block: "center" });
+          } catch (_) {
+            out.scrollTop = Math.max(0, div.offsetTop - 40);
+          }
+          stickBottom = false;
+        }
+      }, 30);
+    }
 
     var form = document.getElementById("play-form");
     var inp = form && form.querySelector(".play-prompt__input");
@@ -1288,6 +1519,7 @@
       window.addEventListener("resize", resizeInput);
     }
 
+    // Reuse live socket; only connect when needed
     connect();
     if (inp) {
       setTimeout(function () {
@@ -1299,7 +1531,24 @@
     }
   }
 
+  /**
+   * Leave /play UI but keep the WebSocket + history so activity
+   * can badge the nav until the player returns.
+   */
+  function unmount() {
+    playVisible = false;
+    // Leaving view counts as not reading — new traffic is unread
+    stickBottom = false;
+    rootEl = null;
+    updatePlayNavBadge();
+  }
+
+  /** Full teardown (logout / hard leave). */
   function destroy() {
+    wantLive = false;
+    playVisible = false;
+    clearReconnect();
+    didInitialLook = false;
     if (socket) {
       try {
         socket.close();
@@ -1308,13 +1557,23 @@
     }
     rootEl = null;
     messages = [];
+    msgSeq = 0;
+    unreadCount = 0;
+    unreadStartId = null;
+    lastUnreadId = null;
+    stickBottom = true;
+    status = "idle";
+    updatePlayNavBadge();
   }
 
   global.SitePlay = {
     mount: mount,
+    unmount: unmount,
     destroy: destroy,
     connect: connect,
     sendCmd: sendCmd,
+    getUnread: function () { return unreadCount; },
+    refreshBadge: updatePlayNavBadge,
     mushToHtml: mushToHtml,
     looksLikeHtml: looksLikeHtml,
     sanitizeLoginHtml: sanitizeLoginHtml,

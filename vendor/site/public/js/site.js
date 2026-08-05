@@ -361,6 +361,12 @@
       li.appendChild(a);
       navList.appendChild(li);
     }
+    // Re-apply Play unread badge after nav rebuild
+    try {
+      if (globalThis.SitePlay && globalThis.SitePlay.refreshBadge) {
+        globalThis.SitePlay.refreshBadge();
+      }
+    } catch (_) { /* ignore */ }
   }
 
   // ── Minimal markdown renderer ──────────────────────────────────────────────
@@ -1198,6 +1204,11 @@
   }
 
   function doSignOut() {
+    try {
+      if (globalThis.SitePlay && globalThis.SitePlay.destroy) {
+        globalThis.SitePlay.destroy();
+      }
+    } catch (_) { /* ignore */ }
     try { sessionStorage.removeItem("ursamu.webAdmin.token"); } catch (_) {}
     try { localStorage.removeItem("ursamu.webAdmin.token"); } catch (_) {}
     try { bustHelpIndex(); } catch (_) { /* defined later */ }
@@ -2352,7 +2363,7 @@
       var link = document.createElement("link");
       link.id = "site-play-css";
       link.rel = "stylesheet";
-      link.href = "/site/css/play.css?v=20260805inpgrow";
+      link.href = "/site/css/play.css?v=20260805playkeep";
       document.head.appendChild(link);
     }
     // Separate file: CSP blocks inline style=; classes live here.
@@ -2360,7 +2371,7 @@
       var pal = document.createElement("link");
       pal.id = "site-play-palette-css";
       pal.rel = "stylesheet";
-      pal.href = "/site/css/play-palette.css?v=20260805inpgrow";
+      pal.href = "/site/css/play-palette.css?v=20260805playkeep";
       document.head.appendChild(pal);
     }
   }
@@ -2395,7 +2406,7 @@
     if (!playScriptPromise) {
       playScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/play.js?v=20260805inpgrow";
+        s.src = "/site/js/play.js?v=20260805playkeep";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {
@@ -2426,12 +2437,12 @@
     updateSidebarAndBannerVisibility();
 
     var articlePromise;
-    // Leave play mode class when navigating away
+    // Leave play mode class when navigating away — keep WS alive
     if (shell && MODE !== "play") {
       shell.classList.remove("is-mode-play");
-      if (globalThis.SitePlay && globalThis.SitePlay.destroy) {
+      if (globalThis.SitePlay && globalThis.SitePlay.unmount) {
         try {
-          globalThis.SitePlay.destroy();
+          globalThis.SitePlay.unmount();
         } catch (_) { /* ignore */ }
       }
     }
