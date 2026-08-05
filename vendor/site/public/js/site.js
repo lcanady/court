@@ -2336,7 +2336,7 @@
     if (!chargenScriptPromise) {
       chargenScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/chargen.js?v=20260805hbox";
+        s.src = "/site/js/chargen.js?v=20260805zebra";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {

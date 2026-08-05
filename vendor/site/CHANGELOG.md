@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.63
+
+- Live sheet Merits: zebra-striped rows, no per-item divider lines
+- Cache-bust `SITE_ASSET_V` → `20260805zebra`
+
 ## 0.1.62
 
 - `/play` stays connected across SPA navigations (WS kept alive)

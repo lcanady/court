@@ -489,6 +489,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
+  border: 0;
 }
 
 .cg-merit-list__item {
@@ -496,9 +497,29 @@
   justify-content: space-between;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.4rem 0;
-  border-bottom: 1px solid var(--site-border-subtle);
+  margin: 0;
+  padding: 0.45rem 0.65rem;
+  border: 0;
+  border-bottom: 0;
   font-size: 0.95rem;
+  /* Zebra rows — no divider lines */
+  background: transparent;
+}
+
+.cg-merit-list__item:nth-child(odd) {
+  background: color-mix(
+    in srgb,
+    var(--site-text, #fff) 4.5%,
+    transparent
+  );
+}
+
+.cg-merit-list__item:nth-child(even) {
+  background: color-mix(
+    in srgb,
+    var(--site-accent, #c9a227) 6%,
+    transparent
+  );
 }
 
 /* ── Live Character sheet (approved) ─────────────────────────── */
