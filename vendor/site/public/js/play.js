@@ -24,6 +24,12 @@
   var wantLive = false;
   var reconnectTimer = null;
   var reconnectAttempt = 0;
+  /**
+   * True after the first successful WS open this page load.
+   * Later connects use ?reconnect=true so the engine skips the
+   * full connect splash and only says "Reconnected."
+   */
+  var wasLive = false;
   var didInitialLook = false;
   var msgSeq = 0;
   /**
@@ -1379,21 +1385,27 @@
 
   function wsUrl() {
     var proto = location.protocol === "https:" ? "wss:" : "ws:";
+    var base;
     if (location.protocol === "https:") {
-      return proto + "//" + location.host + "/ws";
-    }
-    var host = location.hostname;
-    var port = 4202;
-    try {
-      var cfg = global.__SITE_CFG__;
-      if (cfg && cfg.server) {
-        port = Number(cfg.server.wsPort || cfg.server.ws || 4202);
+      base = proto + "//" + location.host + "/ws";
+    } else {
+      var host = location.hostname;
+      var port = 4202;
+      try {
+        var cfg = global.__SITE_CFG__;
+        if (cfg && cfg.server) {
+          port = Number(cfg.server.wsPort || cfg.server.ws || 4202);
+        }
+      } catch (_) { /* ignore */ }
+      if (String(port) === String(location.port || "80")) {
+        base = proto + "//" + location.host + "/ws";
+      } else {
+        base = proto + "//" + host + ":" + port;
       }
-    } catch (_) { /* ignore */ }
-    if (String(port) === String(location.port || "80")) {
-      return proto + "//" + location.host + "/ws";
     }
-    return proto + "//" + host + ":" + port;
+    var q = ["clientType=web"];
+    if (wasLive) q.push("reconnect=true");
+    return base + "?" + q.join("&");
   }
 
   function fetchWsPort(cb) {
@@ -1467,9 +1479,21 @@
         return;
       }
       socket.onopen = function () {
+        var isReconnect = wasLive;
         reconnectAttempt = 0;
         setStatus("open");
         socket.send(JSON.stringify({ type: "auth", token: t }));
+        // Mark live after first open so later WS dials are reconnects
+        wasLive = true;
+        // Server skips connect splash when ?reconnect=true; show a
+        // short line here (mush ≥1.0.29 also sends one — keep client
+        // notice until that pin is live, then drop if it doubles).
+        if (isReconnect) {
+          push({
+            msg: "Game> Reconnected.",
+            at: Date.now(),
+          });
+        }
         // Initial look only once per live session
         if (!didInitialLook) {
           didInitialLook = true;

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.76
+
+- /play WS: after first live open use ?reconnect=true
+- Cache-bust SITE_ASSET_V → 20260805recon
+
 ## 0.1.75
 
 - Chargen stage 3: merit-style search pickers for seeming,
