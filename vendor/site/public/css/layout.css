@@ -241,34 +241,57 @@ body {
   --site-body-pad-top: calc(var(--site-nav-h) + 1.5rem);
 }
 
-/* Login / profile — centered main, no side rails (no inline styles) */
+/* Login / profile — no side rails */
 .site-shell.is-mode-login .site-aside,
 .site-shell.is-mode-profile .site-aside {
-  display: none;
+  display: none !important;
+}
+
+/*
+ * Login: leave the 3-col grid entirely. Otherwise .site-main stays
+ * on grid-column: 2 and the gate looks off-center / too narrow.
+ */
+.site-shell.is-mode-login .site-body {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: none !important;
+  margin: 0 auto 0;
+  min-height: calc(100vh - var(--site-nav-h, 3.5rem));
+  padding: calc(var(--site-nav-h, 3.5rem) + 1.25rem)
+    var(--site-gutter, 1.25rem) 2.5rem;
+  box-sizing: border-box;
+  grid-template-columns: none !important;
+  column-gap: 0;
+  row-gap: 0;
 }
 
 .site-shell.is-mode-login .site-main {
-  /* Full-width column so .site-gate can center like /admin */
-  margin: 0;
-  max-width: none;
-  width: 100%;
-  min-height: calc(100vh - var(--site-nav-h) - 2rem);
-  display: flex;
+  display: flex !important;
   flex-direction: column;
-  justify-content: stretch;
-  align-items: stretch;
-  padding-inline: 0;
-}
-
-.site-shell.is-mode-login .site-body {
-  /* Drop 3-col constraints on login */
-  grid-template-columns: 1fr;
-  max-width: none;
+  align-items: center;
+  justify-content: center;
+  grid-column: auto !important;
+  order: 0 !important;
   width: 100%;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  min-height: 0;
+  flex: 1 1 auto;
 }
 
-.site-shell.is-mode-login .site-main > .site-gate {
-  flex: 1 1 auto;
+.site-shell.is-mode-login .site-main > .site-gate,
+.site-shell.is-mode-login .site-gate {
+  width: 100%;
+  max-width: 24rem;
+  margin: 0 auto;
+  min-height: 0;
+  flex: 0 0 auto;
+  display: block;
+  padding: 0;
 }
 
 .site-shell.is-mode-profile .site-main {

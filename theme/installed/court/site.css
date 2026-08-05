@@ -238,6 +238,44 @@
   padding-bottom: 0;
 }
 
+/* Login gate: true center (override 3-col + compact padding) */
+.site-shell.is-mode-login .site-body {
+  display: flex !important;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  max-width: none !important;
+  min-height: calc(100vh - var(--site-nav-h, 3.5rem));
+  margin: 0;
+  padding: calc(var(--site-nav-h, 3.5rem) + 1.25rem)
+    var(--site-gutter, 1.25rem) 2.5rem !important;
+  grid-template-columns: none !important;
+}
+
+.site-shell.is-mode-login .site-aside {
+  display: none !important;
+}
+
+.site-shell.is-mode-login .site-main {
+  grid-column: auto !important;
+  width: 100%;
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.site-shell.is-mode-login .site-gate,
+.site-shell.is-mode-login .site-gate-card {
+  width: 100%;
+  max-width: 24rem;
+  margin-inline: auto;
+}
+
 .site-aside {
   top: var(--site-sticky-top);
 }

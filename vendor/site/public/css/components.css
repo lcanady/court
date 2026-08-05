@@ -673,19 +673,19 @@
 
 /* ── Auth gate (mirrors /admin LoginView .gate / .gate-card) ──── */
 
+/* Gate shell — layout.css centers this block on login mode */
 .site-gate {
   width: 100%;
-  min-height: calc(100vh - var(--site-nav-h, 3.5rem) - 3rem);
-  display: grid;
-  place-items: center;
-  padding: 1.5rem 1.25rem 2.5rem;
+  max-width: 24rem;
+  margin-inline: auto;
+  padding: 0;
   box-sizing: border-box;
 }
 
 .site-gate-card {
   width: 100%;
   max-width: 24rem;
-  margin: 0;
+  margin: 0 auto;
   padding: 2.15rem 1.85rem 1.85rem;
   background: var(--site-bg-surface);
   border: 1px solid var(--site-border);
