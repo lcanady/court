@@ -22,7 +22,7 @@ UrsaMU engine (`jsr:@ursamu/mush`).
 
 | Layer | Tech |
 |-------|------|
-| Engine (prod) | `jsr:@ursamu/mush@1.0.12` only |
+| Engine (prod) | `jsr:@ursamu/mush@1.0.13` only |
 | Engine (local) | optional `vendor/mush` via `deno task vendor:mush` |
 | Public FE | `./vendor/site` (or JSR pin when stable) |
 | Staff console | `./vendor/web` (or JSR pin) |
