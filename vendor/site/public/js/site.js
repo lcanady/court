@@ -1331,9 +1331,25 @@
     return false;
   }
 
+  /** True when hamburger drawer is active (≤1024). */
+  function isMobileNav() {
+    try {
+      return window.matchMedia("(max-width: 1024px)").matches;
+    } catch (_) {
+      return window.innerWidth <= 1024;
+    }
+  }
+
+  /** One document listener for desktop account dropdown close. */
+  var accountDocClose = null;
+
   function updateNavUser(user) {
     var existingNavUser = document.getElementById("nav-user-item");
     if (existingNavUser) existingNavUser.remove();
+    if (accountDocClose) {
+      document.removeEventListener("click", accountDocClose);
+      accountDocClose = null;
+    }
 
     if (!navList) return;
     var li = document.createElement("li");
@@ -1341,7 +1357,8 @@
     li.className = "site-nav-user-item";
 
     if (user) {
-      // Compact account control — no full profile page
+      // Desktop: compact dropdown. Mobile drawer: always-expanded
+      // rows (no nested menu — easier thumbs).
       var wrap = document.createElement("div");
       wrap.className = "site-nav-account";
 
@@ -1349,7 +1366,6 @@
       btn.type = "button";
       btn.className = "site-nav-user-link site-nav-account-toggle";
       btn.setAttribute("aria-haspopup", "true");
-      btn.setAttribute("aria-expanded", "false");
       btn.setAttribute("aria-controls", "site-nav-account-menu");
 
       if (user.avatar) {
@@ -1359,7 +1375,6 @@
         img.alt = "";
         img.referrerPolicy = "no-referrer";
         img.onerror = function () {
-          // Broken /avatars path → fall back to initial
           var fb = document.createElement("span");
           fb.className = "site-nav-avatar-initial";
           fb.textContent = user.name.charAt(0).toUpperCase();
@@ -1375,7 +1390,6 @@
 
       var nameSpan = document.createElement("span");
       nameSpan.className = "site-nav-username";
-      // Prefer server-built moniker HTML (web-safe colors); else plain name
       if (user.monikerHtml) {
         nameSpan.innerHTML = user.monikerHtml;
       } else {
@@ -1386,7 +1400,6 @@
       var menu = document.createElement("div");
       menu.id = "site-nav-account-menu";
       menu.className = "site-nav-account-menu";
-      menu.hidden = true;
       menu.setAttribute("role", "menu");
 
       if (user.isStaff) {
@@ -1395,6 +1408,9 @@
         staffA.className = "site-nav-account-item";
         staffA.setAttribute("role", "menuitem");
         staffA.textContent = "Staff console";
+        staffA.addEventListener("click", function () {
+          setNavOpen(false);
+        });
         menu.appendChild(staffA);
       }
 
@@ -1404,31 +1420,53 @@
       outBtn.setAttribute("role", "menuitem");
       outBtn.textContent = "Sign out";
       outBtn.addEventListener("click", function () {
+        setNavOpen(false);
         doSignOut();
       });
       menu.appendChild(outBtn);
 
       function setOpen(open) {
+        // Drawer: always expanded (CSS also forces display).
+        if (isMobileNav()) {
+          menu.hidden = false;
+          btn.setAttribute("aria-expanded", "true");
+          wrap.classList.add("is-open");
+          return;
+        }
         menu.hidden = !open;
         btn.setAttribute("aria-expanded", open ? "true" : "false");
         wrap.classList.toggle("is-open", open);
       }
 
+      // Initial state
+      setOpen(false);
+
       btn.addEventListener("click", function (e) {
+        e.preventDefault();
         e.stopPropagation();
+        if (isMobileNav()) return;
         setOpen(menu.hidden);
       });
 
-      document.addEventListener("click", function () {
+      accountDocClose = function (e) {
+        if (isMobileNav()) return;
+        if (wrap.contains(e.target)) return;
         setOpen(false);
-      });
+      };
+      document.addEventListener("click", accountDocClose);
+
       menu.addEventListener("click", function (e) {
+        // Keep desktop menu open until item handles it; stop
+        // document close from firing on the same tap.
         e.stopPropagation();
       });
 
       wrap.appendChild(btn);
       wrap.appendChild(menu);
       li.appendChild(wrap);
+
+      // If drawer already open on rebuild, expand account block
+      if (isMobileNav()) setOpen(true);
     } else {
       var loginA = document.createElement("a");
       loginA.href = pubPath("login");
@@ -1821,6 +1859,15 @@
       );
     }
     document.body.classList.toggle("site-nav-open", !!open);
+    // Mobile drawer: keep account actions expanded (no nested menu)
+    if (open && isMobileNav()) {
+      var acct = document.querySelector(".site-nav-account");
+      var menu = document.getElementById("site-nav-account-menu");
+      var tog = document.querySelector(".site-nav-account-toggle");
+      if (menu) menu.hidden = false;
+      if (acct) acct.classList.add("is-open");
+      if (tog) tog.setAttribute("aria-expanded", "true");
+    }
   }
 
   function isNavOpen() {
@@ -1839,12 +1886,14 @@
     // Close when a nav link is chosen (SPA + full load)
     if (navList) {
       navList.addEventListener("click", function (e) {
-        var a = e.target && e.target.closest
-          ? e.target.closest("a")
-          : null;
+        var t = e.target;
+        if (!t || !t.closest) return;
+        // Account toggle is desktop-only; ignore in drawer
+        if (t.closest(".site-nav-account-toggle")) return;
+        // Account actions close the drawer themselves
+        if (t.closest(".site-nav-account-item")) return;
+        var a = t.closest("a");
         if (!a) return;
-        // Keep open for account toggle inside drawer
-        if (a.classList.contains("site-nav-account-toggle")) return;
         setNavOpen(false);
       });
     }

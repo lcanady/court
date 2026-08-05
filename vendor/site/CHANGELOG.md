@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.77
+
+- Mobile profile/account: no nested dropdown — Staff
+  console + Sign out always visible in hamburger with
+  48px tap targets; fix stacked document click handlers
+- Cache-bust SITE_ASSET_V → 20260805acctm
+
 ## 0.1.76
 
 - /play WS: after first live open use ?reconnect=true

@@ -638,18 +638,85 @@ body {
     color: var(--site-accent);
   }
 
-  /* Account control full-width in drawer */
+  /*
+   * Account block in hamburger drawer — no nested dropdown.
+   * Identity is a label row; Staff / Sign out are full-width taps.
+   */
   .site-nav-account {
-    display: block;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     width: 100%;
+    gap: 0.35rem;
+    padding: 0.25rem 0 0.5rem;
   }
 
-  .site-nav-account-menu {
+  .site-nav-account-toggle {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    width: 100%;
+    min-height: 3rem;
+    padding: 0.65rem 0.25rem;
+    border-bottom: none;
+    pointer-events: none;
+    cursor: default;
+  }
+
+  .site-nav-account.is-open .site-nav-account-toggle {
+    border-bottom-color: transparent;
+  }
+
+  .site-nav-account-menu,
+  .site-nav-account-menu[hidden] {
+    display: flex !important;
+    flex-direction: column;
     position: static;
     width: 100%;
-    margin: 0 0 0.35rem;
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    gap: 0.4rem;
+    border: 0;
     box-shadow: none;
+    background: transparent;
+  }
+
+  .site-nav-account-item {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 3rem;
+    margin: 0;
+    padding: 0.85rem 0.9rem;
+    font-size: 1.05rem;
     border: 1px solid var(--site-border-subtle, var(--site-border));
+    border-radius: var(--site-radius-md, 6px);
+    background: var(--site-bg-surface, rgba(255, 255, 255, 0.04));
+    box-sizing: border-box;
+  }
+
+  .site-nav-account-item:hover,
+  .site-nav-account-item:focus-visible {
+    background: var(--site-accent-muted, rgba(196, 148, 74, 0.18));
+  }
+
+  .site-nav-account .site-nav-avatar,
+  .site-nav-account .site-nav-avatar-initial {
+    width: 2.25rem;
+    height: 2.25rem;
+    font-size: 0.9rem;
+    margin-right: 0;
+  }
+
+  .site-nav-account .site-nav-username {
+    flex: 1 1 auto;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 1.05rem;
   }
 
   .site-main {
