@@ -267,6 +267,7 @@ for key in keys:
             "@ursamu/channels",
             "@ursamu/help",
             "@ursamu/help-plugin",
+            "@ursamu/wiki",
         ):
             continue
         bad.append(f"{key} still points at vendor: {raw}")
