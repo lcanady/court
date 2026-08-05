@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.1.72
+
+- Fix mobile overflow: Court banner logo no longer
+  `max-width: none` (header art was 659px wide)
+- Banner + nav brand shrink on ≤1024px; body pad tightened
+- Cache-bust `SITE_ASSET_V` → `20260805moblogo`
+
 ## 0.1.71
 
 - Nav `logoImage` (config / theme): brand shows img when set
