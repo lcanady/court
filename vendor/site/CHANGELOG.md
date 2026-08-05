@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.64
+
+- Merit zebra stripes use theme tokens (`--site-bg-surface` /
+  `--site-accent-muted`) so Court gold/cream skins match
+- Cache-bust `SITE_ASSET_V` → `20260805zebrat`
+
 ## 0.1.63
 
 - Live sheet Merits: zebra-striped rows, no per-item divider lines

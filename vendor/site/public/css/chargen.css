@@ -501,24 +501,24 @@
   padding: 0.45rem 0.65rem;
   border: 0;
   border-bottom: 0;
+  border-radius: var(--site-radius-sm, 2px);
   font-size: 0.95rem;
-  /* Zebra rows — no divider lines */
+  /* Zebra from theme surfaces (skins set these) */
   background: transparent;
 }
 
+/* Odd = page surface; even = elevated / accent wash */
 .cg-merit-list__item:nth-child(odd) {
-  background: color-mix(
-    in srgb,
-    var(--site-text, #fff) 4.5%,
-    transparent
+  background: var(
+    --site-bg-surface,
+    var(--site-bg-elevated, transparent)
   );
 }
 
 .cg-merit-list__item:nth-child(even) {
-  background: color-mix(
-    in srgb,
-    var(--site-accent, #c9a227) 6%,
-    transparent
+  background: var(
+    --site-accent-muted,
+    var(--site-bg-surface-2, var(--site-bg-surface, transparent))
   );
 }
 
