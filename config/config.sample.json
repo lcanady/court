@@ -73,7 +73,7 @@
         },
         {
           "id": "play",
-          "label": "Play",
+          "label": "Play Online",
           "href": "/play",
           "order": 36,
           "require": "connected"

@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.40
+
+- Play client matches Figma client frame (output / input / SEND)
+  using site tokens; keeps 3-col shell
+
 ## 0.1.39
 
 - Player **/play** chat client: output window + bottom input;

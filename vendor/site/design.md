@@ -72,25 +72,21 @@ drop-in familiarity with court-template CSS ports.
 
 ---
 
-## 4. Play client (`/play`) — chat layout
+## 4. Play client (`/play`) — Figma client frame
 
-Player-facing game client (connected required).
+Source: Court Figma **client** (`node 1884:89`). Player-facing;
+requires sign-in. Keeps the normal 3-col shell (nav + rails).
 
-| Region | Class | Role |
-|--------|--------|------|
-| Shell mode | `.site-shell.is-mode-play` | Hides banner + side rails |
-| Root | `.play-root` | Flex column chat panel |
-| Output | `.play-output` | Scrollable history |
-| Plain text | `.play-pre` | Mono, max 78ch, MUSH colors |
+| Region | Class | Figma / tokens |
+|--------|--------|----------------|
+| Output | `.play-output` | fill `--site-bg`, flex-grow scroll |
+| Rule | `.play-prompt-rule` | 1px `--site-border` (cream) |
+| Input | `.play-prompt__input` | 55px, radius 0, `--site-bg-surface`, border `--site-border` |
+| Button | `.play-prompt__send` | 119×55, `--site-btn-bg` / `--site-btn-fg`, label **SEND** |
+| Plain text | `.play-pre` | mono, max 78ch, MUSH colors |
 | Layout UI | `.play-layout*` | `u.ui.layout` tables/panels |
-| Prompt | `.play-prompt` | Sticky bottom input + Send |
 
-**Message contract** (same as staff Play):
-
-- No `data.ui` → `.play-pre` + colored spans
-- `data.ui.components` → structured blocks
-
-Tokens only (`--site-*`). No separate terminal skin.
+Enter submits (same as Send). Tokens only — Court skin maps gold/cream.
 
 ---
 

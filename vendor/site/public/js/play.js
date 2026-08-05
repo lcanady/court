@@ -343,21 +343,21 @@
 
   function mount(mainEl) {
     if (!mainEl) return;
+    // Figma client: output + cream rule + input | SEND (enter submits)
     mainEl.innerHTML =
       '<div class="play-root" id="play-root">' +
-      '<header class="play-root__head">' +
-      '<h1 class="play-root__title">Play</h1>' +
-      '<span class="play-root__status">idle</span>' +
-      "</header>" +
+      '<span class="play-root__status" aria-live="polite">idle</span>' +
       '<p class="play-error" hidden></p>' +
-      '<div class="play-output" role="log" aria-live="polite"></div>' +
+      '<div class="play-output" role="log" aria-live="polite" ' +
+      'aria-relevant="additions"></div>' +
+      '<hr class="play-prompt-rule" aria-hidden="true" />' +
       '<form class="play-prompt" id="play-form" autocomplete="off">' +
-      '<span class="play-prompt__gt" aria-hidden="true">&gt;</span>' +
-      '<input class="play-prompt__input" type="text" name="cmd" ' +
-      'spellcheck="false" autocomplete="off" ' +
-      'placeholder="look, say hello, +finger …" disabled />' +
+      '<label class="visually-hidden" for="play-cmd">Command</label>' +
+      '<input id="play-cmd" class="play-prompt__input" type="text" ' +
+      'name="cmd" spellcheck="false" autocomplete="off" ' +
+      'placeholder="" disabled />' +
       '<button type="submit" class="play-prompt__send" disabled>' +
-      "Send</button>" +
+      "SEND</button>" +
       "</form></div>";
 
     rootEl = document.getElementById("play-root");

@@ -879,9 +879,9 @@
       if (banner) banner.hidden = true;
       applyShellChrome();
     } else if (MODE === "play") {
-      // Chat client: main column only
-      if (leftAside) leftAside.hidden = true;
-      if (rightAside) rightAside.hidden = true;
+      // Figma client frame: nav + side rails + main chat column
+      if (leftAside) leftAside.hidden = false;
+      if (rightAside) rightAside.hidden = false;
       if (banner) banner.hidden = true;
       applyShellChrome();
     } else {
@@ -1019,8 +1019,7 @@
   }
 
   function renderLeft(pages) {
-    if (!leftPanels || MODE === "login" || MODE === "profile" ||
-      MODE === "play") {
+    if (!leftPanels || MODE === "login" || MODE === "profile") {
       return;
     }
 
@@ -1520,8 +1519,7 @@
   }
 
   function renderRight(user) {
-    if (!rightPanels || MODE === "login" || MODE === "profile" ||
-      MODE === "play") {
+    if (!rightPanels || MODE === "login" || MODE === "profile") {
       return;
     }
     // Chargen owns the right rail (draft sheet summary)
