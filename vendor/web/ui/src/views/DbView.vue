@@ -69,6 +69,11 @@ const saveError = ref("");
 const saveOk = ref("");
 const busy = ref(false);
 const loadingDetail = ref(false);
+const imageBusy = ref(false);
+const imageError = ref("");
+const imageUrlIn = ref("");
+const imageFileInput = ref<HTMLInputElement | null>(null);
+
 
 const selected = computed((): DboStub | null => {
   if (!selectedKey.value) return null;
@@ -336,6 +341,148 @@ async function save(): Promise<void> {
     saveOk.value = "Saved.";
   } finally {
     busy.value = false;
+  }
+}
+
+
+const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
+
+function applyImageResult(
+  data: DboStub & { imageUrl?: string },
+): void {
+  const url = String(
+    data.imageUrl ||
+      data.data?.image ||
+      "",
+  ).trim();
+  if (url) {
+    form.value.image = url;
+    // Keep live store + form in sync for preview
+    const merged: DboStub = {
+      ...data,
+      data: {
+        ...(data.data || {}),
+        image: url,
+      },
+    };
+    live.upsertObject(merged);
+    markSaved(merged);
+  } else {
+    live.upsertObject(data);
+    markSaved(data);
+  }
+}
+
+async function uploadObjectImage(file: File): Promise<void> {
+  if (!selected.value?.id) return;
+  imageBusy.value = true;
+  imageError.value = "";
+  saveOk.value = "";
+  try {
+    if (file.size > MAX_UPLOAD_BYTES) {
+      imageError.value =
+        "Image must be 8 MB or smaller. " +
+        "Compress or resize, then try again.";
+      return;
+    }
+    if (!/^image\/(png|jpeg|jpg|gif|webp)$/i.test(file.type) &&
+      !/\.(png|jpe?g|gif|webp)$/i.test(file.name)) {
+      imageError.value =
+        "Use PNG, JPEG, GIF, or WebP.";
+      return;
+    }
+    const fd = new FormData();
+    fd.append("file", file, file.name);
+    const enc = encodeURIComponent(String(selected.value.id));
+    const { res, data } = await api<
+      DboStub & { error?: string; imageUrl?: string }
+    >(`/api/v1/dbobj/${enc}/image`, {
+      method: "POST",
+      body: fd,
+    });
+    if (!res.ok) {
+      imageError.value = data?.error ||
+        `Upload failed (${res.status})`;
+      return;
+    }
+    applyImageResult(data);
+    saveOk.value = "Image uploaded.";
+  } catch (e: unknown) {
+    imageError.value = e instanceof Error
+      ? e.message
+      : "Upload failed.";
+  } finally {
+    imageBusy.value = false;
+  }
+}
+
+async function onImageFile(ev: Event): Promise<void> {
+  const input = ev.target as HTMLInputElement;
+  const file = input.files?.[0];
+  if (!file) return;
+  try {
+    await uploadObjectImage(file);
+  } finally {
+    input.value = "";
+  }
+}
+
+async function importImageUrl(): Promise<void> {
+  if (!selected.value?.id) return;
+  const url = imageUrlIn.value.trim();
+  if (!url) {
+    imageError.value = "Paste an image URL first.";
+    return;
+  }
+  imageBusy.value = true;
+  imageError.value = "";
+  saveOk.value = "";
+  try {
+    const enc = encodeURIComponent(String(selected.value.id));
+    const { res, data } = await api<
+      DboStub & { error?: string; imageUrl?: string }
+    >(`/api/v1/dbobj/${enc}/image`, {
+      method: "POST",
+      body: JSON.stringify({ url }),
+    });
+    if (!res.ok) {
+      imageError.value = data?.error ||
+        `Import failed (${res.status})`;
+      return;
+    }
+    applyImageResult(data);
+    imageUrlIn.value = "";
+    saveOk.value = "Image imported.";
+  } catch (e: unknown) {
+    imageError.value = e instanceof Error
+      ? e.message
+      : "Import failed.";
+  } finally {
+    imageBusy.value = false;
+  }
+}
+
+async function clearObjectImage(): Promise<void> {
+  if (!selected.value?.id) return;
+  if (!globalThis.confirm("Clear this object's image?")) return;
+  imageBusy.value = true;
+  imageError.value = "";
+  try {
+    const enc = encodeURIComponent(String(selected.value.id));
+    const { res, data } = await api<DboStub & { error?: string }>(
+      `/api/v1/dbobj/${enc}/image`,
+      { method: "DELETE" },
+    );
+    if (!res.ok) {
+      imageError.value = data?.error || `Clear failed (${res.status})`;
+      return;
+    }
+    live.upsertObject(data);
+    markSaved(data);
+    form.value.image = "";
+    saveOk.value = "Image cleared.";
+  } finally {
+    imageBusy.value = false;
   }
 }
 
@@ -695,9 +842,82 @@ function typeBadgeClass(t: string): string {
             min="0"
           >
         </label>
-        <label>
+        <label class="db-image-field settings-span-2">
           Image
-          <input v-model="form.image">
+          <input
+            v-model="form.image"
+            type="text"
+            class="mono"
+            placeholder="/images/… or paste URL then Import"
+            autocomplete="off"
+          >
+          <div
+            v-if="form.image"
+            class="db-image-preview"
+          >
+            <img
+              :key="form.image"
+              :src="form.image"
+              alt="Object image"
+              loading="lazy"
+            >
+          </div>
+          <div class="db-image-actions">
+            <input
+              ref="imageFileInput"
+              type="file"
+              accept="image/png,image/jpeg,image/gif,image/webp"
+              class="sr-only"
+              @change="onImageFile"
+            >
+            <button
+              type="button"
+              class="secondary outline"
+              :disabled="imageBusy"
+              @click="imageFileInput?.click()"
+            >
+              Upload file
+            </button>
+            <input
+              v-model="imageUrlIn"
+              type="url"
+              class="mono db-image-url"
+              placeholder="https://… to import"
+              :disabled="imageBusy"
+              @keydown.enter.prevent="importImageUrl"
+            >
+            <button
+              type="button"
+              class="secondary outline"
+              :disabled="imageBusy"
+              @click="importImageUrl"
+            >
+              Import URL
+            </button>
+            <button
+              type="button"
+              class="secondary outline"
+              :disabled="imageBusy || !form.image"
+              @click="clearObjectImage"
+            >
+              Clear
+            </button>
+          </div>
+          <p
+            v-if="imageError"
+            class="error"
+            role="alert"
+          >
+            {{ imageError }}
+          </p>
+          <p class="muted db-image-hint">
+            Stored under <code>/images/</code>.
+            Full width on web look
+            (<code>object-fit: contain</code>,
+            max ~512px / 50vh tall).
+            PNG, JPEG, GIF, WebP · max 8&nbsp;MB.
+            In-game: <code>@image here=&lt;url&gt;</code>.
+          </p>
         </label>
       </div>
       <label>
@@ -769,5 +989,61 @@ function typeBadgeClass(t: string): string {
 
 .mono {
   font-family: ui-monospace, Menlo, Consolas, monospace;
+}
+
+.db-image-field {
+  grid-column: 1 / -1;
+  width: 100%;
+  max-width: none !important;
+}
+.db-image-preview {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  margin: 0.5rem 0;
+  box-sizing: border-box;
+  background: var(--bg-code, #0e0c16);
+  border: 1px solid var(--border-subtle, #333);
+  border-radius: var(--radius-sm, 4px);
+  overflow: hidden;
+}
+.db-image-preview img {
+  display: block;
+  width: 100%;
+  max-width: 100%;
+  height: auto;
+  max-height: min(50vh, 512px);
+  object-fit: contain;
+  object-position: center top;
+  box-sizing: border-box;
+  margin: 0;
+  border: 0;
+}
+.db-image-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+.db-image-url {
+  flex: 1 1 12rem;
+  min-width: 10rem;
+}
+.db-image-hint {
+  margin: 0.4rem 0 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
 }
 </style>

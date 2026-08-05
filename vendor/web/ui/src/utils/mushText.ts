@@ -1,33 +1,67 @@
 /**
  * MUSH text → safe HTML for the game client.
  *
- * Supports %c codes, truecolor <#rrggbb>, %r/%t/%b layout, and
- * raw ANSI SGR. Escapes all plain text. Used by GameOutput when a
- * message has no JSON layout.
+ * ANSI SGR (wire format), %c, truecolor, legacy shredded HTML.
+ * Colors snapped to the 216-color web-safe palette.
  *
  * @see packages/web/design.md § Game client output
  */
 
-const FG: Record<string, string> = {
-  x: "var(--text-muted)",
-  r: "var(--error)",
-  g: "var(--success)",
-  y: "var(--warning)",
-  b: "var(--info)",
-  m: "#e879f9",
-  c: "#22d3ee",
-  w: "var(--text)",
+const FG_LETTER: Record<string, string> = {
+  x: "#000000",
+  r: "#FF0000",
+  g: "#00CC00",
+  y: "#FFFF00",
+  b: "#0000FF",
+  m: "#FF00FF",
+  c: "#00FFFF",
+  w: "#FFFFFF",
 };
 
-const BG: Record<string, string> = {
+const FG_SGR: Record<number, string> = {
+  30: "#000000",
+  31: "#FF0000",
+  32: "#00CC00",
+  33: "#FFFF00",
+  34: "#0000FF",
+  35: "#FF00FF",
+  36: "#00FFFF",
+  37: "#FFFFFF",
+};
+
+const BG_LETTER: Record<string, string> = {
   X: "#000000",
-  R: "#7f1d1d",
-  G: "#14532d",
-  Y: "#713f12",
-  B: "#1e3a5f",
-  M: "#701a75",
-  C: "#164e63",
-  W: "#374151",
+  R: "#FF0000",
+  G: "#00CC00",
+  Y: "#FFFF00",
+  B: "#0000FF",
+  M: "#FF00FF",
+  C: "#00FFFF",
+  W: "#FFFFFF",
+};
+
+const BG_SGR: Record<number, string> = {
+  40: "#000000",
+  41: "#FF0000",
+  42: "#00CC00",
+  43: "#FFFF00",
+  44: "#0000FF",
+  45: "#FF00FF",
+  46: "#00FFFF",
+  47: "#FFFFFF",
+};
+
+const NAMED: Record<string, string> = {
+  black: "#000000",
+  grey: "#808080",
+  gray: "#808080",
+  red: "#FF0000",
+  green: "#00CC00",
+  yellow: "#FFFF00",
+  blue: "#0000FF",
+  magenta: "#FF00FF",
+  cyan: "#00FFFF",
+  white: "#FFFFFF",
 };
 
 function escHtml(s: string): string {
@@ -38,10 +72,47 @@ function escHtml(s: string): string {
     .replace(/"/g, "&quot;");
 }
 
-function webSafeHex(hex: string): string {
-  const h = hex.replace(/^#/, "").toLowerCase();
-  if (!/^[0-9a-f]{6}$/.test(h)) return "var(--text)";
-  return `#${h}`;
+function webSafeChannel(n: number): number {
+  const steps = [0, 51, 102, 153, 204, 255];
+  let best = 0;
+  let bestD = Math.abs(n - 0);
+  for (const s of steps) {
+    const d = Math.abs(n - s);
+    if (d < bestD) {
+      best = s;
+      bestD = d;
+    }
+  }
+  return best;
+}
+
+/** Snap #rrggbb / rgb() / named CSS color to web-safe hex. */
+export function toWebSafeColor(color: string): string | null {
+  const c = String(color || "").trim().toLowerCase();
+  if (!c || c === "inherit" || c === "transparent") return null;
+  if (NAMED[c]) return NAMED[c]!;
+
+  const hex = c.match(/^#?([0-9a-f]{6})$/i);
+  if (hex) {
+    const h = hex[1]!;
+    const r = webSafeChannel(parseInt(h.slice(0, 2), 16));
+    const g = webSafeChannel(parseInt(h.slice(2, 4), 16));
+    const b = webSafeChannel(parseInt(h.slice(4, 6), 16));
+    const p = (n: number) => n.toString(16).padStart(2, "0");
+    return `#${p(r)}${p(g)}${p(b)}`;
+  }
+
+  const rgb = c.match(
+    /^rgb\s*\(\s*(\d+)\s*,\s*(\d+)\s*,\s*(\d+)\s*\)$/,
+  );
+  if (rgb) {
+    const r = webSafeChannel(+rgb[1]!);
+    const g = webSafeChannel(+rgb[2]!);
+    const b = webSafeChannel(+rgb[3]!);
+    const p = (n: number) => n.toString(16).padStart(2, "0");
+    return `#${p(r)}${p(g)}${p(b)}`;
+  }
+  return null;
 }
 
 type Style = {
@@ -52,16 +123,118 @@ type Style = {
   italic?: boolean;
 };
 
+function styleToEsc(styleAttr: string): string {
+  const st = String(styleAttr || "");
+  const m = st.match(/(?:^|;)\s*color\s*:\s*([^;]+)/i);
+  const col = m?.[1]?.trim() ?? "";
+  if (!col || /^inherit$/i.test(col)) return "\x1b[0m";
+  const hex = toWebSafeColor(col);
+  if (!hex) return "\x1b[0m";
+  const r = parseInt(hex.slice(1, 3), 16);
+  const g = parseInt(hex.slice(3, 5), 16);
+  const b = parseInt(hex.slice(5, 7), 16);
+  return `\x1b[38;2;${r};${g};${b}m`;
+}
+
+/** Intact or wordWrap-shredded engine HTML → markers + text. */
+function htmlToMarkers(s: string): string {
+  if (!/[<>]|style\s*=/i.test(s)) return s;
+  let out = s;
+  out = out.replace(/&nbsp;/gi, " ");
+  out = out.replace(/&lt;/g, "<").replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&").replace(/&quot;/g, '"');
+  out = out.replace(/<br\s*\/?>/gi, "\n");
+  out = out.replace(/<\/span>/gi, "\x1b[0m");
+  out = out.replace(/<\/?[bi]>/gi, "");
+  out = out.replace(/<\/?(div|pre|font)[^>]*>/gi, "");
+  out = out.replace(
+    /<span\b[^>]*\bstyle\s*=\s*['"]([^'"]*)['"][^>]*>/gi,
+    (_m, style: string) => styleToEsc(style),
+  );
+  out = out.replace(
+    /\bstyle\s*=\s*['"]([^'"]*)['"]\s*>/gi,
+    (_m, style: string) => styleToEsc(style),
+  );
+  out = out.replace(/<\/?[a-zA-Z][^>]*>/g, "");
+  out = out.replace(/\bstyle\s*=\s*['"][^'"]*['"]/gi, "");
+  return out;
+}
+
+function applySgr(style: Style, params: string[]): Style {
+  let next: Style = { ...style };
+  const list = params.length ? params : ["0"];
+  for (let i = 0; i < list.length; i++) {
+    const p = list[i] ?? "0";
+    const n = parseInt(p, 10);
+    if (p === "0" || n === 0) {
+      next = {};
+      continue;
+    }
+    if (n === 1) {
+      next = { ...next, bold: true };
+      continue;
+    }
+    if (n === 3) {
+      next = { ...next, italic: true };
+      continue;
+    }
+    if (n === 4) {
+      next = { ...next, underline: true };
+      continue;
+    }
+    if (n === 22) {
+      const { bold: _b, ...rest } = next;
+      next = rest;
+      continue;
+    }
+    if (n === 23) {
+      const { italic: _i, ...rest } = next;
+      next = rest;
+      continue;
+    }
+    if (n === 24) {
+      const { underline: _u, ...rest } = next;
+      next = rest;
+      continue;
+    }
+    if (n === 38 && list[i + 1] === "2" && i + 4 < list.length) {
+      const hex = toWebSafeColor(
+        `rgb(${list[i + 2]},${list[i + 3]},${list[i + 4]})`,
+      );
+      if (hex) next = { ...next, color: hex };
+      i += 4;
+      continue;
+    }
+    if (n === 48 && list[i + 1] === "2" && i + 4 < list.length) {
+      const hex = toWebSafeColor(
+        `rgb(${list[i + 2]},${list[i + 3]},${list[i + 4]})`,
+      );
+      if (hex) next = { ...next, bg: hex };
+      i += 4;
+      continue;
+    }
+    if (n === 38 || n === 48) {
+      if (list[i + 1] === "5") i += 2;
+      continue;
+    }
+    if (FG_SGR[n]) {
+      next = { ...next, color: FG_SGR[n] };
+      continue;
+    }
+    if (BG_SGR[n]) {
+      next = { ...next, bg: BG_SGR[n] };
+    }
+  }
+  return next;
+}
+
 /**
- * Convert MUSH / ANSI game text to HTML spans.
- * Newlines become &#10; inside a white-space:pre-wrap parent.
+ * Convert MUSH / ANSI / legacy HTML game text to closed spans.
  */
 export function mushTextToHtml(raw: unknown): string {
   if (raw == null) return "";
-  // deno-lint-ignore no-control-regex
-  let s = String(raw).replace(/\u001b\[[0-9;]*m/g, "");
+  let s = htmlToMarkers(String(raw));
 
-  // Layout codes before color tokenization
   s = s
     .replace(/%r/gi, "\n")
     .replace(/%t/gi, "\t")
@@ -73,7 +246,6 @@ export function mushTextToHtml(raw: unknown): string {
 
   const flush = () => {
     if (!buf) return;
-    // Keep real newlines — parent .game-pre uses white-space:pre-wrap
     const text = escHtml(buf);
     buf = "";
     const css: string[] = [];
@@ -97,8 +269,9 @@ export function mushTextToHtml(raw: unknown): string {
     parts.push(open ? `${open}${text}${close}` : text);
   };
 
+  // deno-lint-ignore no-control-regex
   const re =
-    /%c([nNrRgGyYbBmMcCwWxXhHuUiI])|%c<#([0-9a-fA-F]{6})>|<#([0-9a-fA-F]{6})>|%x([nNrRgGyYbBmMcCwWxXhHuUiI])/g;
+    /\u001b\[([0-9;]*)m|%c([nNrRgGyYbBmMcCwWxXhHuUiI])|%c<#([0-9a-fA-F]{6})>|<#([0-9a-fA-F]{6})>|%x([nNrRgGyYbBmMcCwWxXhHuUiI])/g;
   let last = 0;
   let m: RegExpExecArray | null;
   while ((m = re.exec(s)) !== null) {
@@ -108,15 +281,22 @@ export function mushTextToHtml(raw: unknown): string {
     }
     last = m.index + m[0].length;
 
-    if (m[2] || m[3]) {
-      const hex = webSafeHex(m[2] || m[3] || "ffffff");
+    if (m[1] != null && m[0].startsWith("\x1b")) {
       flush();
-      style = { ...style, color: hex };
+      const params = m[1] === "" ? ["0"] : m[1].split(";");
+      style = applySgr(style, params);
       continue;
     }
 
-    const code = (m[1] || m[4] || "").toLowerCase();
-    const rawCode = m[1] || m[4] || "";
+    if (m[3] || m[4]) {
+      const hex = toWebSafeColor("#" + (m[3] || m[4] || "ffffff"));
+      flush();
+      if (hex) style = { ...style, color: hex };
+      continue;
+    }
+
+    const code = (m[2] || m[5] || "").toLowerCase();
+    const rawCode = m[2] || m[5] || "";
     flush();
 
     if (code === "n") {
@@ -138,13 +318,13 @@ export function mushTextToHtml(raw: unknown): string {
     if (
       rawCode.length === 1 &&
       rawCode === rawCode.toUpperCase() &&
-      BG[rawCode]
+      BG_LETTER[rawCode]
     ) {
-      style = { ...style, bg: BG[rawCode] };
+      style = { ...style, bg: BG_LETTER[rawCode] };
       continue;
     }
-    if (FG[code]) {
-      style = { ...style, color: FG[code] };
+    if (FG_LETTER[code]) {
+      style = { ...style, color: FG_LETTER[code] };
     }
   }
   if (last < s.length) {

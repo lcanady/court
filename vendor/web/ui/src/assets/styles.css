@@ -2119,12 +2119,17 @@ fieldset legend {
 
 /* ── Game client (Play) — design.md mono + host chrome ─────────── */
 
-/* Chat shell: output fills; prompt fixed under stage */
+/* Chat shell: output fills; prompt pinned to bottom */
 .play-client--chat {
   display: flex;
   flex-direction: column;
-  min-height: calc(100vh - var(--header-h) - 2.5rem);
-  max-width: 48rem;
+  height: calc(100vh - var(--header-h) - 2.5rem);
+  height: calc(100dvh - var(--header-h) - 2.5rem);
+  max-height: calc(100vh - var(--header-h) - 2.5rem);
+  max-height: calc(100dvh - var(--header-h) - 2.5rem);
+  min-height: 0;
+  /* 78 mono cols + prompt chrome */
+  max-width: max(48rem, calc(78ch + 6rem));
   margin: 0 auto;
   background: var(--bg-code);
   border: 1px solid var(--border-subtle);
@@ -2164,20 +2169,30 @@ fieldset legend {
 
 .play-client__stage {
   flex: 1 1 auto;
-  min-height: 14rem;
+  min-height: 0;
   overflow: auto;
   margin: 0;
   padding: 0.85rem 1rem 1rem;
   background: var(--bg-code);
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.play-client__stage::-webkit-scrollbar {
+  width: 0;
+  height: 0;
+  display: none;
 }
 
 .play-client__prompt {
   flex: 0 0 auto;
+  flex-shrink: 0;
   display: flex;
   flex-wrap: nowrap;
   gap: 0.5rem;
   align-items: center;
   margin: 0;
+  margin-top: auto;
   padding: 0.65rem 0.75rem;
   border-top: 1px solid var(--border-subtle);
   background: var(--bg-elevated);
@@ -2199,11 +2214,16 @@ fieldset legend {
   user-select: none;
 }
 
-.play-client__label input {
+.play-client__label input,
+.play-client__label textarea {
   width: 100%;
+  min-width: 78ch;
+  max-width: 100%;
   font-family: var(--font-mono);
   font-size: 0.875rem;
   margin: 0;
+  white-space: pre-wrap;
+  word-break: break-word;
 }
 
 .game-output {

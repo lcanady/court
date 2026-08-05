@@ -3,6 +3,7 @@ import { computed, onMounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { api } from "@/api/client";
 import JsonFormEditor from "@/components/JsonFormEditor.vue";
+import { buildLoginPreviewSrcdoc } from "@/utils/loginSplash";
 
 type PluginFile = {
   plugin: string;
@@ -20,6 +21,8 @@ type SettingsPayload = {
     version: string;
     playerStart: string;
   };
+  /** Web /play pre-auth splash (markdown). */
+  loginMarkdown?: string;
   layout: {
     header: string;
     divider: string;
@@ -117,6 +120,7 @@ const form = ref({
   header: "",
   divider: "",
   footer: "",
+  loginMarkdown: "",
 });
 
 const siteForm = ref({
@@ -164,6 +168,7 @@ function applyForm(s: SettingsPayload): void {
     header: s.layout.header,
     divider: s.layout.divider,
     footer: s.layout.footer,
+    loginMarkdown: s.loginMarkdown ?? "",
   };
   const site = s.site;
   if (site) {
@@ -199,8 +204,21 @@ function gameSnapshot(): string {
     header: form.value.header,
     divider: form.value.divider,
     footer: form.value.footer,
+    loginMarkdown: form.value.loginMarkdown,
   });
 }
+
+/** Live /play-shaped preview (site tokens + active skin). */
+const loginPreviewSrcdoc = computed(() =>
+  buildLoginPreviewSrcdoc({
+    content: form.value.loginMarkdown || "",
+    skin: siteForm.value.skin || "default",
+    skinCss: siteForm.value.skinCss || "",
+    origin: typeof window !== "undefined"
+      ? window.location.origin
+      : "",
+  })
+);
 
 function siteSnapshot(): string {
   const nav = siteNav.value
@@ -375,6 +393,7 @@ async function save(
           divider: form.value.divider,
           footer: form.value.footer,
         },
+        loginMarkdown: form.value.loginMarkdown,
       }),
     });
     if (!res.ok) {
@@ -928,6 +947,45 @@ watch(
               @blur="onGameFieldBlur"
             >
           </label>
+        </div>
+
+        <h2 class="dash-h2">
+          Web login splash
+        </h2>
+        <p class="muted settings-help">
+          Markdown or HTML shown on <code>/play</code> before
+          sign-in. Preview uses the live site skin and play
+          styles. Telnet still uses
+          <code>text/default_connect.txt</code>.
+          HTML is sanitized. Center with
+          <code>&lt;center&gt;</code> if you want — nothing is
+          forced centered.
+        </p>
+        <div class="settings-login-grid">
+          <label class="settings-login-edit">
+            Markdown or HTML
+            <textarea
+              v-model="form.loginMarkdown"
+              rows="12"
+              class="mono"
+              spellcheck="false"
+              @blur="onGameFieldBlur"
+            />
+          </label>
+          <div class="settings-login-preview">
+            <p class="muted dash-kicker">
+              Preview
+              <span class="settings-login-preview__hint">
+                — as on <code>/play</code> with current site skin
+              </span>
+            </p>
+            <iframe
+              class="settings-login-preview__frame"
+              title="Web login splash preview"
+              sandbox="allow-same-origin"
+              :srcdoc="loginPreviewSrcdoc"
+            />
+          </div>
         </div>
 
         <h2 class="dash-h2">
@@ -1654,6 +1712,59 @@ watch(
 
 .settings-span-2 {
   grid-column: 1 / -1;
+}
+
+.settings-login-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem 1.25rem;
+  margin-bottom: 1.75rem;
+  width: 100%;
+}
+
+.settings-login-edit,
+.settings-login-preview {
+  min-width: 0;
+}
+
+.settings-login-edit textarea {
+  width: 100%;
+  min-height: 14rem;
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  box-sizing: border-box;
+}
+
+.settings-login-preview {
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-code);
+  padding: 0.5rem 0.65rem 0.65rem;
+  display: flex;
+  flex-direction: column;
+  min-height: 14rem;
+  max-height: 28rem;
+  overflow: hidden;
+}
+
+.settings-login-preview__hint {
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+.settings-login-preview__frame {
+  flex: 1 1 auto;
+  width: 100%;
+  min-height: 12rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: #020201;
+}
+
+@media (max-width: 900px) {
+  .settings-login-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .settings-grid label,

@@ -1,5 +1,43 @@
 # Changelog
 
+## 0.2.68
+
+- DbView object image: force HTTP upload, 8 MB limit, full-width
+  contain preview (height 300px + object-fit)
+
+
+## 0.2.67
+
+- Admin Settings login splash preview: iframe with live site
+  tokens, skin CSS, and play-md markup (matches /play)
+
+
+## 0.2.66
+
+- Admin Database: object image upload, URL import, clear, preview
+
+## 0.2.65
+
+- Admin login splash: markdown or HTML (sanitized preview)
+
+## 0.2.64
+
+- Login splash preview: no extra centering styles; content images
+  full width, max-height 300px, `object-fit: contain` (not avatars)
+
+## 0.2.63
+
+- Admin Settings → Game: **Web login splash** editor (markdown +
+  live preview). Saves to `server.texts` id=`welcome` via
+  `loginMarkdown` on GET/PATCH settings. Shown on `/play` pre-auth;
+  telnet still uses `text/default_connect.txt`.
+
+## 0.2.62
+
+- Play prompt: mono ≥78ch textarea (Enter send / Shift+Enter wrap);
+  client column fits 78ch
+- `mushTextToHtml` strips legacy engine HTML spans before coloring
+
 ## 0.2.61
 
 - Play game client: plain `msg` → mono `.game-pre` with MUSH colors;

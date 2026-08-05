@@ -16,6 +16,7 @@ import {
   getAllConfig,
   setConfig,
   listPlugins,
+  texts,
 } from "@ursamu/mush";
 import {
   inventoryPluginJson,
@@ -299,6 +300,15 @@ async function buildSettingsPayload(): Promise<Record<string, unknown>> {
 
   const configNav = normalizeSiteNav(siteBlock.nav);
 
+  let loginMarkdown =
+    "# Welcome\n\nSign in or create a character to play.\n";
+  try {
+    const entry = await texts.queryOne({ id: "welcome" });
+    if (entry?.content) loginMarkdown = String(entry.content);
+  } catch (e: unknown) {
+    console.warn("[web] read welcome text failed:", e);
+  }
+
   return {
     game: {
       name: String(game.name ?? ""),
@@ -306,6 +316,8 @@ async function buildSettingsPayload(): Promise<Record<string, unknown>> {
       version: String(game.version ?? ""),
       playerStart: String(game.playerStart ?? ""),
     },
+    /** Web /play pre-auth splash (markdown or HTML). Telnet: txt. */
+    loginMarkdown,
     layout: {
       header: String(layout.header ?? ""),
       divider: String(layout.divider ?? ""),
@@ -693,28 +705,62 @@ export async function adminSettingsHandler(
     }
 
     try {
-      const file = await readConfigFile();
-      const result = applyEditablePatch(file, body);
-      if (result.error) {
-        return json({ error: result.error }, 400);
-      }
-      if (!result.applied.length) {
-        return json({ error: "Nothing to update" }, 400);
-      }
-      await writeConfigFile(file);
-
-      const siteTouched = result.applied.some((k) =>
-        SITE_LIVE_KEYS.has(k)
-      );
+      const applied: string[] = [];
+      let needsRestart = false;
       let siteLive = false;
-      if (siteTouched) {
-        siteLive = await refreshSiteRuntime(file);
+
+      // Web login splash (markdown or HTML) — server.texts id=welcome
+      if (typeof body.loginMarkdown === "string") {
+        const splash = body.loginMarkdown;
+        if (splash.length > 200_000) {
+          return json({ error: "loginMarkdown too large" }, 400);
+        }
+        const existing = await texts.queryOne({ id: "welcome" });
+        if (existing) {
+          await texts.modify(
+            { id: "welcome" },
+            "$set",
+            { content: splash },
+          );
+        } else {
+          await texts.create({ id: "welcome", content: splash });
+        }
+        applied.push("loginMarkdown");
+      }
+
+      const file = await readConfigFile();
+      const configBody = { ...body };
+      delete configBody.loginMarkdown;
+      if (
+        isPlainObject(configBody.game) ||
+        isPlainObject(configBody.layout) ||
+        isPlainObject(configBody.site)
+      ) {
+        const result = applyEditablePatch(file, configBody);
+        if (result.error && !applied.length) {
+          return json({ error: result.error }, 400);
+        }
+        if (!result.error && result.applied.length) {
+          await writeConfigFile(file);
+          applied.push(...result.applied);
+          needsRestart = result.needsRestart;
+          const siteTouched = result.applied.some((k) =>
+            SITE_LIVE_KEYS.has(k)
+          );
+          if (siteTouched) {
+            siteLive = await refreshSiteRuntime(file);
+          }
+        }
+      }
+
+      if (!applied.length) {
+        return json({ error: "Nothing to update" }, 400);
       }
 
       return json({
         ok: true,
-        applied: result.applied,
-        needsRestart: result.needsRestart,
+        applied,
+        needsRestart,
         siteLive,
         settings: await buildSettingsPayload(),
       });

@@ -17,21 +17,30 @@ export type GameSocketStatus =
  * HTTPS → same-origin `/ws` (Caddy TLS → engine :4202).
  * HTTP local → direct `ws://host:wsPort`.
  */
-function wsUrlFromConfig(wsPort: number): string {
+function wsUrlFromConfig(
+  wsPort: number,
+  reconnect = false,
+): string {
   const proto = location.protocol === "https:" ? "wss:" : "ws:";
+  let base: string;
   if (location.protocol === "https:") {
-    return `${proto}//${location.host}/ws`;
+    base = `${proto}//${location.host}/ws`;
+  } else {
+    const host = location.hostname;
+    if (location.port && String(wsPort) === location.port) {
+      base = `${proto}//${location.host}/ws`;
+    } else {
+      base = `${proto}//${host}:${wsPort}`;
+    }
   }
-  const host = location.hostname;
-  if (location.port && String(wsPort) === location.port) {
-    return `${proto}//${location.host}/ws`;
-  }
-  return `${proto}//${host}:${wsPort}`;
+  const q = ["clientType=web"];
+  if (reconnect) q.push("reconnect=true");
+  return `${base}?${q.join("&")}`;
 }
 
-async function resolveWsUrl(): Promise<string> {
+async function resolveWsUrl(reconnect = false): Promise<string> {
   if (location.protocol === "https:") {
-    return wsUrlFromConfig(4202);
+    return wsUrlFromConfig(4202, reconnect);
   }
   try {
     const res = await fetch("/api/v1/config");
@@ -43,13 +52,13 @@ async function resolveWsUrl(): Promise<string> {
         data.server?.wsPort ?? data.server?.ws ?? 4202,
       );
       if (Number.isFinite(port) && port > 0) {
-        return wsUrlFromConfig(port);
+        return wsUrlFromConfig(port, reconnect);
       }
     }
   } catch {
     /* fall through */
   }
-  return wsUrlFromConfig(4202);
+  return wsUrlFromConfig(4202, reconnect);
 }
 
 export function useGameSocket(opts?: {
@@ -67,6 +76,8 @@ export function useGameSocket(opts?: {
   const status = ref<GameSocketStatus>("idle");
   const error = ref("");
   let socket: WebSocket | null = null;
+  /** After first open, later dials use ?reconnect=true (no splash). */
+  let wasLive = false;
 
   function push(m: GameMessage): void {
     messages.value = [...messages.value, m].slice(-maxMessages);
@@ -95,7 +106,7 @@ export function useGameSocket(opts?: {
     }
 
     status.value = "connecting";
-    const url = await resolveWsUrl();
+    const url = await resolveWsUrl(wasLive);
 
     await new Promise<void>((resolve) => {
       try {
@@ -111,13 +122,16 @@ export function useGameSocket(opts?: {
 
       socket.onopen = () => {
         status.value = "open";
+        wasLive = true;
         socket?.send(
           JSON.stringify({ type: "auth", token }),
         );
-        // Enter the world
-        setTimeout(() => {
-          socket?.send(JSON.stringify({ msg: "look" }));
-        }, 200);
+        // Enter the world only on first connect (not every reconnect)
+        if (!url.includes("reconnect=true")) {
+          setTimeout(() => {
+            socket?.send(JSON.stringify({ msg: "look" }));
+          }, 200);
+        }
         resolve();
       };
 

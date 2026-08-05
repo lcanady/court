@@ -462,47 +462,60 @@ Wiki API notes: engine wiki routes / package docs as applicable.
 
 ## 11. Game client output (Play)
 
-**Route:** `/admin/play` · **View:** `PlayView.vue` · **Stream:**
-`GameOutput.vue`
-
-The in-console game client uses the **same host chrome** as Wiki
-(dash-header, pages-toolbar, tokens). Game text is mono; chrome is not.
+**Player FE:** site `/play` (`play.js` + `play.css`) — primary client.  
+**Staff console Play** is optional/legacy; same `data.ui` contract.
 
 ### Message contract (WS `{ msg, data }`)
 
 | Payload | Render |
 |---------|--------|
-| `data.ui` with `components[]` | Structured `GameLayout` — host `.dash-table`, panel surfaces, section titles |
-| No `data.ui` (plain `msg`) | **Default:** `.game-pre` mono block, MUSH colors via `mushTextToHtml` |
+| `data.ui` with `components[]` | Structured layout (interactive when items carry `action`) |
+| No `data.ui` (plain `msg`) | Mono / MUSH-colored pre block |
 
 Commands that call `u.ui.layout({ components, meta })` emit
 `{ msg: "", data: { ui: { type: "layout", components, meta } } }`.
-Everything else (look, say, +finger, …) is plain `msg` text.
+Telnet never receives `data.ui` — text path only.
 
-### Default text path (required look)
+### Interactive actions
 
-```html
-<div class="game-pre">
-  <!-- spans from mushTextToHtml; white-space: pre-wrap; max 78ch -->
-</div>
+Items may include:
+
+```json
+{ "action": { "cmd": "n" } }
 ```
 
-- Font: `var(--font-mono)` on `--bg-code` stage
-- Colors: design tokens (`--success`, `--error`, `--warning`, `--info`,
-  `--text`, …) — **not** Tailwind slate / random hex outside tokens
-- Width: `max-width: 78ch` (in-game column)
-- No second theme, no terminal “green-on-black” skin
+The FE sends `cmd` as normal player input (same as typing + Enter).
+Use for exits, `look <name>`, future buttons/radios/dropdowns.
+
+### Look layout (`meta.type: "look"`)
+
+Composition (Figma client look blocks — structure only; **styles from
+this file / site tokens**, not Figma paint):
+
+| Block | `type` | Notes |
+|-------|--------|--------|
+| Room name | `header` | `title` |
+| Optional art | `media` | `url`, `alt` when IMAGE set |
+| Description | `text` | body prose |
+| Characters | `entity-list` | items: label, sublabel (short-desc), meta (idle), `action.cmd` = `look Name` |
+| Contents | `entity-list` | things in room |
+| Exits | `actions` | items: label, badge (alias), `action.cmd` = exit alias |
 
 ### Structured layout path
 
-| `component.type` | Host treatment |
-|------------------|----------------|
-| `header` | `.game-layout__title` (UI font, hairline under) |
-| `table` | `.table-wrap` > `table.dash-table` |
-| `list` | plain list, muted body |
-| `panel` | `.game-layout__panel` surface + optional title kicker |
+| `component.type` | Treatment |
+|------------------|-----------|
+| `header` | Section title (UI/display font, hairline) |
+| `text` | Body prose |
+| `media` | Optional image |
+| `entity-list` | Rows: name / short-desc / meta; clickable if `action` |
+| `actions` | Chip/button row; clickable if `action` |
+| `table` | Host table |
+| `list` | Plain list |
+| `panel` | Surface + optional title |
 
-Cell / title strings still run through `MushText` (colors allowed).
+Labels may still carry MUSH `%c` / ANSI; FE converts to safe markup
+(CSP-safe classes on site).
 
 ### MUST / MUST NOT
 

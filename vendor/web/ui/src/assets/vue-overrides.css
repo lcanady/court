@@ -960,12 +960,16 @@ a.side-nav-item-compact .side-nav-desc {
   font-style: italic;
 }
 
-.wiki-body-field .wiki-md-preview img {
+/* Content images only — avatars keep their own rules */
+.wiki-body-field .wiki-md-preview img:not([class*="avatar"]),
+.wiki-body img:not([class*="avatar"]) {
   display: block;
+  width: 100%;
   max-width: 100%;
   height: auto;
+  max-height: 300px;
+  object-fit: contain;
   margin: 0.75rem 0 1rem;
-  border-radius: 4px;
 }
 
 /* ── Wiki page images panel ─────────────────────────────────── */
