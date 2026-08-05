@@ -1,5 +1,69 @@
 # Changelog
 
+## 0.1.61
+
+- Live character sheet: Advantages moved to the bottom
+- Health shown as CoFD boxes (empty / bashing / lethal / agg),
+  matching `+sheet` / `+health`; Willpower as filled boxes
+- Cache-bust `SITE_ASSET_V` → `20260805hbox`
+
+## 0.1.60
+
+- Play input grows with typed text (min 55px, max 300px);
+  output column flex-shrinks. Scrolls inside field past max.
+- Shift+Enter still inserts a newline; Enter sends.
+- Cache-bust `SITE_ASSET_V` → `20260805inpgrow`
+
+## 0.1.59
+
+- Command input echo is faded (opacity ~0.42, muted color)
+- Plain text only — no MUSH color codes on `> cmd` lines
+- Cache-bust `SITE_ASSET_V` → `20260805cmdefade`
+
+## 0.1.54
+
+- `/play` requires login again — guests redirect to `/login?next=/play`
+- Mobile look rows: flex shrink (tighter cols) kept
+
+
+## 0.1.47
+
+- Fix play.js parse error (block comment closed by `on*/`)
+- `/play` mounts without waiting on auth; public connect client
+- Clear error if SitePlay fails to load (no infinite skeleton)
+
+
+## 0.1.46
+
+- `/play` is public by default (connect client); no longer forces login redirect
+- Cache-bust `SITE_ASSET_V` → `20260805playpub`
+
+## 0.1.45
+
+- Connect splash accepts sanitized HTML or markdown (auto-detect)
+- Cache-bust `SITE_ASSET_V` → `20260805htmlsplash`
+
+## 0.1.44
+
+- Login/md splash: no forced center or max-width; theme tokens only
+- Content images (not avatars): full width, max-height 300px,
+  `object-fit: contain`
+- Play markdown supports `![alt](url)`
+- Cache-bust `SITE_ASSET_V` → `20260805mdimg`
+
+## 0.1.42
+
+- Play layout: interactive `entity-list` + `actions` (look UI);
+  `data-play-cmd` click sends game input
+- Look-shaped sections use site design tokens (not Figma paint)
+
+## 0.1.41
+
+- Play output: always convert MUSH `%c` client-side (no trust of
+  broken engine HTML spans); strip legacy span junk
+- Command input is mono ≥78ch textarea with wrap; Enter sends,
+  Shift+Enter newline; main column wide enough for 78ch + SEND
+
 ## 0.1.40
 
 - Play client matches Figma client frame (output / input / SEND)

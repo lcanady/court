@@ -1264,6 +1264,7 @@
     ) {
       best = "connected";
     }
+    // /play requires site login first (redirect to /login?next=/play).
     if (
       !best &&
       (p === "/play" ||
@@ -2324,7 +2325,7 @@
     if (!chargenScriptPromise) {
       chargenScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/chargen.js?v=20260804loginctr";
+        s.src = "/site/js/chargen.js?v=20260805hbox";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {
@@ -2347,29 +2348,54 @@
   /** /play — chat-style game client (output + bottom input). */
   var playScriptPromise = null;
   function ensurePlayCss() {
-    if (document.getElementById("site-play-css")) return;
-    var link = document.createElement("link");
-    link.id = "site-play-css";
-    link.rel = "stylesheet";
-    link.href = "/site/css/play.css?v=20260805wss";
-    document.head.appendChild(link);
+    if (!document.getElementById("site-play-css")) {
+      var link = document.createElement("link");
+      link.id = "site-play-css";
+      link.rel = "stylesheet";
+      link.href = "/site/css/play.css?v=20260805inpgrow";
+      document.head.appendChild(link);
+    }
+    // Separate file: CSP blocks inline style=; classes live here.
+    if (!document.getElementById("site-play-palette-css")) {
+      var pal = document.createElement("link");
+      pal.id = "site-play-palette-css";
+      pal.rel = "stylesheet";
+      pal.href = "/site/css/play-palette.css?v=20260805inpgrow";
+      document.head.appendChild(pal);
+    }
   }
   function loadPlayRoute() {
     injectLoadingState("Play");
     ensurePlayCss();
     if (shell) shell.classList.add("is-mode-play");
+    function playFail(detail) {
+      if (mainEl) {
+        mainEl.innerHTML =
+          "<section class=\"site-section\"><p>Could not load " +
+          "the play client. Refresh and try again.</p>" +
+          (detail
+            ? "<p class=\"muted\"><code>" + esc(detail) +
+              "</code></p>"
+            : "") +
+          "</section>";
+      }
+      return null;
+    }
     function boot() {
       if (globalThis.SitePlay && globalThis.SitePlay.mount) {
         globalThis.SitePlay.mount(mainEl);
-        return Promise.resolve(true);
+        return true;
       }
-      return Promise.resolve(null);
+      return playFail("SitePlay missing after play.js load");
     }
-    if (globalThis.SitePlay) return boot();
+    // Public connect client — do not wait on auth probe.
+    if (globalThis.SitePlay) {
+      return Promise.resolve(boot());
+    }
     if (!playScriptPromise) {
       playScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/play.js?v=20260805wss";
+        s.src = "/site/js/play.js?v=20260805inpgrow";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {
@@ -2378,14 +2404,9 @@
         document.head.appendChild(s);
       });
     }
-    return playScriptPromise.then(boot).catch(function () {
-      if (mainEl) {
-        mainEl.innerHTML =
-          "<section class=\"site-section\"><p>Could not load " +
-          "the play client. Refresh and try again.</p>" +
-          "</section>";
-      }
-      return null;
+    return playScriptPromise.then(boot).catch(function (err) {
+      playScriptPromise = null;
+      return playFail(err && err.message ? err.message : "load error");
     });
   }
 
@@ -2422,6 +2443,7 @@
         return loadChargenRoute();
       });
     } else if (MODE === "play") {
+      // Auth required — guests go to /login?next=/play
       articlePromise = authPromise.then(function (user) {
         currentUser = user;
         if (!guardRouteAccess(user)) return null;

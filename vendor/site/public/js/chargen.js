@@ -1090,8 +1090,176 @@
   }
 
   /**
-   * Full live sheet — identity, advantages, then 3 category
-   * columns (attrs+skills), then specialties / merits / powers.
+   * CoFD health boxes (same order as +sheet / +health):
+   * aggravated [*], lethal [X], bashing [/], empty [ ].
+   * Heaviest damage is leftmost.
+   */
+  function renderHealthBoxes(track, max) {
+    max = Math.max(0, Math.min(20, Number(max) || 0));
+    if (!max) {
+      return '<span class="cg-track cg-track--empty">—</span>';
+    }
+    var agg = Math.max(0, Number(track && track.aggravated) || 0);
+    var leth = Math.max(0, Number(track && track.lethal) || 0);
+    var bash = Math.max(0, Number(track && track.bashing) || 0);
+    var html = '<span class="cg-track cg-track--health" ' +
+      'role="img" aria-label="Health track, ' + max +
+      ' boxes">';
+    for (var i = 0; i < max; i++) {
+      var kind = "empty";
+      var mark = "";
+      var title = "Empty";
+      if (agg > 0) {
+        kind = "agg";
+        mark = "★";
+        title = "Aggravated";
+        agg -= 1;
+      } else if (leth > 0) {
+        kind = "leth";
+        mark = "✕";
+        title = "Lethal";
+        leth -= 1;
+      } else if (bash > 0) {
+        kind = "bash";
+        mark = "/";
+        title = "Bashing";
+        bash -= 1;
+      }
+      html += '<span class="cg-hbox cg-hbox--' + kind +
+        '" title="' + title + '" aria-hidden="true">' +
+        mark + "</span>";
+    }
+    html += "</span>";
+    return html;
+  }
+
+  /** Willpower boxes: filled = current, open = spent. */
+  function renderWillpowerBoxes(cur, max) {
+    max = Math.max(0, Math.min(20, Number(max) || 0));
+    cur = Math.max(0, Math.min(max, Number(cur) || 0));
+    if (!max) {
+      return '<span class="cg-track cg-track--empty">—</span>';
+    }
+    var html = '<span class="cg-track cg-track--wp" ' +
+      'role="img" aria-label="Willpower ' + cur + " of " +
+      max + '">';
+    for (var i = 0; i < max; i++) {
+      var on = i < cur;
+      html += '<span class="cg-wbox' +
+        (on ? " is-on" : "") +
+        '" title="' + (on ? "Available" : "Spent") +
+        '" aria-hidden="true"></span>';
+    }
+    html += "</span>";
+    return html;
+  }
+
+  /** stamina + size, or advantages.healthMax when set. */
+  function liveHealthMax(sh, adv) {
+    if (adv.healthMax != null && adv.healthMax !== "") {
+      return Number(adv.healthMax) || 0;
+    }
+    var attrs = sh.attributes || {};
+    var stam = Number(attrs.stamina != null
+      ? attrs.stamina
+      : attrs.Stamina) || 1;
+    var size = adv.size != null ? Number(adv.size) : 5;
+    if (!size) size = 5;
+    return stam + size;
+  }
+
+  function renderAdvantagesBlock(st) {
+    var sh = st.sheet || {};
+    var adv = sh.advantages || {};
+    var attrs = sh.attributes || {};
+    var skills = sh.skills || {};
+    var meta = st.templateMeta || {};
+    var size = adv.size != null ? Number(adv.size) : 5;
+    if (!size) size = 5;
+    var wpMax = adv.willpowerMax != null
+      ? Number(adv.willpowerMax)
+      : 0;
+    var wpCur = adv.willpowerCurrent != null
+      ? Number(adv.willpowerCurrent)
+      : wpMax;
+    var hMax = liveHealthMax(sh, adv);
+    var track = sh.health || {
+      bashing: 0, lethal: 0, aggravated: 0,
+    };
+    // Prefer stored advantages; else derive CoFD defaults
+    var dex = Number(attrs.dexterity) || 1;
+    var wit = Number(attrs.wits) || 1;
+    var com = Number(attrs.composure) || 1;
+    var str = Number(attrs.strength) || 1;
+    var ath = Number(
+      skills.athletics != null
+        ? skills.athletics
+        : skills["Athletics"],
+    ) || 0;
+    var speed = adv.speed != null
+      ? adv.speed
+      : (str + dex + 5);
+    var defense = adv.defense != null
+      ? adv.defense
+      : (Math.min(dex, wit) + ath);
+    var init = adv.initiativeMod != null
+      ? adv.initiativeMod
+      : (adv.initiative != null ? adv.initiative : (dex + com));
+    var morName = meta.moralityName || "Integrity";
+    var powName = meta.powerStatName || "Power";
+
+    var html = '<section class="cg-live__block cg-live__adv" ' +
+      'data-cg-sec="advantages" aria-label="Advantages">';
+    html += '<h3 class="cg-live__section">Advantages</h3>';
+
+    // Health track (boxes like +sheet)
+    html += '<div class="cg-live__track-row">' +
+      '<span class="cg-live__track-label">Health</span>' +
+      renderHealthBoxes(track, hMax) +
+      '<span class="cg-live__track-meta">(' + hMax +
+      ")</span></div>";
+
+    // Willpower track
+    html += '<div class="cg-live__track-row">' +
+      '<span class="cg-live__track-label">Willpower</span>' +
+      renderWillpowerBoxes(wpCur, wpMax) +
+      '<span class="cg-live__track-meta">' +
+      wpCur + "/" + wpMax + "</span></div>";
+
+    // Legend
+    html += '<p class="cg-live__track-legend" aria-hidden="true">' +
+      '<span class="cg-hbox cg-hbox--empty"></span> empty · ' +
+      '<span class="cg-hbox cg-hbox--bash">/</span> bashing · ' +
+      '<span class="cg-hbox cg-hbox--leth">✕</span> lethal · ' +
+      '<span class="cg-hbox cg-hbox--agg">★</span> aggravated' +
+      "</p>";
+
+    // Numeric advantages grid
+    html += '<div class="cg-live__adv-grid">';
+    html +=
+      "<span>Size <strong>" + esc(size) + "</strong></span>" +
+      "<span>Speed <strong>" + esc(speed) + "</strong></span>" +
+      "<span>Defense <strong>" + esc(defense) +
+      "</strong></span>" +
+      "<span>Initiative <strong>" + esc(init) +
+      "</strong></span>";
+    if (sh.moralityValue != null) {
+      html += "<span>" + esc(morName) + " <strong>" +
+        esc(sh.moralityValue) + "</strong></span>";
+    }
+    if (sh.powerStatValue != null &&
+      Number(sh.powerStatValue) > 0 &&
+      String(powName).toLowerCase() !== "none") {
+      html += "<span>" + esc(powName) + " <strong>" +
+        esc(sh.powerStatValue) + "</strong></span>";
+    }
+    html += "</div></section>";
+    return html;
+  }
+
+  /**
+   * Full live sheet — identity, traits, specialties / merits /
+   * powers, then advantages (health boxes) at the bottom.
    */
   function renderLiveSheet(st) {
     var sh = st.sheet || {};
@@ -1099,7 +1267,6 @@
     var attrs = sh.attributes || {};
     var skills = sh.skills || {};
     var merits = sh.merits || {};
-    var adv = sh.advantages || {};
     var A = (opts.attributes) || LIVE_ATTRS;
     var S = (opts.skills) || LIVE_SKILLS;
     var mKeys = A.mental || LIVE_ATTRS.mental;
@@ -1141,27 +1308,7 @@
     }
     html += "</p></section>";
 
-    // 2. Advantages
-    var size = adv.size != null ? adv.size : 5;
-    var wp = adv.willpowerMax != null ? adv.willpowerMax : "—";
-    var health = adv.healthMax != null ? adv.healthMax : "—";
-    var speed = adv.speed != null ? adv.speed : "—";
-    var defense = adv.defense != null ? adv.defense : "—";
-    var init = adv.initiativeMod != null
-      ? adv.initiativeMod
-      : (adv.initiative != null ? adv.initiative : "—");
-    html += '<section class="cg-live__block cg-live__adv" ' +
-      'data-cg-sec="advantages" aria-label="Advantages">';
-    html +=
-      "<span>Size <strong>" + esc(size) + "</strong></span>" +
-      "<span>Health <strong>" + esc(health) + "</strong></span>" +
-      "<span>Willpower <strong>" + esc(wp) + "</strong></span>" +
-      "<span>Speed <strong>" + esc(speed) + "</strong></span>" +
-      "<span>Defense <strong>" + esc(defense) + "</strong></span>" +
-      "<span>Initiative <strong>" + esc(init) + "</strong></span>" +
-      "</section>";
-
-    // 3. Stats — one column per category (stacks cleanly on phone)
+    // 2. Stats — one column per category (stacks cleanly on phone)
     html += '<section class="cg-live__block" data-cg-sec="stats">';
     html += '<h3 class="cg-live__section">Traits</h3>';
     html += '<div class="cg-live__cols">';
@@ -1176,7 +1323,7 @@
     );
     html += "</div></section>";
 
-    // 4. Specialties
+    // 3. Specialties
     var specs = sh.specialties || {};
     var specKeys = Object.keys(specs).filter(function (k) {
       return specs[k];
@@ -1196,7 +1343,7 @@
       html += "</ul></section>";
     }
 
-    // 5. Merits (stable alpha order)
+    // 4. Merits (stable alpha order)
     var mKeys2 = Object.keys(merits).filter(function (k) {
       return (Number(merits[k]) || 0) > 0;
     }).sort(function (a, b) {
@@ -1223,7 +1370,7 @@
     }
     html += "</section>";
 
-    // 6. Contracts
+    // 5. Contracts
     var contracts = sh.contracts || [];
     if (contracts.length) {
       html += '<section class="cg-live__block" ' +
@@ -1237,7 +1384,7 @@
       html += "</ul></section>";
     }
 
-    // 7. Powers / Renown
+    // 6. Powers / Renown
     var powers = sh.powers || {};
     var pKeys2 = Object.keys(powers).filter(function (k) {
       return (Number(powers[k]) || 0) > 0;
@@ -1256,6 +1403,9 @@
       }
       html += "</div></section>";
     }
+
+    // 7. Advantages last (health / willpower boxes + derived)
+    html += renderAdvantagesBlock(st);
 
     html += "</div>";
     return html;
@@ -1831,7 +1981,7 @@
     if (!qs('link[data-cg-css]')) {
       var link = document.createElement("link");
       link.rel = "stylesheet";
-      link.href = "/site/css/chargen.css?v=20260804loginctr";
+      link.href = "/site/css/chargen.css?v=20260805hbox";
       link.setAttribute("data-cg-css", "1");
       document.head.appendChild(link);
     }

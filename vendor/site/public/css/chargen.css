@@ -518,12 +518,13 @@
 }
 
 .cg-live__block[data-cg-sec="identity"] { order: 1; }
-.cg-live__block[data-cg-sec="advantages"] { order: 2; }
-.cg-live__block[data-cg-sec="stats"] { order: 3; }
-.cg-live__block[data-cg-sec="specialties"] { order: 4; }
-.cg-live__block[data-cg-sec="merits"] { order: 5; }
-.cg-live__block[data-cg-sec="contracts"] { order: 6; }
-.cg-live__block[data-cg-sec="powers"] { order: 7; }
+.cg-live__block[data-cg-sec="stats"] { order: 2; }
+.cg-live__block[data-cg-sec="specialties"] { order: 3; }
+.cg-live__block[data-cg-sec="merits"] { order: 4; }
+.cg-live__block[data-cg-sec="contracts"] { order: 5; }
+.cg-live__block[data-cg-sec="powers"] { order: 6; }
+/* Advantages (health boxes) always last */
+.cg-live__block[data-cg-sec="advantages"] { order: 9; }
 
 .cg-live__id {
   margin: 0 0 1rem;
@@ -562,10 +563,136 @@
 }
 
 .cg-live__adv {
+  margin: 0.5rem 0 1.15rem;
+  padding: 0;
+  font-size: 0.88rem;
+  color: var(--site-text-muted);
+}
+
+.cg-live__adv .cg-live__section {
+  margin-top: 0.75rem;
+}
+
+.cg-live__track-row {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.4rem 0.9rem;
-  margin: 0 0 1.15rem;
+  align-items: center;
+  gap: 0.45rem 0.65rem;
+  margin: 0 0 0.55rem;
+}
+
+.cg-live__track-label {
+  flex: 0 0 5.5rem;
+  font-size: 0.9rem;
+  color: var(--site-text);
+  font-weight: 500;
+}
+
+.cg-live__track-meta {
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--site-text-muted);
+}
+
+.cg-live__track-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.45rem;
+  margin: 0 0 0.85rem;
+  font-size: 0.72rem;
+  color: var(--site-text-muted);
+  line-height: 1.4;
+}
+
+.cg-live__track-legend .cg-hbox {
+  width: 0.95rem;
+  height: 0.95rem;
+  font-size: 0.62rem;
+  vertical-align: middle;
+}
+
+/* CoFD health boxes — match +sheet [*]/[X]/[/]/[ ] */
+.cg-track {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.22rem;
+}
+
+.cg-track--empty {
+  color: var(--site-text-muted);
+}
+
+.cg-hbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.2rem;
+  height: 1.2rem;
+  box-sizing: border-box;
+  border: 1.5px solid var(--site-border-strong, var(--site-accent-border, var(--site-border)));
+  border-radius: 2px;
+  background: var(--site-bg-surface, transparent);
+  color: var(--site-text);
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  line-height: 1;
+  user-select: none;
+}
+
+.cg-hbox--empty {
+  background: transparent;
+  border-color: var(--site-border);
+}
+
+.cg-hbox--bash {
+  color: var(--site-text-secondary, var(--site-text));
+  border-color: var(--site-text-muted);
+}
+
+.cg-hbox--leth {
+  color: var(--site-error, #e07070);
+  border-color: var(--site-error, #e07070);
+  background: color-mix(
+    in srgb,
+    var(--site-error, #e07070) 12%,
+    transparent
+  );
+}
+
+.cg-hbox--agg {
+  color: var(--site-accent);
+  border-color: var(--site-accent);
+  background: color-mix(
+    in srgb,
+    var(--site-accent) 18%,
+    transparent
+  );
+}
+
+/* Willpower boxes — filled = available */
+.cg-wbox {
+  display: inline-block;
+  width: 1.05rem;
+  height: 1.05rem;
+  box-sizing: border-box;
+  border: 1.5px solid var(--site-accent-border, var(--site-accent));
+  border-radius: 2px;
+  background: transparent;
+}
+
+.cg-wbox.is-on {
+  background: var(--site-accent);
+  border-color: var(--site-accent);
+}
+
+.cg-live__adv-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem 1.1rem;
+  margin: 0;
   padding: 0.65rem 0.85rem;
   border: 1px solid var(--site-border-subtle);
   border-radius: 4px;
@@ -573,7 +700,7 @@
   color: var(--site-text-muted);
 }
 
-.cg-live__adv strong {
+.cg-live__adv-grid strong {
   color: var(--site-text);
   font-weight: 600;
   font-variant-numeric: tabular-nums;

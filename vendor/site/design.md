@@ -81,12 +81,19 @@ requires sign-in. Keeps the normal 3-col shell (nav + rails).
 |--------|--------|----------------|
 | Output | `.play-output` | fill `--site-bg`, flex-grow scroll |
 | Rule | `.play-prompt-rule` | 1px `--site-border` (cream) |
-| Input | `.play-prompt__input` | 55px, radius 0, placeholder **Enter something…** (`--site-play-placeholder` / #766a66) |
+| Input | `.play-prompt__input` | mono textarea, min **78ch**, wrap; placeholder **Enter something…** |
 | Button | `.play-prompt__send` | 119×55, `--site-btn-bg` / `--site-btn-fg`, label **SEND** |
-| Plain text | `.play-pre` | mono, max 78ch, MUSH colors |
-| Layout UI | `.play-layout*` | `u.ui.layout` tables/panels |
+| Plain text | `.play-pre` | mono; MUSH/ANSI → CSP-safe color classes |
+| Layout UI | `.play-layout*` | `u.ui.layout` (look, etc.) |
+| Entity row | `.play-entity` | name / short-desc / idle; `data-play-cmd` |
+| Exit chip | `.play-action` | badge + label; `data-play-cmd` |
 
-Enter submits (same as Send). Tokens only — Court skin maps gold/cream.
+**Look** (`meta.type=look`): header → text → Characters
+(`entity-list`) → Exits (`actions`). Click controls send game input.
+Styles use site tokens only (see `packages/web/design.md` §11).
+
+Enter submits (same as Send); Shift+Enter newline. Tokens only —
+Court skin maps gold/cream.
 
 ---
 

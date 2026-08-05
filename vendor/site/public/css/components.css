@@ -362,14 +362,17 @@
   padding: 0;
 }
 
-/* ── Images (wiki markdown ![alt](url)) ───────────────────────────── */
+/* ── Content images (wiki/md ![alt](url)) — not avatars ───────────── */
 
-.site-section__body img {
+.site-section__body img:not([class*="avatar"]),
+.wiki-body img:not([class*="avatar"]) {
   display: block;
+  width: 100%;
   max-width: 100%;
   height: auto;
+  max-height: 300px;
+  object-fit: contain;
   margin: 0.75rem 0 1rem;
-  border-radius: var(--site-radius-sm, 4px);
 }
 
 /* ── Links ────────────────────────────────────────────────────────── */
