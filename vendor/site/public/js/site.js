@@ -2363,7 +2363,7 @@
       var link = document.createElement("link");
       link.id = "site-play-css";
       link.rel = "stylesheet";
-      link.href = "/site/css/play.css?v=20260805playkeep";
+      link.href = "/site/css/play.css?v=20260805oocwho";
       document.head.appendChild(link);
     }
     // Separate file: CSP blocks inline style=; classes live here.
@@ -2371,7 +2371,7 @@
       var pal = document.createElement("link");
       pal.id = "site-play-palette-css";
       pal.rel = "stylesheet";
-      pal.href = "/site/css/play-palette.css?v=20260805playkeep";
+      pal.href = "/site/css/play-palette.css?v=20260805oocwho";
       document.head.appendChild(pal);
     }
   }
@@ -2406,7 +2406,7 @@
     if (!playScriptPromise) {
       playScriptPromise = new Promise(function (resolve, reject) {
         var s = document.createElement("script");
-        s.src = "/site/js/play.js?v=20260805playkeep";
+        s.src = "/site/js/play.js?v=20260805oocwho";
         s.async = true;
         s.onload = function () { resolve(true); };
         s.onerror = function () {

@@ -14,7 +14,7 @@
   var socket = null;
   var status = "idle";
   var rootEl = null;
-  var PLAY_JS_VER = "20260805playkeep";
+  var PLAY_JS_VER = "20260805oocwho";
   /** Stick to bottom unless the user scrolls up. */
   var stickBottom = true;
   var STICK_PX = 48;
@@ -1075,6 +1075,7 @@
   /** Chat bubble: one avatar · name · time · message */
   function renderChat(ui) {
     var kind = String(ui.kind || "say");
+    var oocMode = String(ui.oocMode || "");
     var name = String(ui.name || "Someone");
     var text = String(ui.text || "");
     var avatar = ui.avatar ? String(ui.avatar) : "";
@@ -1082,6 +1083,9 @@
     var nameHtml = mushToHtml(name);
     var textHtml = mushToHtml(text);
     var initial = esc(initialFromName(name));
+    var isOoc = kind === "ooc";
+    var isPose = kind === "pose" || kind === "semi" ||
+      (isOoc && (oocMode === "pose" || oocMode === "semi"));
     // Single avatar slot — img OR fallback, never both
     var avHtml = avatar
       ? '<img class="play-chat__avatar" src="' +
@@ -1091,19 +1095,31 @@
       : '<span class="play-chat__avatar-fallback">' +
         initial + "</span>";
     var bodyClass = "play-chat__text";
-    if (kind === "pose" || kind === "semi") {
-      bodyClass += " play-chat__text--pose";
+    if (isPose) bodyClass += " play-chat__text--pose";
+    if (isOoc) bodyClass += " play-chat__text--ooc";
+    var tag = ui.tag
+      ? String(ui.tag)
+      : (isOoc ? "OOC" : "");
+    var tagHtml = tag
+      ? '<span class="play-chat__tag" aria-label="' +
+        escAttr(tag) + '">' + esc(tag) + "</span>"
+      : "";
+    // OOC say: show quoted-ish body; pose: action only
+    var bodyInner = textHtml;
+    if (isOoc && oocMode === "say" && text) {
+      bodyInner = mushToHtml('"' + text + '"');
     }
-    // Pose: name only in meta (not repeated in body)
-    return '<div class="play-chat play-chat--' + esc(kind) + '">' +
+    return '<div class="play-chat play-chat--' + esc(kind) +
+      (isOoc ? " play-chat--ooc" : "") + '">' +
       '<div class="play-chat__av">' + avHtml + "</div>" +
       '<div class="play-chat__main">' +
       '<div class="play-chat__meta">' +
+      tagHtml +
       '<span class="play-chat__name">' + nameHtml + "</span>" +
       '<time class="play-chat__time" datetime="' +
       esc(String(ui.at || "")) + '">' + esc(time) + "</time>" +
       "</div>" +
-      '<div class="' + bodyClass + '">' + textHtml +
+      '<div class="' + bodyClass + '">' + bodyInner +
       "</div></div></div>";
   }
 

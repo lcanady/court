@@ -311,6 +311,56 @@
   font-style: normal;
 }
 
+/* OOC badge + slightly muted body */
+.play-chat__tag {
+  flex: 0 0 auto;
+  display: inline-block;
+  padding: 0.05rem 0.35rem;
+  border-radius: 2px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  line-height: 1.3;
+  color: var(--site-error, #e07070);
+  border: 1px solid color-mix(
+    in srgb,
+    var(--site-error, #e07070) 55%,
+    transparent
+  );
+  background: color-mix(
+    in srgb,
+    var(--site-error, #e07070) 12%,
+    transparent
+  );
+}
+
+.play-chat--ooc .play-chat__text--ooc {
+  color: var(--site-text-muted, var(--site-text-secondary));
+}
+
+.play-chat--ooc .play-chat__avatar-fallback {
+  background: color-mix(
+    in srgb,
+    var(--site-error, #e07070) 70%,
+    var(--site-bg, #111)
+  );
+}
+
+/* who layout — reuse entity rows, slightly denser */
+.play-layout--who .play-layout__header {
+  margin-bottom: 0.35rem;
+}
+
+.play-layout--who .play-entity-list {
+  margin: 0.25rem 0 0.5rem;
+}
+
+.play-layout--who .play-layout__text {
+  font-size: 0.8rem;
+  color: var(--site-text-muted);
+}
+
 @media (max-width: 720px) {
   .play-chat {
     gap: 0.5rem;

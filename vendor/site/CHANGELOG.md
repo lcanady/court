@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.1.65
+
+- Play chat: OOC badge + muted OOC bubbles (`kind: ooc`)
+- Play layout polish for `who` entity lists
+- Cache-bust `SITE_ASSET_V` → `20260805oocwho`
+
 ## 0.1.64
 
 - Merit zebra stripes use theme tokens (`--site-bg-surface` /
