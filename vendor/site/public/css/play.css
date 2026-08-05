@@ -205,8 +205,13 @@
   outline: none;
 }
 
+/* Figma placeholder “Enter something…” Lato 16 / #766a66 */
 .play-prompt__input::placeholder {
-  color: var(--site-text-muted);
+  color: var(--site-play-placeholder, #766a66);
+  opacity: 1;
+  font-family: var(--site-font-ui);
+  font-size: 1rem;
+  font-weight: 400;
 }
 
 .play-prompt__input:focus {

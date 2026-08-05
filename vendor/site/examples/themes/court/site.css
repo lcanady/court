@@ -35,6 +35,8 @@
   --site-btn-bg: #c4944a;
   --site-btn-bg-hover: #e0b56a;
   --site-btn-fg: #020201;
+  /* Play input placeholder (Figma client 1884:89) */
+  --site-play-placeholder: #766a66;
 
   --site-font-ui: "Lato", ui-sans-serif, system-ui, sans-serif;
   --site-font-display: "Smythe", "smythe", serif;

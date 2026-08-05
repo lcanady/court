@@ -81,7 +81,7 @@ requires sign-in. Keeps the normal 3-col shell (nav + rails).
 |--------|--------|----------------|
 | Output | `.play-output` | fill `--site-bg`, flex-grow scroll |
 | Rule | `.play-prompt-rule` | 1px `--site-border` (cream) |
-| Input | `.play-prompt__input` | 55px, radius 0, `--site-bg-surface`, border `--site-border` |
+| Input | `.play-prompt__input` | 55px, radius 0, placeholder **Enter something…** (`--site-play-placeholder` / #766a66) |
 | Button | `.play-prompt__send` | 119×55, `--site-btn-bg` / `--site-btn-fg`, label **SEND** |
 | Plain text | `.play-pre` | mono, max 78ch, MUSH colors |
 | Layout UI | `.play-layout*` | `u.ui.layout` tables/panels |

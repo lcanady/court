@@ -355,7 +355,7 @@
       '<label class="visually-hidden" for="play-cmd">Command</label>' +
       '<input id="play-cmd" class="play-prompt__input" type="text" ' +
       'name="cmd" spellcheck="false" autocomplete="off" ' +
-      'placeholder="" disabled />' +
+      'placeholder="Enter something..." disabled />' +
       '<button type="submit" class="play-prompt__send" disabled>' +
       "SEND</button>" +
       "</form></div>";
