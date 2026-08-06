@@ -3,7 +3,7 @@
  * and splat sight flags. Used by staff +cg/wipe and self +cg/reset.
  */
 
-import { dbojs, send, sessions } from "@ursamu/mush";
+import { dbojs, send, sessions } from "@ursamu/ursamu";
 import { initCgState } from "./state.ts";
 import { SIGHT_FLAGS } from "../support/sight.ts";
 import {
