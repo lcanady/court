@@ -22,6 +22,7 @@ vendor/mush/
 
 # Live wiki content (editor + prod). Never reset by deploy.
 # Seed defaults live in wiki.sample/ (tracked).
-wiki/
+# Leading slash: root only — do not ignore vendor/wiki.
+/wiki/
 
 .jwt_secret

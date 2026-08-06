@@ -169,7 +169,7 @@ export function injectSiteHtml(
     out = out.replace(
       /(<h1\b[^>]*\bdata-site-banner-title\b)([^>]*)(>)[\s\S]*?(<\/h1>)/i,
       (_m, open: string, mid: string, gt: string, close: string) => {
-        let m = String(mid).replace(/\s*\bhidden\b/gi, "");
+        const m = String(mid).replace(/\s*\bhidden\b/gi, "");
         const body = `\n          ${esc(heroTitle)}\n        `;
         return `${open}${m}${gt}${body}${close}`;
       },
@@ -201,8 +201,11 @@ export function injectSiteHtml(
         return `${open}${m}${close}`;
       },
     );
+    // Capture full attr list so ensureClass merges into the
+    // existing class="site-banner" (a second class= is invalid HTML
+    // and browsers drop has-image → title shows, logo "missing").
     out = out.replace(
-      /(<header\b[^>]*\bdata-site-banner\b)([^>]*)(>)/i,
+      /(<header\b)([^>]*\bdata-site-banner\b[^>]*)(>)/i,
       (_m, open: string, mid: string, close: string) => {
         const m = ensureClass(String(mid), "has-image");
         return `${open}${m}${close}`;
@@ -240,7 +243,7 @@ export function injectSiteHtml(
   // Shell modifiers: plainBg + compact (no image, no title)
   if (cfg.plainBg || compact) {
     out = out.replace(
-      /(<div\b[^>]*\bdata-site-shell\b)([^>]*)(>)/i,
+      /(<div\b)([^>]*\bdata-site-shell\b[^>]*)(>)/i,
       (_m, open: string, mid: string, close: string) => {
         let m = String(mid);
         if (cfg.plainBg) m = ensureClass(m, "is-plain");
