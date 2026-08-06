@@ -58,6 +58,10 @@ import { huntCommand } from "./hunt.ts";
 import { mantleCommand } from "./mantle_cmd.ts";
 import { hobCommand } from "./hob.ts";
 import { icExec, oocExec } from "./ic_ooc.ts";
+import { vitaeExec } from "./vitae.ts";
+import { frenzyExec } from "./frenzy.ts";
+import { auraExec } from "./aura.ts";
+import { feedExec } from "./feed.ts";
 import { timeExec } from "./time.ts";
 import { staffkitExec } from "./staffkit.ts";
 
@@ -379,29 +383,26 @@ addCmd({
   pattern: /^\+cg(?:\/(\S+))?\s*(.*)/i,
   lock: "connected",
   category: "Cofd",
-  help: `+cg [<switch>] [<args>]  -- Guided character generation experience.
+  help: `+cg [<switch>] [<args>]  -- Guided character generation.
 
 Switches:
   /reset              -- You: wipe your sheet + draft and restart.
   /wipe <p>[=reason]  -- Staff: full wipe of another character.
-  /set <k>=<v>  -- Set character generation fields/traits.
-  /back         -- Return to the previous stage.
-  /submit       -- Validate the current stage and advance (or finalize sheet).
-  /list [<t>]   -- Show available options. No arg lists topics. Topics:
-                   virtues, vices, templates, seemings, kiths [<seeming>],
-                   courts, merits [<category>].
-  /info <name>  -- Detail lookup. Works for any merit, condition, tilt,
-                   dread power, virtue, vice, seeming, kith, or court.
+  /set <k>=<v>        -- Set chargen fields/traits.
+  /back               -- Previous stage.
+  /submit             -- Validate stage / finalize draft.
+  /list [<t>]         -- Options index or topic list.
+  /info <name>        -- Merit/condition/template detail.
 
-Example usage:
+Staff wipe removes live sheet, chargen draft, approved flag,
+and fae/forsaken, then seeds a fresh +cg draft. Reason required
+when wiping someone else.
+
+Examples:
   +cg
-  +cg/list
-  +cg/list virtues
-  +cg/set name=John Doe
-  +cg/set concept=Hacker
+  +cg/reset
+  +cg/wipe Alice=Player requested full rebuild
   +cg/set template=mortal
-  +cg/submit
-  +cg/set Strength=3
   +cg/submit`,
   exec: cgExec,
 });
@@ -1566,5 +1567,90 @@ Examples:
   +pledge/oath personal/Alice=never lie/swap-pools/notoriety
   +pledge/accept 4a8b7c9e`,
   exec: pledgeCommand,
+});
+
+addCmd({
+  name: "+vitae",
+  pattern: /^\+vitae(?:\/(\S+))?\s*(.*)/i,
+  lock: "connected",
+  category: "Cofd",
+  help: `+vitae[/sw] [args]  -- Vampire Vitae pool (VtR).
+
+Switches:
+  (none)              View your Vitae / BP.
+  /spend <n>          Spend n Vitae.
+  /heal               Heal 1 bashing (1 Vitae).
+  /heal-lethal        Heal 1 lethal (1 Vitae).
+  /blush              Blush of Life (1 Vitae).
+  /boost <attr>       +2 Str/Dex/Sta scene (1 Vitae).
+  /gain <n> [for p]   Staff: grant Vitae.
+  /set <n> [for p]    Staff: set pool.
+
+Examples:
+  +vitae
+  +vitae/spend 1
+  +vitae/blush
+  +vitae/boost strength`,
+  exec: vitaeExec,
+});
+
+addCmd({
+  name: "+frenzy",
+  pattern: /^\+frenzy(?:\/(\S+))?\s*(.*)/i,
+  lock: "connected",
+  category: "Cofd",
+  help: `+frenzy[/sw] [args]  -- Resist or ride the Beast.
+
+Switches:
+  /status                      Are you frenzied?
+  /resist <kind> [+/-N]        Resolve+Composure vs frenzy.
+  /ride <kind>                 Ride the Wave (1 WP).
+  /enter <kind>                Enter frenzy (no roll).
+  /end                         End frenzy (ST/scene).
+
+Kinds: hunger, anger, terror (rötschreck).
+
+Examples:
+  +frenzy/resist hunger -2
+  +frenzy/ride anger
+  +frenzy/end`,
+  exec: frenzyExec,
+});
+
+addCmd({
+  name: "+aura",
+  pattern: /^\+aura(?:\/(\S+))?\s*(.*)/i,
+  lock: "connected",
+  category: "Cofd",
+  help: `+aura [flavor] [target]  -- Project Predatory Aura.
+
+Flavors: hungry, awe, wrath, terror, predator.
+Contest: Presence+Intimidation+BP vs Composure+Tol.
+Success applies Bestial/Charmed/Cowed/Wanton/Competitive.
+
+Examples:
+  +aura
+  +aura hungry Alice
+  +aura/project awe=Bob`,
+  exec: auraExec,
+});
+
+addCmd({
+  name: "+feed",
+  pattern: /^\+feed(?:\/(\S+))?\s*(.*)/i,
+  lock: "connected",
+  category: "Cofd",
+  help: `+feed <source|player>[=N]  -- Drink blood for Vitae.
+
+Sources: animal, human, kindred. Amount defaults to 1.
+BP gates animal blood (useless at BP 2+). Player targets
+take lethal equal to Vitae taken (if they have a sheet).
+
+Examples:
+  +feed animal
+  +feed human 2
+  +feed Alice=3
+  +feed/kindred 1`,
+  exec: feedExec,
 });
 
