@@ -22,28 +22,52 @@ cd "$(dirname "$0")/.." || exit 1
 
 log() { echo "[safe-update] $*"; }
 
-# Keep ~/court-update.sh as a thin wrapper so cron/muscle-memory work.
+# Keep ~/court-update.sh as a wrapper. It MUST snapshot wiki/ before
+# exec'ing this script: the running file is still the *old* checkout
+# until git reset, so preserve has to live outside safe-update itself.
 WRAPPER="${HOME}/court-update.sh"
 WRAPPER_BODY='#!/bin/bash
 set -euo pipefail
-exec bash '"$(pwd)"'/scripts/safe-update.sh "$@"
-'
-if [ ! -f "$WRAPPER" ] || ! grep -q 'safe-update.sh' "$WRAPPER" 2>/dev/null; then
-  printf '%s\n' "$WRAPPER_BODY" > "$WRAPPER"
-  chmod +x "$WRAPPER"
-  log "installed ${WRAPPER} → scripts/safe-update.sh"
+export PATH="${HOME}/.deno/bin:/usr/local/bin:/usr/bin:/bin:${PATH}"
+ROOT="'"$(pwd)"'"
+cd "$ROOT" || exit 1
+# Snapshot live wiki before any git reset (old or new safe-update).
+if [ -d wiki ] && find wiki -name "*.md" 2>/dev/null | grep -q .; then
+  PRESERVE="$(mktemp -d "${TMPDIR:-/tmp}/court-wiki.XXXXXX")"
+  cp -a wiki/. "$PRESERVE/"
+  export COURT_WIKI_PRESERVE="$PRESERVE"
+  echo "[court-update] preserved wiki/ → $PRESERVE"
 fi
+bash "$ROOT/scripts/safe-update.sh" "$@"
+status=$?
+# If safe-update is still the pre-preserve edition, restore here.
+if [ -n "${COURT_WIKI_PRESERVE:-}" ] && [ -d "$COURT_WIKI_PRESERVE" ]; then
+  if [ ! -d wiki ] || ! find wiki -name "*.md" 2>/dev/null | grep -q .; then
+    mkdir -p wiki
+    cp -a "$COURT_WIKI_PRESERVE"/. wiki/
+    echo "[court-update] restored wiki/ after deploy"
+  fi
+  rm -rf "$COURT_WIKI_PRESERVE"
+fi
+exit "$status"
+'
+# Always refresh wrapper so preserve lands even when script was stale.
+printf '%s\n' "$WRAPPER_BODY" > "$WRAPPER"
+chmod +x "$WRAPPER"
+log "installed ${WRAPPER} → scripts/safe-update.sh (wiki-safe)"
 
 log "HEAD before: $(git log -1 --oneline 2>/dev/null || echo '?')"
 
 # --- preserve live wiki across hard reset ---------------------------------
-# wiki/ is gitignored game content. reset --hard must not wipe editor work.
-WIKI_PRESERVE=""
-if [ -d wiki ] && find wiki -name '*.md' 2>/dev/null | grep -q .; then
+# Prefer snapshot from court-update.sh (COURT_WIKI_PRESERVE); else do it here.
+WIKI_PRESERVE="${COURT_WIKI_PRESERVE:-}"
+if [ -z "$WIKI_PRESERVE" ] && [ -d wiki ] && \
+  find wiki -name '*.md' 2>/dev/null | grep -q .; then
   WIKI_PRESERVE="$(mktemp -d "${TMPDIR:-/tmp}/court-wiki.XXXXXX")"
-  # Copy contents so restore is atomic (mv tree into place).
   cp -a wiki/. "$WIKI_PRESERVE/"
   log "preserved live wiki/ → $WIKI_PRESERVE"
+elif [ -n "$WIKI_PRESERVE" ]; then
+  log "using wrapper wiki snapshot → $WIKI_PRESERVE"
 fi
 
 # --- git -------------------------------------------------------------------
@@ -56,11 +80,14 @@ fi
 log "HEAD after:  $(git log -1 --oneline)"
 
 # --- restore / seed wiki ---------------------------------------------------
+# Always prefer the pre-reset snapshot over whatever git left behind.
 if [ -n "$WIKI_PRESERVE" ] && [ -d "$WIKI_PRESERVE" ]; then
   rm -rf wiki
   mkdir -p wiki
   cp -a "$WIKI_PRESERVE"/. wiki/
+  # Wrapper also cleans COURT_WIKI_PRESERVE; safe to remove here too.
   rm -rf "$WIKI_PRESERVE"
+  unset COURT_WIKI_PRESERVE || true
   log "restored live wiki/ (deploy did not overwrite pages)"
 elif [ ! -d wiki ] || ! find wiki -name '*.md' 2>/dev/null | grep -q .; then
   if [ -d wiki.sample ]; then
