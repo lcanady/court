@@ -24,6 +24,8 @@ const ALLOWED_PREFIXES = [
   "/api/v1/mail",
   "/api/v1/channels",
   "/api/v1/help",
+  // CoFD staff actions (CGEN approve, sheet, wipe, themes)
+  "/api/v1/cofd",
 ];
 
 const ALLOWED_METHODS = new Set([
