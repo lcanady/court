@@ -15,6 +15,7 @@
  *   POST /api/v1/cofd/chargen/contract
  *   POST /api/v1/cofd/chargen/wipe    -> full wipe (+cg/wipe)
  *   GET  /api/v1/cofd/chargen/options -> catalog (public)
+ *   GET  /api/v1/cofd/info?q=         -> +info lookup (public)
  *   GET  /api/v1/cofd/sheet           -> live sheet (self)
  *   POST /api/v1/cofd/approve         -> staff approve PC
  *   POST /api/v1/cofd/themes          -> staff spawn themes
@@ -34,6 +35,7 @@ import {
   approveHttp,
   wipeChargen,
 } from "./src/chargen/http.ts";
+import { lookupInfo } from "./src/info/index.ts";
 
 const STAFF_FLAGS = new Set(["superuser", "admin", "wizard", "builder"]);
 
@@ -98,7 +100,25 @@ export async function routeHandler(
     }
   }
 
+  // +info catalog lookup — public (same data as in-game +info)
+  if (method === "GET" && path === "/api/v1/cofd/info") {
+    try {
+      const q = url.searchParams.get("q") ??
+        url.searchParams.get("query") ??
+        "";
+      return Response.json(lookupInfo(q));
+    } catch {
+      return Response.json({ error: "Internal" }, { status: 500 });
+    }
+  }
+
   if (method === "GET" && path === "/api/v1/cofd") {
+    if (!userId) {
+      return Response.json(
+        { error: "Unauthorized" },
+        { status: 401 },
+      );
+    }
     return Response.json({ ok: true });
   }
 
