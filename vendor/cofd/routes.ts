@@ -97,12 +97,6 @@ export async function routeHandler(
   }
 
   if (method === "GET" && path === "/api/v1/cofd") {
-    if (!userId) {
-      return Response.json(
-        { error: "Unauthorized" },
-        { status: 401 },
-      );
-    }
     return Response.json({ ok: true });
   }
 

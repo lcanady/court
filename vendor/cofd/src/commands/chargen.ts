@@ -56,7 +56,6 @@ export async function cgExec(u: IUrsamuSDK) {
   // a player can plant %c color codes in their own concept/description.
   const rawArg = u.util.stripSubs(u.cmd.args[1] ?? "").trim();
 
-  // Staff full wipe of another (or self) character bit
   if (sw === "wipe") {
     return await wipeExec(u);
   }
@@ -125,8 +124,6 @@ export async function cgExec(u: IUrsamuSDK) {
   let cgState = target.state?.cofd_cg as CofdCgState | undefined;
 
   // Reset switch — self only. Staff wiping others: +cg/wipe.
-  // Staff may still reset themselves when approved (blocked for
-  // non-staff above).
   if (sw === "reset" || sw === "restart") {
     const result = await wipeCharacter({
       playerId: target.id,
@@ -136,7 +133,6 @@ export async function cgExec(u: IUrsamuSDK) {
       notify: false,
     });
     if (!result.ok) {
-      // Nothing to wipe — still seed a draft
       cgState = initCgState();
       await u.db.modify(target.id, "$set", {
         "data.cofd_cg": cgState,
