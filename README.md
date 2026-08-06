@@ -44,9 +44,13 @@ court/
 ├── system/scripts/     Engine system scripts (editable)
 ├── text/
 │   └── default_connect.txt  Welcome screen
-├── wiki/               Game wiki and documentation
+├── wiki/               Live wiki pages (gitignored — not in deploy)
+├── wiki.sample/        Seed wiki for new installs only
 └── deno.json           Tasks and import map
 ```
+
+> **Wiki:** `wiki/` is runtime content (like `config/config.json` and
+> `data/`). Deploys preserve it. Put starter pages in `wiki.sample/`.
 
 ## Layout chrome
 

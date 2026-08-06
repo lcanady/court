@@ -36,6 +36,16 @@ fi
 
 log "HEAD before: $(git log -1 --oneline 2>/dev/null || echo '?')"
 
+# --- preserve live wiki across hard reset ---------------------------------
+# wiki/ is gitignored game content. reset --hard must not wipe editor work.
+WIKI_PRESERVE=""
+if [ -d wiki ] && find wiki -name '*.md' 2>/dev/null | grep -q .; then
+  WIKI_PRESERVE="$(mktemp -d "${TMPDIR:-/tmp}/court-wiki.XXXXXX")"
+  # Copy contents so restore is atomic (mv tree into place).
+  cp -a wiki/. "$WIKI_PRESERVE/"
+  log "preserved live wiki/ → $WIKI_PRESERVE"
+fi
+
 # --- git -------------------------------------------------------------------
 git fetch origin
 if [ "${CLEAN_PULL:-0}" = "1" ]; then
@@ -44,6 +54,25 @@ else
   git reset --hard origin/main
 fi
 log "HEAD after:  $(git log -1 --oneline)"
+
+# --- restore / seed wiki ---------------------------------------------------
+if [ -n "$WIKI_PRESERVE" ] && [ -d "$WIKI_PRESERVE" ]; then
+  rm -rf wiki
+  mkdir -p wiki
+  cp -a "$WIKI_PRESERVE"/. wiki/
+  rm -rf "$WIKI_PRESERVE"
+  log "restored live wiki/ (deploy did not overwrite pages)"
+elif [ ! -d wiki ] || ! find wiki -name '*.md' 2>/dev/null | grep -q .; then
+  if [ -d wiki.sample ]; then
+    mkdir -p wiki
+    cp -a wiki.sample/. wiki/
+    log "seeded wiki/ from wiki.sample/"
+  else
+    log "wiki/ empty and no wiki.sample/ — skipping seed"
+  fi
+else
+  log "wiki/ already present (gitignored) — left untouched"
+fi
 
 # --- merge gitignored live config ------------------------------------------
 python3 - <<'PY'

@@ -186,8 +186,18 @@ ssh court.ursamu.io 'bash ./court-update.sh'
 ```
 
 `court-update.sh` hard-resets to `origin/main`, merges live config
-safely, reloads JSR cache, restarts daemon. Do **not** hand-edit
-production without git when the change belongs in the repo.
+safely, **preserves `wiki/`** (gitignored game content), reloads JSR
+cache, restarts daemon. Do **not** hand-edit production without git
+when the change belongs in the repo.
+
+### Wiki content (do not track in git)
+
+- **Live pages:** `wiki/**` — gitignored. Edited in-game /admin/wiki.
+  Safe-update restores the live tree after `git reset --hard`.
+- **Seed only:** `wiki.sample/**` — tracked defaults for new installs.
+  Copied to `wiki/` only when live wiki is missing/empty.
+- Never commit production wiki prose into the court repo; deploys
+  would thrash editor work.
 
 ### Engine pins (prod = JSR, local = optional vendor)
 
