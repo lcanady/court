@@ -50,6 +50,7 @@ LOCAL_PLUGIN_OVERRIDES = {
     "@ursamu/jobs": "./vendor/jobs/mod.ts",
     "@ursamu/jobs-plugin": "./vendor/jobs/mod.ts",
     "@ursamu/ursamu/jobs": "./vendor/jobs/mod.ts",
+    "@ursamu/discord": "./vendor/discord/mod.ts",
 }
 
 
@@ -142,6 +143,8 @@ def main() -> int:
         "file:///Users/kumakun/github/court/vendor/site-plugin/",
         "file:///Users/kumakun/github/court/vendor/site/",
         "file:///Users/kumakun/github/court/vendor/jobs/",
+        "file:///Users/kumakun/github/ursamu/packages/discord/",
+        "file:///Users/kumakun/github/court/vendor/discord/",
     ):
         scopes[scope_key] = dict(local_scope)
     cfg["scopes"] = scopes
