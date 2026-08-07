@@ -7,22 +7,11 @@
     "jsr:@std/fs@0.224": "0.224.0",
     "jsr:@std/path@0.224": "0.224.0",
     "jsr:@std/semver@1": "1.0.8",
-    "jsr:@ursamu/builder@1.3.10": "1.3.10",
-    "jsr:@ursamu/channels@1.2.3": "1.2.3",
-    "jsr:@ursamu/core@1.0.3": "1.0.3",
-    "jsr:@ursamu/discord@1.0.5": "1.0.5",
-    "jsr:@ursamu/help@1.2.1": "1.2.1",
-    "jsr:@ursamu/help@^1.2.1": "1.2.1",
+    "jsr:@ursamu/core@1.0.4": "1.0.4",
     "jsr:@ursamu/help@~0.1.9": "0.1.9",
-    "jsr:@ursamu/jobs@1.2.0": "1.2.0",
-    "jsr:@ursamu/mail@2.9.5": "2.9.5",
-    "jsr:@ursamu/mush@1": "1.0.35",
-    "jsr:@ursamu/mush@1.0.35": "1.0.35",
     "jsr:@ursamu/mush@^1.0.4": "1.0.35",
     "jsr:@ursamu/mushcode@0.7": "0.7.0",
-    "jsr:@ursamu/site@0.1.89": "0.1.89",
-    "jsr:@ursamu/web@0.2.82": "0.2.82",
-    "jsr:@ursamu/wiki@0.2.9": "0.2.9",
+    "jsr:@ursamu/site@0.1.90": "0.1.90",
     "jsr:@zaubrik/djwt@^3.0.2": "3.0.2",
     "npm:@digibear/tags@1.0.0": "1.0.0",
     "npm:@electric-sql/pglite@0.5.4": "0.5.4",
@@ -65,25 +54,8 @@
     "@std/semver@1.0.8": {
       "integrity": "dc830e8b8b6a380c895d53fbfd1258dc253704ca57bbe1629ac65fd7830179b7"
     },
-    "@ursamu/builder@1.3.10": {
-      "integrity": "0236fc34b8ca7a12a7855445bea41e6cdd3d8829b56987669542882b7855251c",
-      "dependencies": [
-        "jsr:@std/path",
-        "jsr:@ursamu/help@^1.2.1",
-        "jsr:@ursamu/mush@1",
-        "jsr:@ursamu/mush@1.0.35"
-      ]
-    },
-    "@ursamu/channels@1.2.3": {
-      "integrity": "8eeefa26462e540aa3eaea0617f34e34db41d19a40cd0af8e42c81e43bcd4b5e",
-      "dependencies": [
-        "jsr:@ursamu/core",
-        "jsr:@ursamu/help@^1.2.1",
-        "jsr:@ursamu/mush@1.0.35"
-      ]
-    },
-    "@ursamu/core@1.0.3": {
-      "integrity": "1256ed7c3b8c00eec8764dff602d2dd8eb8d4e082bfebb0a23d90cc6051bd861",
+    "@ursamu/core@1.0.4": {
+      "integrity": "5655498acfa56576811363f1c28142bf0ba1ee68568493ca33d1d99975a631e1",
       "dependencies": [
         "jsr:@std/path",
         "jsr:@std/semver",
@@ -92,39 +64,8 @@
         "npm:zod@4.4.3"
       ]
     },
-    "@ursamu/discord@1.0.5": {
-      "integrity": "dc347d10b0fd1d90e8b28ca948b19a2e017b276ceb22072fa4b2b5f599ae7508",
-      "dependencies": [
-        "jsr:@ursamu/channels",
-        "jsr:@ursamu/help@1.2.1",
-        "jsr:@ursamu/jobs",
-        "jsr:@ursamu/mush@1.0.35",
-        "npm:tweetnacl"
-      ]
-    },
     "@ursamu/help@0.1.9": {
       "integrity": "746c56af6d6ff7ace3d808ea25fbcf20684a9339646fcee560850ad89ad5dae9"
-    },
-    "@ursamu/help@1.2.1": {
-      "integrity": "5714864b32b84035c37631e1d0f6d2b4a0dad593e6266136930a3a17a19364f4",
-      "dependencies": [
-        "jsr:@ursamu/mush@1.0.35"
-      ]
-    },
-    "@ursamu/jobs@1.2.0": {
-      "integrity": "63d7d111417ab5203b793ec30a115af846c5482d6933096c0fe6087d7b62ba8b",
-      "dependencies": [
-        "jsr:@ursamu/help@1.2.1",
-        "jsr:@ursamu/mail",
-        "jsr:@ursamu/mush@1.0.35"
-      ]
-    },
-    "@ursamu/mail@2.9.5": {
-      "integrity": "62771bda7b788452c886da1b4fe202a6c96895eaa9c7dcf0ecfde15cac462f44",
-      "dependencies": [
-        "jsr:@ursamu/help@1.2.1",
-        "jsr:@ursamu/mush@1.0.35"
-      ]
     },
     "@ursamu/mush@1.0.35": {
       "integrity": "1329d78d0a400fe8c2523bbdf5227b9a6eb64e914c1f3a2c7c61a4be0bae235a",
@@ -145,30 +86,12 @@
     "@ursamu/mushcode@0.7.0": {
       "integrity": "bf68b211b4448f0dcb79f66b9ef5b032661af293f771a732e191e77353a028da"
     },
-    "@ursamu/site@0.1.89": {
-      "integrity": "2513a613b0312e3cfc4865fda667551256348fe15a6b819fee8b033dd9e0f988",
+    "@ursamu/site@0.1.90": {
+      "integrity": "9038c93c424d7f0611c68cb126cad6e12606f3cc3d8951528d3ffe3539fa29e0",
       "dependencies": [
         "jsr:@std/path",
-        "jsr:@ursamu/mush@^1.0.4",
+        "jsr:@ursamu/mush",
         "npm:fflate"
-      ]
-    },
-    "@ursamu/web@0.2.82": {
-      "integrity": "9bdc5af2ed68d510c837ac45444e58117ebe0cf451dd93fc3ca55423d1336952",
-      "dependencies": [
-        "jsr:@std/path",
-        "jsr:@ursamu/mush@1.0.35",
-        "jsr:@ursamu/site",
-        "jsr:@ursamu/wiki"
-      ]
-    },
-    "@ursamu/wiki@0.2.9": {
-      "integrity": "b752eae0d56b7fa9ff89fb804a42d7cbb5b9399b20b210efa8bfe1f486ccb96f",
-      "dependencies": [
-        "jsr:@std/fs",
-        "jsr:@std/path",
-        "jsr:@ursamu/mush@1.0.35",
-        "npm:imagescript"
       ]
     },
     "@zaubrik/djwt@3.0.2": {
@@ -636,14 +559,14 @@
       "jsr:@ursamu/channels@1.2.3",
       "jsr:@ursamu/cofd-plugin@1.4.1",
       "jsr:@ursamu/combat@0.8.1",
-      "jsr:@ursamu/core@1.0.3",
+      "jsr:@ursamu/core@1.0.4",
       "jsr:@ursamu/discord@1.0.5",
       "jsr:@ursamu/help@1.2.1",
       "jsr:@ursamu/jobs@1.2.0",
       "jsr:@ursamu/lang-plugin@3.1.1",
       "jsr:@ursamu/mail@2.9.5",
       "jsr:@ursamu/mush@1.0.35",
-      "jsr:@ursamu/site@0.1.89",
+      "jsr:@ursamu/site@0.1.90",
       "jsr:@ursamu/web@0.2.82",
       "jsr:@ursamu/wiki@0.2.9",
       "jsr:@zaubrik/djwt@^3.0.2",

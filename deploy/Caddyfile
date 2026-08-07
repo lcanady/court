@@ -1,9 +1,21 @@
 # Court of Miracles — public edge (install: sudo cp to /etc/caddy/Caddyfile)
 # HTTPS → game HTTP API :4203
 # /ws   → game WebSocket :4202 (TLS terminated by Caddy)
+#
+# WebSocket notes (mobile carriers / NAT):
+# - Do not gzip /ws
+# - flush_interval -1 keeps frames streaming
+# - long read/write timeouts so idle play sessions stay up
 court.ursamu.io {
 	handle /ws* {
-		reverse_proxy 127.0.0.1:4202
+		reverse_proxy 127.0.0.1:4202 {
+			flush_interval -1
+			transport http {
+				read_timeout 0
+				write_timeout 0
+				dial_timeout 10s
+			}
+		}
 	}
 
 	handle {
