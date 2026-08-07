@@ -11,7 +11,7 @@
     "jsr:@ursamu/help@~0.1.9": "0.1.9",
     "jsr:@ursamu/mush@^1.0.4": "1.0.35",
     "jsr:@ursamu/mushcode@0.7": "0.7.0",
-    "jsr:@ursamu/site@0.1.91": "0.1.91",
+    "jsr:@ursamu/site@0.1.92": "0.1.92",
     "jsr:@zaubrik/djwt@^3.0.2": "3.0.2",
     "npm:@digibear/tags@1.0.0": "1.0.0",
     "npm:@electric-sql/pglite@0.5.4": "0.5.4",
@@ -86,8 +86,8 @@
     "@ursamu/mushcode@0.7.0": {
       "integrity": "bf68b211b4448f0dcb79f66b9ef5b032661af293f771a732e191e77353a028da"
     },
-    "@ursamu/site@0.1.91": {
-      "integrity": "176efa04e5b56c05c15e66a952d04229ded2f9f46f18250b66f950c6283f2e99",
+    "@ursamu/site@0.1.92": {
+      "integrity": "8e363dc82aa23d986a20f358f1b18b850d55f42ed660e834617e4cdfcce64795",
       "dependencies": [
         "jsr:@std/path",
         "jsr:@ursamu/mush",
@@ -566,7 +566,7 @@
       "jsr:@ursamu/lang-plugin@3.1.1",
       "jsr:@ursamu/mail@2.9.5",
       "jsr:@ursamu/mush@1.0.35",
-      "jsr:@ursamu/site@0.1.91",
+      "jsr:@ursamu/site@0.1.92",
       "jsr:@ursamu/web@0.2.82",
       "jsr:@ursamu/wiki@0.2.9",
       "jsr:@zaubrik/djwt@^3.0.2",
