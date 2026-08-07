@@ -2,19 +2,24 @@
 # HTTPS → game HTTP API :4203
 # /ws   → game WebSocket :4202 (TLS terminated by Caddy)
 #
-# WebSocket notes (mobile carriers / NAT):
-# - Do not gzip /ws
-# - flush_interval -1 keeps frames streaming
-# - long read/write timeouts so idle play sessions stay up
+# Mobile notes:
+# - Disable HTTP/3 (QUIC). Some cellular stacks mishandle WS when
+#   Alt-Svc advertises h3; force h1/h2 only.
+# - Do not gzip /ws; flush immediately; forward client IP.
+{
+	servers {
+		protocols h1 h2
+	}
+}
+
 court.ursamu.io {
 	handle /ws* {
 		reverse_proxy 127.0.0.1:4202 {
+			header_up Host {host}
+			header_up X-Real-IP {remote_host}
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Forwarded-Proto {scheme}
 			flush_interval -1
-			transport http {
-				read_timeout 0
-				write_timeout 0
-				dial_timeout 10s
-			}
 		}
 	}
 
