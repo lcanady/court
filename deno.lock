@@ -9,7 +9,7 @@
     "jsr:@std/semver@1": "1.0.8",
     "jsr:@ursamu/channels@1.2.3": "1.2.3",
     "jsr:@ursamu/core@1.0.3": "1.0.3",
-    "jsr:@ursamu/discord@1.0.4": "1.0.4",
+    "jsr:@ursamu/discord@1.0.5": "1.0.5",
     "jsr:@ursamu/help@1.2.1": "1.2.1",
     "jsr:@ursamu/help@^1.2.1": "1.2.1",
     "jsr:@ursamu/help@~0.1.9": "0.1.9",
@@ -18,8 +18,8 @@
     "jsr:@ursamu/mush@1.0.35": "1.0.35",
     "jsr:@ursamu/mush@^1.0.4": "1.0.35",
     "jsr:@ursamu/mushcode@0.7": "0.7.0",
-    "jsr:@ursamu/site@0.1.88": "0.1.88",
-    "jsr:@ursamu/web@0.2.81": "0.2.81",
+    "jsr:@ursamu/site@0.1.89": "0.1.89",
+    "jsr:@ursamu/web@0.2.82": "0.2.82",
     "jsr:@ursamu/wiki@0.2.9": "0.2.9",
     "jsr:@zaubrik/djwt@^3.0.2": "3.0.2",
     "npm:@digibear/tags@1.0.0": "1.0.0",
@@ -81,8 +81,8 @@
         "npm:zod@4.4.3"
       ]
     },
-    "@ursamu/discord@1.0.4": {
-      "integrity": "8dd16f30d7392b0fe2dd18bdec4b3f7be0c6942d3f368d234c772baa6cb6f729",
+    "@ursamu/discord@1.0.5": {
+      "integrity": "dc347d10b0fd1d90e8b28ca948b19a2e017b276ceb22072fa4b2b5f599ae7508",
       "dependencies": [
         "jsr:@ursamu/channels",
         "jsr:@ursamu/help@1.2.1",
@@ -134,16 +134,16 @@
     "@ursamu/mushcode@0.7.0": {
       "integrity": "bf68b211b4448f0dcb79f66b9ef5b032661af293f771a732e191e77353a028da"
     },
-    "@ursamu/site@0.1.88": {
-      "integrity": "a574d1c0d92128aad7945a7f2e8300503b4a036516a768af1032bd47b0394591",
+    "@ursamu/site@0.1.89": {
+      "integrity": "2513a613b0312e3cfc4865fda667551256348fe15a6b819fee8b033dd9e0f988",
       "dependencies": [
         "jsr:@std/path",
         "jsr:@ursamu/mush@^1.0.4",
         "npm:fflate"
       ]
     },
-    "@ursamu/web@0.2.81": {
-      "integrity": "d3133175b4b0e5f5a7b25bd5709b19e987b9dc648c30b30cc8d3e7f0701c2d1e",
+    "@ursamu/web@0.2.82": {
+      "integrity": "9bdc5af2ed68d510c837ac45444e58117ebe0cf451dd93fc3ca55423d1336952",
       "dependencies": [
         "jsr:@std/path",
         "jsr:@ursamu/mush@1.0.35",
@@ -626,14 +626,14 @@
       "jsr:@ursamu/cofd-plugin@1.4.1",
       "jsr:@ursamu/combat@0.8.1",
       "jsr:@ursamu/core@1.0.3",
-      "jsr:@ursamu/discord@1.0.4",
+      "jsr:@ursamu/discord@1.0.5",
       "jsr:@ursamu/help@1.2.1",
       "jsr:@ursamu/jobs@1.2.0",
       "jsr:@ursamu/lang-plugin@3.1.1",
       "jsr:@ursamu/mail@2.9.5",
       "jsr:@ursamu/mush@1.0.35",
-      "jsr:@ursamu/site@0.1.88",
-      "jsr:@ursamu/web@0.2.81",
+      "jsr:@ursamu/site@0.1.89",
+      "jsr:@ursamu/web@0.2.82",
       "jsr:@ursamu/wiki@0.2.9",
       "jsr:@zaubrik/djwt@^3.0.2",
       "npm:@digibear/tags@1.0.0",

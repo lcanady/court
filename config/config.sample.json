@@ -19,7 +19,6 @@
       "@ursamu/cofd-plugin",
       "@ursamu/lang-plugin",
       "@ursamu/discord",
-      "@ursamu/vendor",
       "@ursamu/wiki",
       "@ursamu/web",
       "@ursamu/site"
