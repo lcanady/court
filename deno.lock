@@ -7,6 +7,7 @@
     "jsr:@std/fs@0.224": "0.224.0",
     "jsr:@std/path@0.224": "0.224.0",
     "jsr:@std/semver@1": "1.0.8",
+    "jsr:@ursamu/builder@1.3.10": "1.3.10",
     "jsr:@ursamu/channels@1.2.3": "1.2.3",
     "jsr:@ursamu/core@1.0.3": "1.0.3",
     "jsr:@ursamu/discord@1.0.5": "1.0.5",
@@ -15,6 +16,7 @@
     "jsr:@ursamu/help@~0.1.9": "0.1.9",
     "jsr:@ursamu/jobs@1.2.0": "1.2.0",
     "jsr:@ursamu/mail@2.9.5": "2.9.5",
+    "jsr:@ursamu/mush@1": "1.0.35",
     "jsr:@ursamu/mush@1.0.35": "1.0.35",
     "jsr:@ursamu/mush@^1.0.4": "1.0.35",
     "jsr:@ursamu/mushcode@0.7": "0.7.0",
@@ -62,6 +64,15 @@
     },
     "@std/semver@1.0.8": {
       "integrity": "dc830e8b8b6a380c895d53fbfd1258dc253704ca57bbe1629ac65fd7830179b7"
+    },
+    "@ursamu/builder@1.3.10": {
+      "integrity": "0236fc34b8ca7a12a7855445bea41e6cdd3d8829b56987669542882b7855251c",
+      "dependencies": [
+        "jsr:@std/path",
+        "jsr:@ursamu/help@^1.2.1",
+        "jsr:@ursamu/mush@1",
+        "jsr:@ursamu/mush@1.0.35"
+      ]
     },
     "@ursamu/channels@1.2.3": {
       "integrity": "8eeefa26462e540aa3eaea0617f34e34db41d19a40cd0af8e42c81e43bcd4b5e",
@@ -621,7 +632,7 @@
       "jsr:@std/semver@1",
       "jsr:@std/testing@^1.0.17",
       "jsr:@ursamu/bbs@1.2.1",
-      "jsr:@ursamu/builder@1.3.9",
+      "jsr:@ursamu/builder@1.3.10",
       "jsr:@ursamu/channels@1.2.3",
       "jsr:@ursamu/cofd-plugin@1.4.1",
       "jsr:@ursamu/combat@0.8.1",
